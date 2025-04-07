@@ -72,3 +72,19 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
+
+# Pour le projet Python (python-tracker/)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.venv/
+env/
+venv/
+*.log
+
+# Fichiers système
+Thumbs.db
+
+Motion-Party/Library/PackageCache/com.unity.burst/.Runtime/libburst-llvm-16.dylib
