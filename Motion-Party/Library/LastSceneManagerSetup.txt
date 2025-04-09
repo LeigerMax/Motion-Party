@@ -1,5 +1,5 @@
 sceneSetups:
-- path: Assets/Scenes/Tests/Test_S2D_O3D_GrabAndMove.unity
+- path: Assets/Scenes/MiniGames/MiniGame_MusicNote.unity
   isLoaded: 1
   isActive: 1
   isSubScene: 0

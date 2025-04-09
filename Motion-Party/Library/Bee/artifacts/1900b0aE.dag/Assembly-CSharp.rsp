@@ -430,7 +430,13 @@
 "Assets/Scripts/Gameplay/Balloon/BallMovement.cs"
 "Assets/Scripts/Gameplay/Balloon/Balloon.cs"
 "Assets/Scripts/Gameplay/Balloon/BalloonSpawner.cs"
+"Assets/Scripts/Gameplay/MusicNotePress/GameManager.cs"
+"Assets/Scripts/Gameplay/MusicNotePress/HandDataProcessor.cs"
+"Assets/Scripts/Gameplay/MusicNotePress/NoteLightEffect.cs"
+"Assets/Scripts/Gameplay/MusicNotePress/NoteSequenceManager.cs"
+"Assets/Scripts/Gameplay/MusicNotePress/UIManager.cs"
 "Assets/Scripts/Test/DestroyCube.cs"
+"Assets/Scripts/Test/FingerCountDisplay.cs"
 "Assets/Scripts/Test/MoveCube.cs"
 -langversion:9.0
 /deterministic
