@@ -1,16 +1,26 @@
 using UnityEngine;
+using TMPro;
 
 public class NoteLightEffect : MonoBehaviour
 {
     public Light noteLight;         // Lumière attachée à la note
-    public float duration = 0.5f;   // Durée pendant laquelle la lumière reste allumée
+    public float duration = 1f;     // Durée pendant laquelle la lumière reste allumée
     private float timer = 0f;
     private bool isLit = false;
+    public Light auraHighlight;   
+    public GameObject noteNumberObject; 
+    public float numberDisplayTime = 1.5f;
+    private float numberTimer = 0f;
 
     void Start()
     {
         if (noteLight != null)
-            noteLight.enabled = false; // Éteindre la lumière au début
+            noteLight.enabled = false;
+
+        if (auraHighlight != null)
+        {
+            auraHighlight.enabled = false;
+        }
     }
 
     void Update()
@@ -24,6 +34,20 @@ public class NoteLightEffect : MonoBehaviour
                     noteLight.enabled = false;
 
                 isLit = false;
+
+                if (auraHighlight != null)
+                {
+                    auraHighlight.enabled = false;
+                }
+            }
+        }
+
+        if (noteNumberObject != null && noteNumberObject.activeSelf)
+        {
+            numberTimer -= Time.deltaTime;
+            if (numberTimer <= 0f)
+            {
+                noteNumberObject.SetActive(false);
             }
         }
     }
@@ -35,5 +59,25 @@ public class NoteLightEffect : MonoBehaviour
 
         isLit = true;
         timer = duration;
+
+        ShowNoteNumber();
     }
+
+    public void SetAuraActive(bool active)
+    {
+
+        auraHighlight.enabled = active;
+    }
+
+    private void ShowNoteNumber()
+    {
+        if (noteNumberObject != null)
+        {
+            noteNumberObject.SetActive(true);
+            numberTimer = numberDisplayTime;
+        }
+    }
+
+
+
 }

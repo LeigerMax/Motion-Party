@@ -7,6 +7,7 @@ public class GameManager : MonoBehaviour
     public UDPReceive udpReceive;
     public UIManager uiManager;  // Assure-toi que l'UI est bien mis à jour
     public NoteSequenceManager noteSequenceManager; // Référence à NoteSequenceManager
+    public NoteInputManager noteInputManager;
     private int openFingers = 0;
 
     void Update()
@@ -22,8 +23,9 @@ public class GameManager : MonoBehaviour
             // Met à jour l'affichage du nombre de doigts dans l'UI
             uiManager.UpdateFingerCountDisplay(openFingers);
 
-            // Envoie le nombre de doigts à NoteSequenceManager pour vérifier la saisie de l'utilisateur
-            noteSequenceManager.UserInput(openFingers);
+            //noteSequenceManager.PlayNote();
+
+            noteInputManager.UserInput(openFingers);
         }
         catch (System.Exception ex)
         {

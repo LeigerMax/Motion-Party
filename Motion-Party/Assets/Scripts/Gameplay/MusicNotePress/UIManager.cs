@@ -16,7 +16,7 @@ public class UIManager : MonoBehaviour
                 return;
             }
 
-            fingersText.text = "Doigts ouverts: " + openFingers;
+            fingersText.text = ""+openFingers;
         }
         else
         {
