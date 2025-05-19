@@ -1,5 +1,5 @@
 sceneSetups:
-- path: Assets/Scenes/MiniGames/MiniGame_MusicNote.unity
+- path: Assets/Scenes/Tests/Test_S2D_O3D_Destroy.unity
   isLoaded: 1
   isActive: 1
   isSubScene: 0

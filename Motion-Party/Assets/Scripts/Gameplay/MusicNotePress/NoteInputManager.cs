@@ -97,8 +97,7 @@ public class NoteInputManager : MonoBehaviour
             if (userInputs.Count == generatedListNotes.Count)
             {
                 Debug.Log("Séquence complète ! Passer à la suivante...");
-                currentNoteIndex = 0; // Réinitialiser l'index pour la prochaine séquence
-                sequenceManager.PlayNote(); // Lancer une nouvelle séquence
+                StartCoroutine(WaitAndPlayNewSequence(3f)); // Lancer une nouvelle séquence
             }
         }
         else
@@ -108,6 +107,16 @@ public class NoteInputManager : MonoBehaviour
             sequenceManager.PlayNote();
         }
     }
+
+    private IEnumerator WaitAndPlayNewSequence(float delay)
+{
+    yield return new WaitForSeconds(delay);
+    currentFingerCount = -1;
+    validationCoroutine = null;
+    currentNoteIndex = 0;
+    ResetInput(); 
+    sequenceManager.PlayNote();
+}
 
     void ResetInput()
     {
