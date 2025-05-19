@@ -7,33 +7,32 @@ public class NoteInputManager : MonoBehaviour
     public NoteSequenceManager sequenceManager;
     public SpinnerValidator spinner;
 
-
     private List<int> generatedListNotes = new List<int>();
     private List<int> userInputs = new List<int>();
 
     private int currentFingerCount = -1; // Dernier nombre de doigts détecté
-    private Coroutine validationCoroutine; // Coroutine pour valider l'entrée utilisateur
+    private Coroutine validationCoroutine = null; // Coroutine pour valider l'entrée utilisateur
     private int currentNoteIndex = 0;
+    public bool isPlayingSequence = false;
 
     void Start()
     {
         generatedListNotes = sequenceManager.GetGeneratedNotes();
     }
 
-    void Update()
+    public void UserInput(int openFingers)
     {
-        // Logique de mise à jour si nécessaire
-    }
 
-    public void UserInput(int openFingers) 
-    {
+        if (isPlayingSequence) return; 
+
         if (openFingers == 0)
         {
-            spinner.StopValidation(); 
+            spinner.StopValidation();
+            return;
         }
 
         // Ne démarre une validation que si le nombre de doigts a changé et que ce n'est pas 0
-        if (openFingers != currentFingerCount && openFingers != 0 )
+        if (openFingers != currentFingerCount && openFingers != 0)
         {
             currentFingerCount = openFingers;
 
@@ -41,6 +40,7 @@ public class NoteInputManager : MonoBehaviour
             if (validationCoroutine != null)
             {
                 StopCoroutine(validationCoroutine);
+                spinner.StopValidation();
                 Debug.Log("Validation réinitialisée pour : " + openFingers);
             }
 
@@ -53,11 +53,10 @@ public class NoteInputManager : MonoBehaviour
     {
         if (openFingers > 0)
         {
-            spinner.StartValidation(); 
+            spinner.StartValidation();
         }
-        
 
-        float validationTime = 5f;
+        float validationTime = spinner.ValidationTime;
         float elapsedTime = 0f;
 
         // Validation active pendant un certain temps
@@ -67,60 +66,81 @@ public class NoteInputManager : MonoBehaviour
             if (currentFingerCount != openFingers)
             {
                 Debug.Log("Le nombre de doigts a changé. Redémarrage de la validation.");
-                spinner.StopValidation(); // Arrêter le spinner
-                yield break; // Sortir de la coroutine, mais elle sera relancée
+                spinner.StopValidation();
+                yield break;
             }
 
             elapsedTime += Time.deltaTime;
-            yield return null; 
+            yield return null;
         }
+
+        spinner.StopValidation();
 
         // Si le nombre de doigts est resté constant, valider l'entrée
         userInputs.Add(openFingers);
         Debug.Log("Input utilisateur validé : " + openFingers);
 
         CheckUserInput(openFingers);
-        spinner.StopValidation(); // Arrêter le spinner après validation
     }
 
     private void CheckUserInput(int openFingers)
     {
+        if (currentNoteIndex >= generatedListNotes.Count)
+        {
+            Debug.LogWarning("Tentative de lire au-delà de la séquence.");
+            return;
+        }
+    
         // Comparer la note entrée avec la séquence générée
         if (openFingers == generatedListNotes[currentNoteIndex])
         {
             Debug.Log("Note correcte !");
+            sequenceManager.PlayNoteEffect(openFingers - 1);
+    
             currentNoteIndex++;
-
-            sequenceManager.PlayNoteEffect(openFingers - 1); 
-
+    
             // Vérifier si la séquence est terminée
             if (userInputs.Count == generatedListNotes.Count)
             {
-                Debug.Log("Séquence complète ! Passer à la suivante...");
-                StartCoroutine(WaitAndPlayNewSequence(3f)); // Lancer une nouvelle séquence
+                Debug.Log("Séquence réussie");
+                // Notifier le contrôleur principal que la séquence est réussie
+                OnSequenceCompleted?.Invoke(true);
             }
         }
         else
         {
-            Debug.Log("Note incorrecte. Nouvelle séquence !");
-            // Si la note est incorrecte, redémarrer la séquence
-            sequenceManager.PlayNote();
+            Debug.Log("Note incorrecte.");
+            // Notifier le contrôleur principal que la séquence est échouée
+            OnSequenceCompleted?.Invoke(false);
         }
     }
 
     private IEnumerator WaitAndPlayNewSequence(float delay)
-{
-    yield return new WaitForSeconds(delay);
-    currentFingerCount = -1;
-    validationCoroutine = null;
-    currentNoteIndex = 0;
-    ResetInput(); 
-    sequenceManager.PlayNote();
-}
+    {
+        yield return new WaitForSeconds(delay);
+        currentFingerCount = -1;
+        validationCoroutine = null;
+        currentNoteIndex = 0;
+        ResetInput();
+    }
 
-    void ResetInput()
+    public void ResetInput()
     {
         userInputs.Clear();
+        currentNoteIndex = 0;
+        currentFingerCount = -1;
         Debug.Log("Entrées utilisateur réinitialisées.");
     }
+
+    public void PrepareExpectedSequence(List<int> sequence)
+    {
+        userInputs.Clear();
+        currentNoteIndex = 0;
+        generatedListNotes = new List<int>(sequence);
+    }
+
+    
+    // Event pour notifier la fin de la séquence et le résultat
+    public delegate void SequenceCompletedHandler(bool success);
+    public event SequenceCompletedHandler OnSequenceCompleted;
 }

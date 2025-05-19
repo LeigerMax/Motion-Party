@@ -9,8 +9,10 @@ public class FloatingText : MonoBehaviour
 
     void Start()
     {
+
         initialPosition = transform.position + offset;
         transform.position = initialPosition;
+        gameObject.SetActive(false);
     }
 
     void Update()
@@ -18,9 +20,17 @@ public class FloatingText : MonoBehaviour
         transform.position += Vector3.up * floatSpeed * Time.deltaTime;
         lifeTime -= Time.deltaTime;
 
-        if (lifeTime <= 0f){
+        if (lifeTime <= 0f)
+        {
             gameObject.SetActive(false);
             transform.position = initialPosition;
-        }      
+        }
+    }
+    
+    public void ResetAndPlay()
+    {
+        transform.position = initialPosition;
+        lifeTime = 1.5f; 
+        gameObject.SetActive(true);
     }
 }

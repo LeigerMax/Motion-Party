@@ -358,7 +358,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fd99134972afdef4d88fd296878004da, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fingersText: {fileID: 1287537373}
+  fingersCountText: {fileID: 1287537373}
 --- !u!4 &54954917
 Transform:
   m_ObjectHideFlags: 0
@@ -904,13 +904,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 179079660}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d8a152988a300a243b9e24b3bf1d1fd1, type: 3}
+  m_Script: {fileID: 11500000, guid: eea6f875e76ff8844ae906a95fbc02db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   udpReceive: {fileID: 1639685783}
   uiManager: {fileID: 54954916}
   noteSequenceManager: {fileID: 1785851944}
   noteInputManager: {fileID: 1588285901}
+  startDelay: 1
+  maxLevel: 3
+  validationTime: 2
 --- !u!1 &188156779
 GameObject:
   m_ObjectHideFlags: 0
@@ -5951,6 +5954,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sequenceManager: {fileID: 1785851944}
   spinner: {fileID: 1312980267}
+  isPlayingSequence: 0
 --- !u!1 &1596550189
 GameObject:
   m_ObjectHideFlags: 0
@@ -6526,7 +6530,6 @@ MonoBehaviour:
   - {fileID: 1549388990}
   - {fileID: 476912136}
   - {fileID: 334442013}
-  sessionLength: 2
   delayBetweenNotesDisplay: 2
 --- !u!4 &1785851945
 Transform:

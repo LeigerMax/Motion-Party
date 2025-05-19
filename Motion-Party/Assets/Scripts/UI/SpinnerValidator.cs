@@ -4,8 +4,8 @@ using UnityEngine.UI;
 public class SpinnerValidator : MonoBehaviour
 {
     [Header("Validation Progress")]
-    public bool IsValidating = false; // Indique si l'on est en mode validation
-    public float ValidationTime = 5f; // Durée pour valider (en secondes)
+    public bool IsValidating = false; 
+    public float ValidationTime = 3f; // Durée pour valider (en secondes)
     private float currentValidationTime = 0f; // Temps écoulé de la validation
 
     private Image _image;
