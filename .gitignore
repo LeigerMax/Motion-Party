@@ -88,3 +88,8 @@ venv/
 Thumbs.db
 
 Motion-Party/Library/PackageCache/com.unity.burst/.Runtime/libburst-llvm-16.dylib
+
+
+# Fichiers trop volumineux
+python-tracker/quickdraw_data/
+python-tracker/reference_drawings/

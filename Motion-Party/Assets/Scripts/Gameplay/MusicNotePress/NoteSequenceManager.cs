@@ -2,136 +2,115 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class NoteSequenceManager : MonoBehaviour
+public class NoteSequenceManager : MonoBehaviour 
 {
-    public GameObject[] noteObjects;         // Tableau de GameObjects représentant les notes (avec NoteLightEffect)
-    public int sequenceLength = 5;           // Nombre de notes dans la séquence
-    public float delayBetweenNotes = 1.0f;   // Délai entre l'affichage de chaque note
+    public GameObject[] noteObjects;
+    public AudioClip[] noteSounds;
+    public GameObject[] noteNumberObjects;
 
-    private List<int> currentSequence = new List<int>(); // Séquence générée
-    private List<int> userSequence = new List<int>();   // Séquence de l'utilisateur
-    private bool isUserTurn = false;           // Indicateur si c'est au tour de l'utilisateur de jouer
-    private int currentNoteIndex = 0;         // Indice de la note actuelle dans la séquence
+    public float delayBetweenNotesDisplay = 1f;
 
-    void Start()
+    private List<int> generatedListNotes = new List<int>();
+
+    public void LoadSequence(int noteCount)
     {
-        GenerateSequence();
-        StartCoroutine(PlaySequence());
+        GenerateNotes(noteCount);
+        Debug.Log("Generated Notes: " + string.Join(", ", generatedListNotes));
     }
 
-    // Génère une séquence aléatoire de notes
-    public void GenerateSequence()
+    public IEnumerator PlaySequenceCoroutine()
     {
-        currentSequence.Clear();
+        SetPlayerTurnVisual(false);
 
-        if (noteObjects == null || noteObjects.Length == 0)
+        foreach (int noteIndex in generatedListNotes)
         {
-            Debug.LogError("Aucune note n'est assignée dans 'noteObjects' !");
-            return;
+            int realIndex = noteIndex - 1;
+            PlayNoteEffect(realIndex);
+            yield return new WaitForSeconds(delayBetweenNotesDisplay);
         }
 
-        for (int i = 0; i < sequenceLength; i++)
+        SetPlayerTurnVisual(true);
+    }
+
+    // Fonction pour générer une séquence de notes aléatoires
+    public void GenerateNotes(int noteCount)
+    {
+        generatedListNotes.Clear();
+        for (int i = 0; i < noteCount; i++)
         {
-            int randomIndex = Random.Range(1,6);
-            currentSequence.Add(randomIndex);
-            Debug.Log("Note ajoutée à la séquence : " + randomIndex);
+            generatedListNotes.Add(Random.Range(1, 6));
         }
     }
 
-    // Joue visuellement la séquence avec effets de lumière
-    public IEnumerator PlaySequence()
+    public List<int> GetGeneratedNotes()
     {
-        yield return new WaitForSeconds(1f); // Petite pause avant de commencer
+        return generatedListNotes;
+    }
+    
 
-        foreach (int index in currentSequence)
+    public void SetPlayerTurnVisual(bool isPlayerTurn)
+    {
+        foreach (GameObject note in noteObjects)
         {
-            GameObject note = noteObjects[index];
-
-            // Allume la lumière sur la note
-            NoteLightEffect effect = note.GetComponent<NoteLightEffect>();
+            var effect = note.GetComponent<NoteLightEffect>();
             if (effect != null)
-                effect.PlayNoteEffect();
-
-            // Attendre avant la note suivante
-            yield return new WaitForSeconds(delayBetweenNotes);
+                effect.SetAuraActive(isPlayerTurn);
         }
-
-        // Après la séquence, commence le tour de l'utilisateur
-        Debug.Log("Séquence jouée, à toi de jouer !");
-        isUserTurn = true;
-
-        // Démarre le processus où l'utilisateur doit reproduire la séquence
-        StartCoroutine(UserTurn());
     }
 
-    // Reproduit la séquence par l'utilisateur
-    private IEnumerator UserTurn()
+    public void PlayNoteEffect(int realIndex)
     {
-        userSequence.Clear();
-        currentNoteIndex = 0;  // Commence à la première note
-
-        while (currentNoteIndex < currentSequence.Count)
+        if (realIndex >= 0 && realIndex < noteObjects.Length)
         {
-            // Attend que l'utilisateur entre le bon nombre de doigts pour cette note
-            bool noteValidated = false;
-
-            while (!noteValidated)
-            {
-                // Attend que l'utilisateur entre une donnée
-                if (userSequence.Count > currentNoteIndex)
-                {
-                    int userFingerCount = userSequence[currentNoteIndex];
-                    if (userFingerCount == currentSequence[currentNoteIndex])
-                    {
-                        noteValidated = true;
-                        Debug.Log("Note " + (currentNoteIndex + 1) + " validée !");
-                    }
-                }
-                yield return null;  // Attendre jusqu'à la prochaine frame
-            }
-
-            // Si la note est validée, passe à la suivante
-            currentNoteIndex++;
+            GameObject note = noteObjects[realIndex];
+            note.GetComponent<NoteLightEffect>().PlayNoteEffect();
+            PlayNoteSound(realIndex, note);
+            ShowNoteNumber(realIndex);
         }
+    }
 
-        // Après que l'utilisateur ait fini de jouer toutes les notes
-        if (userSequence.Count == currentSequence.Count && IsSequenceCorrect())
+    private void PlayNoteSound(int index, GameObject note)
+    {
+        AudioSource audioSource = note.GetComponent<AudioSource>();
+        if (audioSource == null)
         {
-            Debug.Log("Séquence validée !");
-            GenerateSequence();  // Nouvelle séquence générée
-            StartCoroutine(PlaySequence());  // Rejouer la séquence
+            audioSource = note.AddComponent<AudioSource>();
+            audioSource.playOnAwake = false;
+            //Debug.LogWarning($"AudioSource ajouté sur {note.name}");
         }
         else
         {
-            Debug.Log("Mauvaise séquence, essaie encore !");
+            audioSource.playOnAwake = false;
+        }
+    
+        if (index < noteSounds.Length && noteSounds[index] != null)
+        {
+            audioSource.clip = noteSounds[index];
+            audioSource.Play();
+        }
+        else
+        {
+            Debug.LogWarning($"Pas de son assigné pour l'index {index}.");
         }
     }
 
-    // Vérifie si la séquence de l'utilisateur est correcte
-    private bool IsSequenceCorrect()
+    private void ShowNoteNumber(int index)
     {
-        for (int i = 0; i < currentSequence.Count; i++)
+        if (index < noteNumberObjects.Length && noteNumberObjects[index] != null)
         {
-            if (userSequence[i] != currentSequence[i])
+            GameObject numberObj = noteNumberObjects[index];
+            FloatingText floatingText = numberObj.GetComponent<FloatingText>();
+    
+            if (floatingText != null)
             {
-                return false;
+                // Réinitialiser l'animation et activer l'objet
+                floatingText.ResetAndPlay();
+            }
+            else
+            {
+                Debug.LogWarning("FloatingText script is missing on the object: " + numberObj.name);
             }
         }
-        return true;
     }
-
-    // Cette fonction doit être appelée lorsqu'un utilisateur lève ses doigts
-    public void UserInput(int fingerCount)
-    {
-        if (isUserTurn && currentNoteIndex < currentSequence.Count)
-        {
-            userSequence.Add(fingerCount);
-        }
-    }
-
-    // Pour accéder à la séquence actuelle (ex: pour vérifier la réponse du joueur)
-    public List<int> GetCurrentSequence()
-    {
-        return currentSequence;
-    }
+    
 }

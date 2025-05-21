@@ -11,12 +11,12 @@ public class HandDataProcessor : MonoBehaviour
             HandData handData = JsonUtility.FromJson<HandData>(data);
             if (handData != null)
             {
-                OpenFingers = Mathf.Clamp(handData.open_fingers, 0, 5); // Assurer que la valeur est dans une plage valide
+                OpenFingers = Mathf.Clamp(handData.open_fingers, 0, 5);
             }
         }
         catch (System.Exception e)
         {
-            Debug.LogError("Erreur lors du traitement des données de la main: " + e.Message);
+            Debug.LogError($"Erreur lors du traitement des données de la main: {e.Message}");
         }
     }
 
