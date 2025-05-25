@@ -78,14 +78,14 @@ def delete_reference_images(label, path="reference_drawings"):
         if filename.startswith(label) and filename.endswith(".png"):
             os.remove(os.path.join(abs_path, filename))
             deleted += 1
-    print(f"🗑️ {deleted} images '{label}' supprimées de {abs_path}")
+    print(f" {deleted} images '{label}' supprimées de {abs_path}")
 
-print(f"📝 Dessine un(e) {chosen_object} sur une feuille blanche et montre-le à la caméra !")
+print(f" Dessine un(e) {chosen_object} sur une feuille blanche et montre-le à la caméra !")
 generate_reference_images(label=chosen_object, n=500)
 reference_images = load_reference_images()
 
 cap = cv2.VideoCapture(0)
-print(f"� Place ton dessin de {chosen_object} devant la caméra. Appuie sur 'v' pour valider, 'q' pour quitter.")
+print(f"Place ton dessin de {chosen_object} devant la caméra. Appuie sur 'v' pour valider, 'q' pour quitter.")
 
 validated = False
 while not validated:
@@ -108,20 +108,20 @@ while not validated:
         break
     elif key == ord('v'):
         if not is_drawing_sufficient(user_input):
-            print("✍️ Dessin trop vide ou mal détecté. Essaie encore !")
+            print(" Dessin trop vide ou mal détecté. Essaie encore !")
             continue
 
         best_label, confidence = find_best_match(user_input, reference_images, chosen_object)
         print(f"Score de similarité max : {confidence:.2f}")
         if best_label is not None and confidence >= SIMILARITY_THRESHOLD and best_label.startswith(chosen_object):
-            print(f"🧠 Bravo ! {chosen_object.capitalize()} reconnu ({best_label}, confiance : {confidence:.2f})")
+            print(f" Bravo ! {chosen_object.capitalize()} reconnu ({best_label}, confiance : {confidence:.2f})")
             cv2.putText(frame, f"{chosen_object.capitalize()} valide !", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 2)
             cv2.imshow("Camera", frame)
             cv2.waitKey(1500)
             delete_reference_images(label=chosen_object)
             validated = True
         else:
-            print("❌ Essaie encore !")
+            print(" Essaie encore !")
 
 cap.release()
 cv2.destroyAllWindows()

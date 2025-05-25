@@ -130,6 +130,7 @@
 -define:CSHARP_7_OR_LATER
 -define:CSHARP_7_3_OR_NEWER
 -define:UNITY_EDITOR_ONLY_COMPILATION
+-r:"Assets/ThirdParty/Zip/Ionic.Zip.Unity.dll"
 -r:"F:/Programmes/Unity/6000.0.33f1/Editor/Data/Managed/UnityEditor.Graphs.dll"
 -r:"F:/Programmes/Unity/6000.0.33f1/Editor/Data/Managed/UnityEngine/UnityEditor.AccessibilityModule.dll"
 -r:"F:/Programmes/Unity/6000.0.33f1/Editor/Data/Managed/UnityEngine/UnityEditor.AdaptivePerformanceModule.dll"
