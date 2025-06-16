@@ -56,6 +56,14 @@
       "version": "1.0.0",
       "source": "builtin"
     },
+    "com.unity.muse.chat@1.1.1-pre.4": {
+      "name": "com.unity.muse.chat",
+      "resolvedPath": "F:\\Projets\\Motion-Party\\Motion-Party\\Library\\PackageCache\\com.unity.muse.chat",
+      "fingerprint": "eb5ad52c831e9b7e253bec6a62364388cd85638b",
+      "editorCompatibility": "2022.3.26f1",
+      "version": "1.1.1-pre.4",
+      "source": "registry"
+    },
     "com.unity.nuget.newtonsoft-json@3.2.1": {
       "name": "com.unity.nuget.newtonsoft-json",
       "resolvedPath": "F:\\Projets\\Motion-Party\\Motion-Party\\Library\\PackageCache\\com.unity.nuget.newtonsoft-json",
@@ -339,6 +347,22 @@
       "editorCompatibility": "6000.0.0a1",
       "version": "17.0.3",
       "source": "builtin"
+    },
+    "com.unity.muse.common@2.0.10": {
+      "name": "com.unity.muse.common",
+      "resolvedPath": "F:\\Projets\\Motion-Party\\Motion-Party\\Library\\PackageCache\\com.unity.muse.common",
+      "fingerprint": "b1b2a854b73ea6821c97237851e96a66c34128be",
+      "editorCompatibility": "2022.3.0a1",
+      "version": "2.0.10",
+      "source": "registry"
+    },
+    "com.unity.serialization@3.1.2": {
+      "name": "com.unity.serialization",
+      "resolvedPath": "F:\\Projets\\Motion-Party\\Motion-Party\\Library\\PackageCache\\com.unity.serialization",
+      "fingerprint": "582cbf30bbfd3c90a738e49c2ad69eafd8803f1d",
+      "editorCompatibility": "2022.2.0a18",
+      "version": "3.1.2",
+      "source": "registry"
     },
     "com.unity.searcher@4.9.2": {
       "name": "com.unity.searcher",
