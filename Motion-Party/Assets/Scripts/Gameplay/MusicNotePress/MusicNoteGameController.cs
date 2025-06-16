@@ -98,6 +98,8 @@ public class MusicNoteGameController : MiniGameBase
 
     private void InitGame()
     {
+        SpeechSystemSingleton.Vosk.StartVoskStt();
+        
         Debug.Log("Initialisation du mini-jeu...");
 
         if (noteInputManager == null)
@@ -180,11 +182,11 @@ public class MusicNoteGameController : MiniGameBase
             }
         }
     }
-    
+
     private IEnumerator DelayAndLaunchLevel()
     {
         yield return new WaitForSeconds(delayBetweenLevels);
         LaunchLevel();
     }
-
+    
 }

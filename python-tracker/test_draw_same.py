@@ -134,13 +134,13 @@ def load_reference_images(path="reference_drawings"):
             refs.append(img)
     return refs
 
-print(f"📝 Génération des images de référence pour '{chosen_object}'...")
+print(f"Génération des images de référence pour '{chosen_object}'...")
 generate_reference_images(label=chosen_object, n=500)
 reference_images = load_reference_images()
 
 reference_img = random.choice(reference_images)
 cv2.imshow("Dessin à reproduire", reference_img)
-print("👉 Reproduis ce dessin le plus fidèlement possible dans la fenêtre de dessin.")
+print("Reproduis ce dessin le plus fidèlement possible dans la fenêtre de dessin.")
 
 cv2.namedWindow(WINDOW_NAME)
 cv2.setMouseCallback(WINDOW_NAME, draw)
@@ -159,11 +159,11 @@ while not validated:
     elif key == ord('v'):
         user_input = cv2.resize(canvas, (CANVAS_SIZE, CANVAS_SIZE))
         if not is_drawing_sufficient(user_input):
-            print("✍️ Dessin trop vide. Essaie de faire quelque chose de plus visible !")
+            print("Dessin trop vide. Essaie de faire quelque chose de plus visible !")
             continue
 
         score = best_aligned_score(user_input, reference_img)
-        print(f"🎯 Score de fidélité (ajusté) : {score:.4f} (1.00 = identique)")
+        print(f"Score de fidélité (ajusté) : {score:.4f} (1.00 = identique)")
 
         cv2.putText(canvas, f"Score : {score:.2f}", (10, 290), cv2.FONT_HERSHEY_SIMPLEX, 0.7, 128, 2)
         cv2.imshow(WINDOW_NAME, canvas)

@@ -98,7 +98,7 @@ def delete_reference_images(label, path="reference_drawings"):
         if filename.startswith(label) and filename.endswith(".png"):
             os.remove(os.path.join(abs_path, filename))
             deleted += 1
-    print(f"🗑️ {deleted} images '{label}' supprimées de {abs_path}")
+    print(f"{deleted} images '{label}' supprimées de {abs_path}")
 
 # Génération des images de l'objet choisi
 print(f"📝 Dessine un(e) {chosen_object} ! Génération des images de référence...")
@@ -108,7 +108,7 @@ reference_images = load_reference_images()
 cv2.namedWindow("Dessine ici")
 cv2.setMouseCallback("Dessine ici", draw)
 
-print(f"🎨 Dessine un(e) {chosen_object} avec la souris. Appuie sur 'v' pour valider, 'c' pour effacer, 'q' pour quitter.")
+print(f"Dessine un(e) {chosen_object} avec la souris. Appuie sur 'v' pour valider, 'c' pour effacer, 'q' pour quitter.")
 
 validated = False
 while not validated:
@@ -122,19 +122,19 @@ while not validated:
     elif key == ord('v'):
         user_input = cv2.resize(canvas, (CANVAS_SIZE, CANVAS_SIZE))
         if not is_drawing_sufficient(user_input):
-            print("✍️ Dessin trop vide. Essaie de faire quelque chose de plus visible !")
+            print("Dessin trop vide. Essaie de faire quelque chose de plus visible !")
             continue
 
         best_label, confidence = find_best_match(user_input, reference_images, chosen_object)
         print(f"Score de similarité max : {confidence:.2f}")
         if best_label is not None and confidence >= SIMILARITY_THRESHOLD and best_label.startswith(chosen_object):
-            print(f"🧠 Bravo ! {chosen_object.capitalize()} reconnue ({best_label}, confiance : {confidence:.2f})")
+            print(f" Bravo ! {chosen_object.capitalize()} reconnue ({best_label}, confiance : {confidence:.2f})")
             cv2.putText(canvas, f"{chosen_object.capitalize()} validee !", (10, 290), cv2.FONT_HERSHEY_SIMPLEX, 0.7, 128, 2)
             cv2.imshow("Dessine ici", canvas)
             cv2.waitKey(1500)
             delete_reference_images(label=chosen_object)
             validated = True
         else:
-            print("❌ Essaie encore !")
+            print("Essaie encore !")
 
 cv2.destroyAllWindows()
