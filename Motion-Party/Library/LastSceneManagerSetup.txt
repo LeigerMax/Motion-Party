@@ -1,5 +1,5 @@
 sceneSetups:
-- path: Assets/Scenes/MiniGameManager.unity
+- path: Assets/Scenes/MiniGames/MiniGame_LogParade.unity
   isLoaded: 1
   isActive: 1
   isSubScene: 0
