@@ -4,9 +4,146 @@
 
 **"Le Défilé des Rondins"** est un mini-jeu de tracking latéral où le joueur se déplace physiquement de gauche à droite devant une webcam pour contrôler un avatar sur 4 voies verticales à l'écran. Le système utilise les données MediaPipe pour détecter la position latérale du joueur et mapper cette position sur les voies.
 
+### ✨ **Version 1.2 - Calibration avancée et lanes manuelles**
+
+- **🎯 Calibration basée sur la caméra** : Paramètres `cameraInputWidth` et `cameraInputHeight` pour s'adapter à la taille réelle de l'image MediaPipe
+- **� Guide de calibration central** : Affichage automatique d'un guide visuel pour placer le joueur au centre
+- **📏 Zone morte centrale** : Paramètre `centralDeadZone` pour éviter les micro-mouvements près du centre
+- **🏗️ Lanes manuelles** : Plus de génération automatique - utilise les lanes placées manuellement dans la scène Unity
+- **🛡️ Validation temporelle robuste** : Maintenir la position pendant 1s avant changement de voie (configurable)
+- **�‍⚕️ Ergonomie senior** : Tracking par la tête (landmark 0), seuils adaptés aux personnes âgées
+- **🔧 Recalibrage manuel** : Bouton dans l'UI pour recalibrer à tout moment
+
 ---
 
-## 📁 Scripts créés
+## 📋 Configuration de la caméra MediaPipe
+
+### Paramètres essentiels dans `LogParadeLateralTracker` :
+
+```csharp
+[Header("Camera Calibration")]
+public int cameraInputWidth = 640;   // Largeur de l'image MediaPipe
+public int cameraInputHeight = 480;  // Hauteur de l'image MediaPipe
+public float trackingScale = 1.0f;   // Facteur d'échelle pour le tracking
+public float centralDeadZone = 30f;  // Zone morte centrale (en pixels)
+```
+
+### Adaptation à votre caméra :
+
+1. **Vérifiez la taille de votre caméra** : Les webcams communes utilisent 640x480, 1280x720 ou 1920x1080
+2. **Ajustez `cameraInputWidth` et `cameraInputHeight`** selon votre caméra
+3. **Adaptez `trackingScale`** : 
+   - `< 1.0` pour réduire la sensibilité (caméra très large)
+   - `> 1.0` pour augmenter la sensibilité (caméra étroite)
+4. **Configurez `centralDeadZone`** : Plus élevé = moins sensible aux micro-mouvements
+
+---
+
+## 🏗️ Configuration des lanes manuelles
+
+### ⚠️ Important : Plus de génération automatique !
+
+Le système utilise désormais **uniquement les lanes placées manuellement** dans la scène Unity.
+
+### Étapes pour configurer les lanes :
+
+1. **Créez 4 objets GameObject** dans votre scène pour représenter les voies :
+   ```
+   Lane1_Left      (Position X : -3)
+   Lane2_CenterL   (Position X : -1)  
+   Lane3_CenterR   (Position X : +1)
+   Lane4_Right     (Position X : +3)
+   ```
+
+2. **Personnalisez chaque lane** :
+   - Ajoutez un modèle 3D, Sprite, ou forme primitive
+   - Configurez les matériaux et couleurs selon votre design
+   - Positionnez-les précisément selon votre gameplay
+
+3. **Assignez dans LogParadeLaneVisualizer** :
+   - Sélectionnez l'objet avec le script `LogParadeLaneVisualizer`
+   - Dans l'inspecteur, assignez les 4 lanes dans le tableau `manualLanes[]`
+   - Ordre : [0] = Lane 1 (gauche), [1] = Lane 2, [2] = Lane 3, [3] = Lane 4 (droite)
+
+### Validation et test :
+
+4. **Vérifiez dans la console Unity** :
+   ```
+   ✅ Toutes les lanes manuelles sont correctement assignées !
+   ```
+   Si erreur :
+   ```
+   🚨 Lane manuelle X n'est pas assignée dans LogParadeLaneVisualizer !
+   ```
+
+5. **Test avec Gizmos** : En mode Scene, vous devriez voir des wireframes colorés aux positions des lanes avec leurs numéros
+
+### Avantages des lanes manuelles :
+
+- ✅ **Contrôle total** sur le design et positionnement
+- ✅ **Pas d'écrasement** de votre travail artistique  
+- ✅ **Flexibilité** : différentes formes, tailles, matériaux
+- ✅ **Réutilisabilité** : même setup pour tous les niveaux
+
+---
+
+## 🎯 Système de calibration avancé
+
+### Calibration automatique au lancement :
+
+1. **Guide visuel central** : S'affiche automatiquement pendant 3s au démarrage
+2. **Instructions claires** : "🎯 Placez-vous au CENTRE et restez immobile !"
+3. **Détection automatique** : 
+   - Position centrale (`baseX`)
+   - Bornes min/max observées
+   - Largeur effective de tracking
+4. **Validation** : Message "✅ Calibration terminée - Prêt à jouer !"
+
+### Paramètres de calibration :
+
+```csharp
+[Header("Calibration")]
+public bool enableAutoCalibration = true;        // Active la calibration automatique
+public float calibrationTime = 3.0f;             // Durée de calibration (secondes)
+public bool continuousCalibration = true;        // Ajustement continu du centre
+public bool showCenterGuide = true;              // Affiche le guide visuel central
+```
+
+### Recalibrage manuel :
+
+- **Bouton dans l'UI** : "🔄 Recalibrer"
+- **Méthode code** : `lateralTracker.Recalibrate()`
+- **Raccourci debug** : Bouton dans le panneau de debug OnGUI
+
+---
+
+## 🛡️ Système de validation temporelle
+
+### Comment ça fonctionne :
+
+1. **Détection de mouvement** : Le joueur bouge vers une nouvelle zone
+2. **Seuil minimum** : Le mouvement doit dépasser `laneChangeThreshold` (défaut: 0.3)
+3. **Validation temporelle** : Maintenir la position pendant `laneChangeValidationTime` (défaut: 1.0s)
+4. **Confirmation** : Changement de voie appliqué seulement après validation
+
+### Paramètres configurables :
+
+```csharp
+[Header("Lane Change Sensitivity")]
+public float laneChangeValidationTime = 1.0f;    // Temps de validation (secondes)
+public float laneChangeThreshold = 0.3f;         // Seuil minimum de mouvement
+public bool requireLaneChangeValidation = true;   // Activer/désactiver la validation
+```
+
+### Interface utilisateur :
+
+- **Prévisualisation en temps réel** : Barre de progression du changement en cours
+- **Couleurs distinctes** : Chaque voie a sa couleur (Rouge, Jaune, Vert, Bleu)
+- **Annulation** : Si le joueur revient en arrière, la validation s'annule
+
+---
+
+## 📋 Scripts créés
 
 ### Scripts principaux
 
@@ -228,6 +365,107 @@ Le script `python-tracker/main.py` envoie déjà les bonnes données :
 ### 4. Debug
 - Activer "Show Debug Info" dans les composants
 - Utiliser le Toggle Debug dans l'UI pour voir les informations détaillées
+
+---
+
+## ⚙️ Paramètres recommandés
+
+### Pour public senior (personnes âgées) :
+
+```csharp
+// LogParadeLateralTracker
+[Header("Camera Calibration")]
+cameraInputWidth = 640;              // Résolution standard
+cameraInputHeight = 480;
+trackingScale = 1.2f;                // Plus de sensibilité pour compenser les petits mouvements
+centralDeadZone = 40f;               // Zone morte plus large
+
+[Header("Lane Change Sensitivity")] 
+laneChangeValidationTime = 1.5f;     // Plus de temps pour valider (1.5s)
+laneChangeThreshold = 0.4f;          // Seuil plus élevé pour éviter les changements accidentels
+requireLaneChangeValidation = true;  // OBLIGATOIRE pour ce public
+
+[Header("Tracking Settings")]
+smoothingFactor = 0.9f;              // Lissage plus fort pour éviter les tremblements
+```
+
+### Pour public jeune/gaming :
+
+```csharp
+// LogParadeLateralTracker  
+trackingScale = 0.8f;                // Moins sensible (mouvements plus larges)
+centralDeadZone = 20f;               // Zone morte plus petite
+laneChangeValidationTime = 0.5f;     // Validation plus rapide
+laneChangeThreshold = 0.2f;          // Seuil plus bas (réactif)
+smoothingFactor = 0.7f;              // Moins de lissage (plus réactif)
+```
+
+### Configuration caméra selon le setup :
+
+| Type de caméra | Résolution | trackingScale | centralDeadZone |
+|----------------|------------|---------------|-----------------|
+| Webcam standard | 640x480 | 1.0f | 30f |
+| Webcam HD | 1280x720 | 0.8f | 50f |
+| Webcam Full HD | 1920x1080 | 0.6f | 70f |
+| Projection/TV | 640x480 | 1.5f | 25f |
+
+### Lanes manuelles - Positionnement recommandé :
+
+```
+Écran 16:9 standard :
+Lane1_Left    : X = -4.0f
+Lane2_CenterL : X = -1.3f  
+Lane3_CenterR : X = +1.3f
+Lane4_Right   : X = +4.0f
+
+Projection large (4:3) :
+Lane1_Left    : X = -3.0f
+Lane2_CenterL : X = -1.0f
+Lane3_CenterR : X = +1.0f  
+Lane4_Right   : X = +3.0f
+```
+
+---
+
+## 🔧 Diagnostic et résolution de problèmes
+
+### ❌ "Changements de voie trop rapides"
+- ✅ Augmenter `laneChangeValidationTime` (1.5s ou plus)
+- ✅ Augmenter `laneChangeThreshold` (0.4f ou plus)
+- ✅ Augmenter `centralDeadZone` (40f ou plus)
+- ✅ Diminuer `trackingScale` (0.8f ou moins)
+
+### ❌ "Avatar ne bouge pas assez"
+- ✅ Diminuer `laneChangeThreshold` (0.2f)
+- ✅ Augmenter `trackingScale` (1.2f ou plus)
+- ✅ Vérifier la calibration (bouton "Recalibrer")
+- ✅ Vérifier la résolution caméra (`cameraInputWidth/Height`)
+
+### ❌ "Lanes non trouvées"
+- ✅ Vérifier que les 4 GameObjects sont assignés dans `LogParadeLaneVisualizer.manualLanes[]`
+- ✅ Les lanes doivent être actives dans la hiérarchie
+- ✅ Vérifier dans la console : doit afficher "✅ Toutes les lanes manuelles sont correctement assignées !"
+
+### ❌ "Données MediaPipe non reçues"
+- ✅ Vérifier que le script Python envoie sur le port 5052
+- ✅ Vérifier l'IP (127.0.0.1 pour local)
+- ✅ Tester avec le simulateur (`LogParadeInputSimulator`) d'abord
+
+---
+
+## 📈 Évolutions possibles
+
+### Version future 1.3 :
+- **Multijoueur** : Support de plusieurs trackings simultanés
+- **Zones de score** : Points selon la précision du positionnement  
+- **Obstacles dynamiques** : Rondins qui se déplacent
+- **Modes de difficulté** : Paramètres automatiques selon l'âge/compétences
+- **Feedback haptic** : Vibrations pour les changements de voie
+- **Analytics** : Collecte de données sur la précision des joueurs
+
+---
+
+*Dernière mise à jour : Version 1.2 - Calibration avancée et lanes manuelles*
 - Observer les Gizmos dans la Scene View pour visualiser les voies
 - Interface du simulateur pour tests rapides
 - **Interface Debug du tracker** : Affiche la source utilisée ("Head (Pose)" ou "Hand (Fallback)")
@@ -344,3 +582,15 @@ Dans l'interface debug de `LogParadeLateralTracker`, vérifiez que :
 ---
 
 Cette première version se concentre sur le tracking et l'avatar. Le système est prêt pour accueillir la logique de gameplay (rondins, scores, etc.) dans les versions suivantes.
+
+### **2. Configuration de la sensibilité (NOUVEAU)**
+
+Dans l'inspecteur de `LogParadeLateralTracker` :
+- **Lane Change Validation Time** : 1.0f (temps requis pour valider un changement)
+- **Lane Change Threshold** : 0.3f (seuil minimum de mouvement)
+- **Require Lane Change Validation** : true (activer la validation temporelle)
+
+**Recommandations par public :**
+- **Personnes âgées** : Validation Time = 1.5s, Threshold = 0.5f
+- **Tests rapides** : Validation Time = 0.3s, Threshold = 0.1f
+- **Enfants** : Validation Time = 0.8s, Threshold = 0.2f

@@ -1,19 +1,18 @@
 using UnityEngine;
 
 /// <summary>
-/// Composant helper pour visualiser les 4 voies dans la scène Unity
-/// À attacher à un GameObject parent qui contiendra les indicateurs visuels des voies
+/// Composant helper pour référencer les 4 voies manuellement placées dans la scène Unity
+/// Version 1.2 - NE GÉNÈRE PLUS automatiquement, utilise les lanes existantes
 /// </summary>
 public class LogParadeLaneVisualizer : MonoBehaviour
 {
-    [Header("Lane Visualization")]
-    public float laneWidth = 2f;
-    public float laneLength = 20f;
-    public float laneHeight = 0.1f;
-    public Vector3 basePosition = Vector3.zero;
+    [Header("Manual Lane References")]
+    [Tooltip("Assignez manuellement les 4 lanes existantes dans la scène")]
+    public Transform[] manualLanes = new Transform[4];
     
-    [Header("Visual Settings")]
-    public Material laneMaterial;
+    [Header("Lane Highlighting")]
+    public Material activeLaneMaterial;
+    public Material inactiveLaneMaterial;
     public Color[] laneColors = new Color[4] 
     { 
         Color.red,      // Voie 1 - Gauche
@@ -22,187 +21,180 @@ public class LogParadeLaneVisualizer : MonoBehaviour
         Color.blue      // Voie 4 - Droite
     };
     
-    [Header("Auto-Generate")]
-    [SerializeField] private bool autoGenerateInEditor = true;
+    [Header("Debug")]
+    public bool showLaneDebug = true;
     
-    private GameObject[] laneObjects = new GameObject[4];
+    private Renderer[] laneRenderers = new Renderer[4];
+    private int currentActiveLane = -1;
 
     void Start()
     {
+        // Ne plus générer automatiquement - utiliser les références manuelles
         if (Application.isPlaying)
         {
-            GenerateLanes();
+            ValidateManualLanes();
+            InitializeLaneRenderers();
         }
     }
 
     /// <summary>
-    /// Génère les objets visuels pour chaque voie
+    /// Valide que toutes les lanes manuelles sont assignées
     /// </summary>
-    [ContextMenu("Generate Lanes")]
-    public void GenerateLanes()
+    private void ValidateManualLanes()
     {
-        // Nettoyer les voies existantes
-        ClearLanes();
-        
+        bool allAssigned = true;
         for (int i = 0; i < 4; i++)
         {
-            CreateLaneObject(i + 1);
-        }
-        
-        Debug.Log("Voies générées pour LogParade");
-    }
-    
-    /// <summary>
-    /// Supprime tous les objets de voie
-    /// </summary>
-    [ContextMenu("Clear Lanes")]
-    public void ClearLanes()
-    {
-        for (int i = 0; i < 4; i++)
-        {
-            if (laneObjects[i] != null)
+            if (manualLanes[i] == null)
             {
-                if (Application.isPlaying)
-                    Destroy(laneObjects[i]);
-                else
-                    DestroyImmediate(laneObjects[i]);
-                    
-                laneObjects[i] = null;
+                Debug.LogError($"🚨 Lane manuelle {i + 1} n'est pas assignée dans LogParadeLaneVisualizer !");
+                allAssigned = false;
             }
         }
-    }
-    
-    /// <summary>
-    /// Crée un objet visuel pour une voie spécifique
-    /// </summary>
-    private void CreateLaneObject(int laneNumber)
-    {
-        int index = laneNumber - 1;
         
-        // Créer le GameObject
-        GameObject laneObj = new GameObject($"Lane_{laneNumber}");
-        laneObj.transform.SetParent(transform);
-        
-        // Calculer la position de la voie
-        Vector3 lanePosition = CalculateLanePosition(laneNumber);
-        laneObj.transform.position = lanePosition;
-        
-        // Ajouter un cube pour représenter la voie
-        GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        cube.transform.SetParent(laneObj.transform);
-        cube.transform.localPosition = Vector3.zero;
-        cube.transform.localScale = new Vector3(0.5f, laneHeight, laneLength);
-        cube.name = "LaneVisual";
-        
-        // Configurer le matériau et la couleur
-        Renderer renderer = cube.GetComponent<Renderer>();
-        if (laneMaterial != null)
+        if (allAssigned && showLaneDebug)
         {
-            renderer.material = new Material(laneMaterial);
+            Debug.Log("✅ Toutes les lanes manuelles sont correctement assignées !");
         }
-        renderer.material.color = laneColors[index];
-        
-        // Ajouter un label pour identifier la voie
-        CreateLaneLabel(laneObj, laneNumber);
-        
-        // Stocker la référence
-        laneObjects[index] = laneObj;
     }
-    
+
     /// <summary>
-    /// Crée un label 3D pour identifier la voie
+    /// Initialise les renderers des lanes pour le highlighting
     /// </summary>
-    private void CreateLaneLabel(GameObject parent, int laneNumber)
-    {
-        GameObject labelObj = new GameObject($"Lane_{laneNumber}_Label");
-        labelObj.transform.SetParent(parent.transform);
-        labelObj.transform.localPosition = Vector3.up * 2f;
-        
-        // Ajouter TextMesh
-        TextMesh textMesh = labelObj.AddComponent<TextMesh>();
-        textMesh.text = $"VOIE {laneNumber}";
-        textMesh.fontSize = 20;
-        textMesh.color = laneColors[laneNumber - 1];
-        textMesh.anchor = TextAnchor.MiddleCenter;
-        textMesh.alignment = TextAlignment.Center;
-        
-        // Faire face à la caméra
-        labelObj.transform.rotation = Quaternion.LookRotation(Vector3.forward);
-    }
-    
-    /// <summary>
-    /// Calcule la position d'une voie donnée
-    /// Utilise la même logique que LogParadePlayerAvatar
-    /// </summary>
-    private Vector3 CalculateLanePosition(int lane)
-    {
-        // Convertir le numéro de voie (1-4) en offset X
-        // Voie 1 = le plus à gauche, Voie 4 = le plus à droite
-        float xOffset = (lane - 2.5f) * laneWidth;
-        return basePosition + Vector3.right * xOffset;
-    }
-    
-    /// <summary>
-    /// Met en surbrillance une voie spécifique
-    /// </summary>
-    public void HighlightLane(int laneNumber)
+    private void InitializeLaneRenderers()
     {
         for (int i = 0; i < 4; i++)
         {
-            if (laneObjects[i] != null)
+            if (manualLanes[i] != null)
             {
-                Renderer renderer = laneObjects[i].GetComponentInChildren<Renderer>();
-                if (renderer != null)
+                laneRenderers[i] = manualLanes[i].GetComponent<Renderer>();
+                if (laneRenderers[i] == null)
                 {
-                    bool isHighlighted = (i + 1) == laneNumber;
-                    Color color = laneColors[i];
-                    color.a = isHighlighted ? 1f : 0.5f;
-                    renderer.material.color = color;
+                    Debug.LogWarning($"⚠️ Aucun Renderer trouvé sur la lane {i + 1}. Le highlighting ne fonctionnera pas.");
                 }
             }
         }
     }
-    
-    void OnDrawGizmos()
+
+    /// <summary>
+    /// Met en surbrillance une voie spécifique
+    /// </summary>
+    public void HighlightLane(int laneIndex)
     {
-        // Dessiner les voies dans l'éditeur même sans objets
-        for (int i = 1; i <= 4; i++)
+        if (laneIndex < 1 || laneIndex > 4) return;
+        
+        // Désactiver la surbrillance précédente
+        if (currentActiveLane != -1 && currentActiveLane <= laneRenderers.Length)
         {
-            Vector3 lanePos = CalculateLanePosition(i);
-            
-            // Couleur de la voie
-            Gizmos.color = laneColors[i - 1];
-            
-            // Dessiner une boîte pour chaque voie
-            Gizmos.DrawWireCube(lanePos, new Vector3(0.5f, laneHeight, laneLength));
-            
-            // Dessiner une ligne centrale
-            Vector3 lineStart = lanePos + Vector3.back * (laneLength * 0.5f);
-            Vector3 lineEnd = lanePos + Vector3.forward * (laneLength * 0.5f);
-            Gizmos.DrawLine(lineStart, lineEnd);
-            
-            // Label dans les gizmos
-            #if UNITY_EDITOR
-            UnityEditor.Handles.Label(lanePos + Vector3.up * 1f, $"Voie {i}");
-            #endif
+            SetLaneHighlight(currentActiveLane - 1, false);
         }
         
-        // Dessiner le centre de référence
-        Gizmos.color = Color.white;
-        Gizmos.DrawWireSphere(basePosition, 0.2f);
+        // Activer la nouvelle surbrillance
+        SetLaneHighlight(laneIndex - 1, true);
+        currentActiveLane = laneIndex;
+        
+        if (showLaneDebug)
+            Debug.Log($"🎯 Lane {laneIndex} mise en surbrillance");
     }
-    
-    #if UNITY_EDITOR
-    void OnValidate()
+
+    /// <summary>
+    /// Active/désactive la surbrillance d'une lane
+    /// </summary>
+    private void SetLaneHighlight(int index, bool highlight)
     {
-        if (autoGenerateInEditor && !Application.isPlaying)
+        if (index < 0 || index >= laneRenderers.Length || laneRenderers[index] == null) return;
+        
+        if (highlight)
         {
-            // Rafraîchir la visualisation dans l'éditeur
-            if (transform.childCount > 0)
+            // Appliquer la couleur de la voie
+            if (activeLaneMaterial != null)
             {
-                GenerateLanes();
+                laneRenderers[index].material = activeLaneMaterial;
+                laneRenderers[index].material.color = laneColors[index];
+            }
+        }
+        else
+        {
+            // Appliquer le matériau inactif
+            if (inactiveLaneMaterial != null)
+            {
+                laneRenderers[index].material = inactiveLaneMaterial;
             }
         }
     }
-    #endif
+
+    /// <summary>
+    /// Obtient la position d'une lane spécifique
+    /// </summary>
+    public Vector3 GetLanePosition(int laneIndex)
+    {
+        if (laneIndex < 1 || laneIndex > 4 || manualLanes[laneIndex - 1] == null)
+        {
+            Debug.LogWarning($"🚨 Lane {laneIndex} non assignée ou invalide !");
+            return Vector3.zero;
+        }
+        
+        return manualLanes[laneIndex - 1].position;
+    }
+
+    /// <summary>
+    /// Obtient toutes les positions des lanes
+    /// </summary>
+    public Vector3[] GetAllLanePositions()
+    {
+        Vector3[] positions = new Vector3[4];
+        for (int i = 0; i < 4; i++)
+        {
+            positions[i] = GetLanePosition(i + 1);
+        }
+        return positions;
+    }
+
+    /// <summary>
+    /// Obtient la largeur entre les lanes pour calibration
+    /// </summary>
+    public float GetLaneSpacing()
+    {
+        if (manualLanes[0] != null && manualLanes[3] != null)
+        {
+            float totalWidth = Vector3.Distance(manualLanes[0].position, manualLanes[3].position);
+            return totalWidth / 3f; // Espacement entre 4 lanes = 3 intervalles
+        }
+        
+        return 2f; // Valeur par défaut
+    }
+
+    /// <summary>
+    /// Réinitialise toutes les surbrillances
+    /// </summary>
+    public void ClearAllHighlights()
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            SetLaneHighlight(i, false);
+        }
+        currentActiveLane = -1;
+    }
+
+    void OnDrawGizmos()
+    {
+        if (!showLaneDebug) return;
+        
+        // Dessiner les positions des lanes dans l'éditeur
+        for (int i = 0; i < 4; i++)
+        {
+            if (manualLanes[i] != null)
+            {
+                Gizmos.color = laneColors[i];
+                Gizmos.DrawWireCube(manualLanes[i].position, Vector3.one * 0.5f);
+                
+                // Afficher le numéro de la lane
+                Gizmos.color = Color.white;
+                Vector3 labelPos = manualLanes[i].position + Vector3.up * 1f;
+                #if UNITY_EDITOR
+                UnityEditor.Handles.Label(labelPos, $"Lane {i + 1}");
+                #endif
+            }
+        }
+    }
 }

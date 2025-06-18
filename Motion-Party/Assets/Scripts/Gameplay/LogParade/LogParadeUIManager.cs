@@ -29,16 +29,50 @@ public class LogParadeUIManager : MonoBehaviour
     public GameObject debugPanel;
     public Toggle debugToggle;
 
+    [Header("Lane Validation UI (NEW)")]
+    public GameObject laneValidationPanel;
+    public TMP_Text validationText;
+    public Slider validationProgressSlider;
+    public Image validationTargetLaneImage;    [Header("Calibration Center Guide (NEW)")]
+    public GameObject centerGuidePanel;
+    public Image centerGuideCircle;
+    public TMP_Text centerGuideText;
+    public Button recalibrateButton; // Nouveau : bouton pour recalibrage manuel
+    public Color centerGuideColor = Color.green;
+    
+    [Header("Camera Presets (NEW)")]
+    public TMP_Dropdown cameraPresetDropdown; // Dropdown pour choisir la résolution caméra
+
     private int currentLane = 2;
     private Vector3 currentPosition;
-    private bool isDebugMode = false;
-
-    void Start()
+    private bool isDebugMode = false;    void Start()
     {
         // Initialiser l'état de debug
         if (debugToggle != null)
         {
             debugToggle.onValueChanged.AddListener(ToggleDebugMode);
+        }
+          // Configurer le bouton de recalibrage
+        if (recalibrateButton != null)
+        {
+            recalibrateButton.onClick.AddListener(RequestRecalibration);
+        }
+        
+        // Configurer le dropdown des presets de caméra
+        if (cameraPresetDropdown != null)
+        {
+            cameraPresetDropdown.onValueChanged.AddListener(OnCameraPresetChanged);
+            
+            // Ajouter les options si le dropdown est vide
+            if (cameraPresetDropdown.options.Count == 0)
+            {
+                cameraPresetDropdown.AddOptions(new System.Collections.Generic.List<string>
+                {
+                    "640x480 (VGA)",
+                    "1280x720 (HD)",
+                    "1920x1080 (Full HD)"
+                });
+            }
         }
     }
 
@@ -63,6 +97,18 @@ public class LogParadeUIManager : MonoBehaviour
         if (calibrationPanel != null)
         {
             calibrationPanel.SetActive(false);
+        }
+
+        // Masquer le panneau de validation de voie
+        if (laneValidationPanel != null)
+        {
+            laneValidationPanel.SetActive(false);
+        }
+
+        // Masquer le guide de calibration centrale
+        if (centerGuidePanel != null)
+        {
+            centerGuidePanel.SetActive(false);
         }
 
         Debug.Log("UI du LogParade initialisée.");
@@ -174,6 +220,138 @@ public class LogParadeUIManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Affiche le panneau de validation de changement de voie
+    /// </summary>
+    public void ShowLaneValidationUI(int targetLane, float progress)
+    {
+        if (laneValidationPanel != null)
+        {
+            laneValidationPanel.SetActive(true);
+        }
+
+        if (validationText != null)
+        {
+            validationText.text = $"Changement de voie vers la voie {targetLane}...";
+        }
+
+        if (validationProgressSlider != null)
+        {
+            validationProgressSlider.value = progress;
+        }
+
+        // Mettre à jour la couleur de la voie cible
+        if (validationTargetLaneImage != null)
+        {
+            validationTargetLaneImage.color = (targetLane == currentLane) ? activeLaneColor : inactiveLaneColor;
+        }
+    }
+
+    /// <summary>
+    /// Masque le panneau de validation de changement de voie
+    /// </summary>
+    public void HideLaneValidationUI()
+    {
+        if (laneValidationPanel != null)
+        {
+            laneValidationPanel.SetActive(false);
+        }
+    }
+
+    /// <summary>
+    /// Affiche la validation de changement de voie en cours
+    /// </summary>
+    public void ShowLaneValidation(int targetLane, float progress)
+    {
+        if (laneValidationPanel != null)
+        {
+            laneValidationPanel.SetActive(true);
+        }
+        
+        if (validationText != null)
+        {
+            validationText.text = $"Changement vers voie {targetLane}...";
+        }
+        
+        if (validationProgressSlider != null)
+        {
+            validationProgressSlider.value = progress;
+        }
+        
+        if (validationTargetLaneImage != null)
+        {
+            // Colorer l'image selon la voie cible
+            Color[] laneColors = { Color.red, Color.yellow, Color.green, Color.blue };
+            if (targetLane >= 1 && targetLane <= 4)
+            {
+                validationTargetLaneImage.color = laneColors[targetLane - 1];
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Cache l'interface de validation
+    /// </summary>
+    public void HideLaneValidation()
+    {
+        if (laneValidationPanel != null)
+        {
+            laneValidationPanel.SetActive(false);
+        }
+    }
+
+    /// <summary>
+    /// Affiche le guide de calibration centrale
+    /// </summary>
+    public void ShowCenterGuide()
+    {
+        if (centerGuidePanel != null)
+        {
+            centerGuidePanel.SetActive(true);
+        }
+        
+        if (centerGuideText != null)
+        {
+            centerGuideText.text = "🎯 Placez-vous au CENTRE et restez immobile !";
+        }
+        
+        if (centerGuideCircle != null)
+        {
+            centerGuideCircle.color = centerGuideColor;
+        }
+    }
+    
+    /// <summary>
+    /// Cache le guide de calibration centrale
+    /// </summary>
+    public void HideCenterGuide()
+    {
+        if (centerGuidePanel != null)
+        {
+            centerGuidePanel.SetActive(false);
+        }
+    }
+    
+    /// <summary>
+    /// Met à jour le guide avec le progrès de calibration
+    /// </summary>
+    public void UpdateCenterGuide(float progress)
+    {
+        if (centerGuideText != null)
+        {
+            centerGuideText.text = $"🎯 Calibration... {progress:P0}\nRestez au centre !";
+        }
+        
+        if (centerGuideCircle != null)
+        {
+            // Changer la couleur selon le progrès
+            float alpha = 0.3f + (progress * 0.7f);
+            Color color = centerGuideColor;
+            color.a = alpha;
+            centerGuideCircle.color = color;
+        }
+    }
+
+    /// <summary>
     /// Active/Désactive le mode debug
     /// </summary>
     public void ToggleDebugMode(bool enabled)
@@ -212,13 +390,51 @@ public class LogParadeUIManager : MonoBehaviour
         {
             gameStatusText.text = status;
         }
-    }
-
-    /// <summary>
+    }    /// <summary>
     /// Obtient la voie actuelle
     /// </summary>
     public int GetCurrentLane()
     {
         return currentLane;
+    }
+      /// <summary>
+    /// Demande une recalibration via le tracker
+    /// </summary>
+    private void RequestRecalibration()
+    {
+        var tracker = FindObjectOfType<LogParadeLateralTracker>();
+        if (tracker != null)
+        {
+            tracker.Recalibrate();
+            UpdateGameStatus("🔄 Recalibration demandée...");
+        }
+        else
+        {
+            Debug.LogWarning("⚠️ LogParadeLateralTracker non trouvé pour la recalibration !");
+        }
+    }
+    
+    /// <summary>
+    /// Gère le changement de preset de caméra via le dropdown
+    /// </summary>
+    private void OnCameraPresetChanged(int index)
+    {
+        var tracker = FindObjectOfType<LogParadeLateralTracker>();
+        if (tracker != null)
+        {
+            string[] presets = { "640x480", "1280x720", "1920x1080" };
+            if (index >= 0 && index < presets.Length)
+            {
+                tracker.SetCameraPreset(presets[index]);
+                UpdateGameStatus($"📷 Caméra configurée : {presets[index]}");
+                
+                // Forcer une recalibration après changement de preset
+                tracker.Recalibrate();
+            }
+        }
+        else
+        {
+            Debug.LogWarning("⚠️ LogParadeLateralTracker non trouvé pour changer le preset caméra !");
+        }
     }
 }

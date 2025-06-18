@@ -34,6 +34,14 @@ public class LogParadeInputSimulator : MonoBehaviour
             targetUDPReceive = FindObjectOfType<UDPReceive>();
         }
         
+        // Désactiver la validation temporelle pour le simulateur (mode instantané)
+        var tracker = FindObjectOfType<LogParadeLateralTracker>();
+        if (tracker != null && enableSimulation)
+        {
+            tracker.requireLaneChangeValidation = false;
+            Debug.Log("Simulateur: Validation temporelle désactivée pour les tests");
+        }
+        
         if (enableSimulation)
         {
             Debug.Log("LogParade Input Simulator activé. Utilisez A/D pour bouger, S pour centrer, Espace pour mouvement auto.");

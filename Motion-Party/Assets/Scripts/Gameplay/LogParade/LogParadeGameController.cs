@@ -6,6 +6,7 @@ using System.Collections;
 /// <summary>
 /// Contrôleur principal du mini-jeu "Le Défilé des Rondins"
 /// Gère le tracking latéral du joueur et son mapping sur 4 voies verticales
+/// Version améliorée avec validation temporelle des changements de voie
 /// </summary>
 public class LogParadeGameController : MiniGameBase
 {
@@ -38,12 +39,13 @@ public class LogParadeGameController : MiniGameBase
     {
         // S'assurer que les composants sont bien assignés
         ValidateComponents();
-        
-        // Configurer les événements du tracker
+          // Configurer les événements du tracker
         if (lateralTracker != null)
         {
             lateralTracker.OnLaneChanged += HandleLaneChanged;
             lateralTracker.OnPositionUpdated += HandlePositionUpdated;
+            lateralTracker.OnLaneChangePreview += HandleLaneChangePreview;
+            lateralTracker.OnCalibrationStateChanged += HandleCalibrationStateChanged; // Nouveau
         }
     }
 
@@ -56,12 +58,13 @@ public class LogParadeGameController : MiniGameBase
     }
 
     private void OnDestroy()
-    {
-        // Nettoyer les événements
+    {        // Nettoyer les événements
         if (lateralTracker != null)
         {
             lateralTracker.OnLaneChanged -= HandleLaneChanged;
             lateralTracker.OnPositionUpdated -= HandlePositionUpdated;
+            lateralTracker.OnLaneChangePreview -= HandleLaneChangePreview;
+            lateralTracker.OnCalibrationStateChanged -= HandleCalibrationStateChanged; // Nouveau
         }
     }
 
@@ -82,13 +85,7 @@ public class LogParadeGameController : MiniGameBase
             uiManager.InitializeUI();
         }
 
-        // Initialiser l'avatar au centre
-        if (playerAvatar != null)
-        {
-            playerAvatar.SetLaneInstant(2);
-        }
-
-        // Démarrer le jeu après un délai
+        // Démarrer le jeu après le délai
         StartCoroutine(StartGameAfterDelay());
     }
 
@@ -103,14 +100,14 @@ public class LogParadeGameController : MiniGameBase
         
         if (uiManager != null)
         {
-            uiManager.ShowGameStartMessage();
+            uiManager.UpdateGameStatus("Jeu démarré ! Bougez pour changer de voie.");
         }
 
-        Debug.Log("Jeu démarré ! Bougez latéralement pour contrôler l'avatar.");
+        Debug.Log("Le Défilé des Rondins démarré !");
     }
 
     /// <summary>
-    /// Traite les données MediaPipe pour le tracking latéral
+    /// Traite les données MediaPipe reçues
     /// </summary>
     private void ProcessMediaPipeData()
     {
@@ -148,18 +145,22 @@ public class LogParadeGameController : MiniGameBase
         // Ici, dans les futures versions, on ajoutera :
         // - Génération des rondins
         // - Détection des collisions
-        // - Gestion des scores
-        // - etc.
-        
-        // Pour l'instant, on se contente du tracking et de l'avatar
+        // - Système de score
+        // - Gestion de la difficulté progressive
     }
 
     /// <summary>
-    /// Gère les changements de voie détectés par le tracker
+    /// Gère les changements de voie confirmés
     /// </summary>
     private void HandleLaneChanged(int newLane)
     {
         currentLane = newLane;
+        
+        // Cacher l'interface de validation (changement confirmé)
+        if (uiManager != null)
+        {
+            uiManager.HideLaneValidation();
+        }
         
         // Déplacer l'avatar vers la nouvelle voie
         if (playerAvatar != null)
@@ -175,12 +176,12 @@ public class LogParadeGameController : MiniGameBase
 
         if (enableDebugMode)
         {
-            Debug.Log($"Changement de voie : {newLane}");
+            Debug.Log($"Changement de voie confirmé : {newLane}");
         }
     }
 
     /// <summary>
-    /// Gère les mises à jour de position du tracker
+    /// Gère les mises à jour de position du joueur
     /// </summary>
     private void HandlePositionUpdated(Vector3 position)
     {
@@ -191,9 +192,59 @@ public class LogParadeGameController : MiniGameBase
         {
             uiManager.UpdatePlayerPosition(position);
         }
+    }    /// <summary>
+    /// Gère la prévisualisation de changement de voie (validation en cours)
+    /// </summary>
+    private void HandleLaneChangePreview(int targetLane)
+    {
+        if (lateralTracker != null && uiManager != null)
+        {
+            float progress = lateralTracker.GetValidationProgress();
+            uiManager.ShowLaneValidation(targetLane, progress);
+            
+            if (enableDebugMode)
+                Debug.Log($"Prévisualisation changement vers voie {targetLane} : {progress:P0}");
+        }
     }
 
     /// <summary>
+    /// Gère les changements d'état de calibration
+    /// </summary>
+    private void HandleCalibrationStateChanged(bool isCalibrating)
+    {
+        if (uiManager != null)
+        {
+            if (isCalibrating)
+            {
+                uiManager.UpdateGameStatus("🎯 Calibration en cours - Placez-vous au centre !");
+            }
+            else
+            {
+                uiManager.UpdateGameStatus("✅ Calibration terminée - Prêt à jouer !");
+                
+                // Démarrer le message de jeu après calibration
+                StartCoroutine(ShowGameStartMessageAfterDelay());
+            }
+        }
+        
+        if (enableDebugMode)
+        {
+            Debug.Log($"État de calibration changé : {(isCalibrating ? "EN COURS" : "TERMINÉE")}");
+        }
+    }
+    
+    /// <summary>
+    /// Affiche le message de début de jeu après un court délai
+    /// </summary>
+    private System.Collections.IEnumerator ShowGameStartMessageAfterDelay()
+    {
+        yield return new WaitForSeconds(1f);
+        
+        if (uiManager != null)
+        {
+            uiManager.ShowGameStartMessage();
+        }
+    }    /// <summary>
     /// Valide que tous les composants nécessaires sont assignés
     /// </summary>
     private void ValidateComponents()
@@ -219,7 +270,37 @@ public class LogParadeGameController : MiniGameBase
 
         if (uiManager == null)
         {
-            Debug.LogWarning("LogParadeUIManager n'est pas assigné !");
+            uiManager = FindObjectOfType<LogParadeUIManager>();
+            if (uiManager == null)
+                Debug.LogError("LogParadeUIManager non trouvé !");
+        }
+        
+        // Valider la configuration des lanes manuelles
+        var laneVisualizer = FindObjectOfType<LogParadeLaneVisualizer>();
+        if (laneVisualizer != null)
+        {
+            var lanePositions = laneVisualizer.GetAllLanePositions();
+            bool allLanesValid = true;
+            
+            for (int i = 0; i < 4; i++)
+            {
+                if (lanePositions[i] == Vector3.zero)
+                {
+                    Debug.LogError($"🚨 Lane manuelle {i + 1} n'est pas configurée correctement !");
+                    allLanesValid = false;
+                }
+            }
+            
+            if (allLanesValid)
+            {
+                Debug.Log("✅ Configuration des lanes manuelles validée !");
+                float spacing = laneVisualizer.GetLaneSpacing();
+                Debug.Log($"📏 Espacement des lanes : {spacing:F2} unités");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("⚠️ LogParadeLaneVisualizer non trouvé - pas de validation des lanes !");
         }
     }
 
@@ -240,7 +321,7 @@ public class LogParadeGameController : MiniGameBase
     }
 
     /// <summary>
-    /// Vérifie si le jeu est en cours
+    /// Indique si le jeu est actif
     /// </summary>
     public bool IsGameActive()
     {

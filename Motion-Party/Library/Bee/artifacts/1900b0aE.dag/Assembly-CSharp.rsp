@@ -451,6 +451,7 @@
 "Assets/Scripts/Gameplay/LogParade/LogParadeLateralTracker.cs"
 "Assets/Scripts/Gameplay/LogParade/LogParadePlayerAvatar.cs"
 "Assets/Scripts/Gameplay/LogParade/LogParadeSceneSetup.cs"
+"Assets/Scripts/Gameplay/LogParade/LogParadeSetupValidator.cs"
 "Assets/Scripts/Gameplay/LogParade/LogParadeUIManager.cs"
 "Assets/Scripts/Gameplay/MusicNotePress/FloatingText.cs"
 "Assets/Scripts/Gameplay/MusicNotePress/HandDataProcessor.cs"

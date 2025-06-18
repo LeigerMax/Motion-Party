@@ -17,6 +17,18 @@ public class LogParadeConfig : ScriptableObject
     [Range(-5.0f, 5.0f)]
     public float defaultRightBoundary = 1.5f;
     
+    [Header("Lane Change Sensitivity (NEW)")]
+    [Tooltip("Temps minimum (en secondes) à maintenir dans une position avant changement de voie")]
+    [Range(0.2f, 3.0f)]
+    public float laneChangeValidationTime = 1.0f;
+    
+    [Tooltip("Seuil minimum de mouvement en X pour déclencher un changement de voie")]
+    [Range(0.1f, 2.0f)]
+    public float laneChangeThreshold = 0.3f;
+    
+    [Tooltip("Si activé, les changements de voie nécessitent une validation temporelle")]
+    public bool requireLaneChangeValidation = true;
+    
     [Header("Calibration")]
     public bool enableAutoCalibration = true;
     public float calibrationTime = 3.0f;
@@ -73,12 +85,10 @@ public class LogParadeConfig : ScriptableObject
             avatar.laneChangeSound = laneChangeSound;
             avatar.showDebugInfo = showDebugInfoByDefault;
         }
-        
-        // Trouver et configurer le visualisateur
+          // Trouver et configurer le visualisateur
         LogParadeLaneVisualizer visualizer = FindObjectOfType<LogParadeLaneVisualizer>();
         if (visualizer != null)
         {
-            visualizer.laneWidth = laneWidth;
             visualizer.laneColors = laneColors;
         }
         

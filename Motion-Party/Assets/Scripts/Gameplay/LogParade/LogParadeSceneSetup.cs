@@ -136,14 +136,14 @@ public class LogParadeSceneSetup : MonoBehaviour
             visualizer = new GameObject("LaneVisualizer");
         }
         
-        LogParadeLaneVisualizer viz = visualizer.GetComponent<LogParadeLaneVisualizer>();
-        if (viz == null)
+        LogParadeLaneVisualizer viz = visualizer.GetComponent<LogParadeLaneVisualizer>();        if (viz == null)
         {
             viz = visualizer.AddComponent<LogParadeLaneVisualizer>();
         }
         
-        // Générer les voies automatiquement
-        viz.GenerateLanes();
+        // Note: Les lanes doivent être assignées manuellement dans l'inspecteur
+        // La génération automatique a été supprimée pour utiliser des lanes personnalisées
+        Debug.Log("⚠️ N'oubliez pas d'assigner manuellement les 4 lanes dans LogParadeLaneVisualizer.manualLanes[] !");
     }
     
     /// <summary>
