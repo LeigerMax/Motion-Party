@@ -38,6 +38,7 @@ public class LogParadeUIManager : MonoBehaviour
     public Image centerGuideCircle;
     public TMP_Text centerGuideText;
     public Button recalibrateButton; // Nouveau : bouton pour recalibrage manuel
+    public Button extendedCalibrateButton; // Nouveau : bouton pour calibration étendue
     public Color centerGuideColor = Color.green;
     
     [Header("Camera Presets (NEW)")]
@@ -51,11 +52,16 @@ public class LogParadeUIManager : MonoBehaviour
         if (debugToggle != null)
         {
             debugToggle.onValueChanged.AddListener(ToggleDebugMode);
-        }
-          // Configurer le bouton de recalibrage
+        }        // Configurer le bouton de recalibrage
         if (recalibrateButton != null)
         {
             recalibrateButton.onClick.AddListener(RequestRecalibration);
+        }
+        
+        // Configurer le bouton de calibration étendue
+        if (extendedCalibrateButton != null)
+        {
+            extendedCalibrateButton.onClick.AddListener(RequestExtendedCalibration);
         }
         
         // Configurer le dropdown des presets de caméra
@@ -396,8 +402,7 @@ public class LogParadeUIManager : MonoBehaviour
     public int GetCurrentLane()
     {
         return currentLane;
-    }
-      /// <summary>
+    }    /// <summary>
     /// Demande une recalibration via le tracker
     /// </summary>
     private void RequestRecalibration()
@@ -411,6 +416,23 @@ public class LogParadeUIManager : MonoBehaviour
         else
         {
             Debug.LogWarning("⚠️ LogParadeLateralTracker non trouvé pour la recalibration !");
+        }
+    }
+    
+    /// <summary>
+    /// Demande une calibration étendue pour les lanes extrêmes
+    /// </summary>
+    private void RequestExtendedCalibration()
+    {
+        var tracker = FindObjectOfType<LogParadeLateralTracker>();
+        if (tracker != null)
+        {
+            tracker.RecalibrateForExtremeLanes();
+            UpdateGameStatus("🎯 Calibration étendue - Bougez de gauche à droite !");
+        }
+        else
+        {
+            Debug.LogWarning("⚠️ LogParadeLateralTracker non trouvé pour la calibration étendue !");
         }
     }
     

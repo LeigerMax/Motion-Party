@@ -147,14 +147,17 @@ public class LogParadeGameController : MiniGameBase
         // - Détection des collisions
         // - Système de score
         // - Gestion de la difficulté progressive
-    }
-
-    /// <summary>
+    }    /// <summary>
     /// Gère les changements de voie confirmés
     /// </summary>
     private void HandleLaneChanged(int newLane)
     {
         currentLane = newLane;
+        
+        if (enableDebugMode)
+        {
+            Debug.Log($"🎮 GameController: Changement de voie reçu vers {newLane}");
+        }
         
         // Cacher l'interface de validation (changement confirmé)
         if (uiManager != null)
@@ -165,7 +168,15 @@ public class LogParadeGameController : MiniGameBase
         // Déplacer l'avatar vers la nouvelle voie
         if (playerAvatar != null)
         {
+            if (enableDebugMode)
+            {
+                Debug.Log($"🚶 GameController: Commande de déplacement avatar vers voie {newLane}");
+            }
             playerAvatar.SetTargetLane(newLane);
+        }
+        else
+        {
+            Debug.LogWarning("⚠️ GameController: playerAvatar est NULL !");
         }
 
         // Mettre à jour l'UI
@@ -176,7 +187,7 @@ public class LogParadeGameController : MiniGameBase
 
         if (enableDebugMode)
         {
-            Debug.Log($"Changement de voie confirmé : {newLane}");
+            Debug.Log($"✅ GameController: Changement de voie confirmé vers {newLane}");
         }
     }
 
@@ -259,13 +270,21 @@ public class LogParadeGameController : MiniGameBase
             lateralTracker = FindObjectOfType<LogParadeLateralTracker>();
             if (lateralTracker == null)
                 Debug.LogError("LogParadeLateralTracker non trouvé !");
-        }
-
-        if (playerAvatar == null)
+        }        if (playerAvatar == null)
         {
             playerAvatar = FindObjectOfType<LogParadePlayerAvatar>();
             if (playerAvatar == null)
-                Debug.LogError("LogParadePlayerAvatar non trouvé !");
+            {
+                Debug.LogError("❌ LogParadePlayerAvatar non trouvé !");
+            }
+            else
+            {
+                Debug.Log($"✅ LogParadePlayerAvatar trouvé automatiquement : {playerAvatar.name}");
+            }
+        }
+        else
+        {
+            Debug.Log($"✅ LogParadePlayerAvatar assigné : {playerAvatar.name}");
         }
 
         if (uiManager == null)

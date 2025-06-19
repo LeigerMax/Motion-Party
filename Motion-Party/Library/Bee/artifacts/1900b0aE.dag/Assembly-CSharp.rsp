@@ -450,6 +450,7 @@
 "Assets/Scripts/Gameplay/LogParade/LogParadeLaneVisualizer.cs"
 "Assets/Scripts/Gameplay/LogParade/LogParadeLateralTracker.cs"
 "Assets/Scripts/Gameplay/LogParade/LogParadePlayerAvatar.cs"
+"Assets/Scripts/Gameplay/LogParade/LogParadeQuickDiagnostic.cs"
 "Assets/Scripts/Gameplay/LogParade/LogParadeSceneSetup.cs"
 "Assets/Scripts/Gameplay/LogParade/LogParadeSetupValidator.cs"
 "Assets/Scripts/Gameplay/LogParade/LogParadeUIManager.cs"

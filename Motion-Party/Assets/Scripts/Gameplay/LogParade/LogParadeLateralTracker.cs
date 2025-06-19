@@ -2,6 +2,7 @@ using UnityEngine;
 using Core;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
 
 /// <summary>
 /// Responsable du tracking latéral du joueur et du mapping sur les 4 voies
@@ -34,19 +35,22 @@ public class LogParadeLateralTracker : MonoBehaviour
     [Range(-2.0f, 2.0f)]
     public float leftBoundary = -1.5f;
     [Range(-2.0f, 2.0f)]
-    public float rightBoundary = 1.5f;
-    
-    [Header("Lane Change Sensitivity")]
+    public float rightBoundary = 1.5f;    [Header("Lane Change Sensitivity")]
     [Tooltip("Temps minimum à maintenir dans une position avant changement de voie")]
     [Range(0.2f, 3.0f)]
-    public float laneChangeValidationTime = 1.0f;
+    public float laneChangeValidationTime = 0.5f;
     
     [Tooltip("Seuil minimum de mouvement pour déclencher un changement de voie")]
     [Range(0.1f, 2.0f)]
-    public float laneChangeThreshold = 0.3f;
+    public float laneChangeThreshold = 0.1f;
     
     [Tooltip("Si activé, les changements nécessitent une validation temporelle")]
-    public bool requireLaneChangeValidation = true;
+    public bool requireLaneChangeValidation = false; // Désactivé pour les tests
+      [Tooltip("Facteur d'amplification pour atteindre les lanes extrêmes (1 et 4)")]
+    [Range(0.5f, 2.0f)]
+    public float extremeLanesSensitivity = 1.2f;
+      [Tooltip("Utiliser un mapping simplifié basé sur les pourcentages")]
+    public bool useSimpleMapping = true; // Activé par défaut pour les tests
     
     [Header("Calibration")]
     public bool enableAutoCalibration = true;
@@ -149,19 +153,24 @@ public class LogParadeLateralTracker : MonoBehaviour
             // Priorité 1: Utiliser les landmarks de pose (tête = landmark 0)
             JArray poseLandmarks = (JArray)jsonData["pose_landmarks"];
             if (poseLandmarks != null && poseLandmarks.Count > 0)
-            {
-                // Récupérer la position brute en pixels
+            {            // Récupérer la position brute en pixels
                 float rawX = (float)poseLandmarks[0][0];
                 float rawY = (float)poseLandmarks[0][1];
                 float rawZ = (float)poseLandmarks[0][2];
                 
-                // Normaliser selon la taille de la caméra
-                float normalizedX = (rawX / cameraInputWidth) - 0.5f; // -0.5 à +0.5
-                float normalizedY = (rawY / cameraInputHeight) - 0.5f;
+                // Log des positions brutes pour debug
+                if (showDebugInfo && Time.frameCount % 60 == 0)
+                {
+                    Debug.Log($"Position brute: X={rawX:F1}, Y={rawY:F1}, Z={rawZ:F3}");
+                }
                 
-                // Appliquer l'échelle de tracking
-                float scaledX = normalizedX * trackingScale;
-                float scaledY = normalizedY * trackingScale;
+                // Normaliser selon la taille de la caméra (0 à 1)
+                float normalizedX = rawX / cameraInputWidth; // 0 à 1
+                float normalizedY = rawY / cameraInputHeight; // 0 à 1
+                
+                // Centrer et appliquer l'échelle (-0.5 à +0.5 puis scaling)
+                float scaledX = (normalizedX - 0.5f) * trackingScale;
+                float scaledY = (normalizedY - 0.5f) * trackingScale;
                 
                 currentPosition = new Vector3(scaledX, scaledY, rawZ * 0.01f);
                 trackingSource = "Head (Pose)";
@@ -169,8 +178,14 @@ public class LogParadeLateralTracker : MonoBehaviour
                 // Mettre à jour les bornes observées pendant la calibration
                 if (!isCalibrated && enableAutoCalibration)
                 {
-                    minObservedX = Mathf.Min(minObservedX, scaledX);
-                    maxObservedX = Mathf.Max(maxObservedX, scaledX);
+                    minObservedX = Mathf.Min(minObservedX, rawX); // Utiliser rawX pour les bornes
+                    maxObservedX = Mathf.Max(maxObservedX, rawX);
+                }
+                
+                // Log des positions normalisées pour debug
+                if (showDebugInfo && Time.frameCount % 120 == 0)
+                {
+                    Debug.Log($"Position normalisée: X={scaledX:F3}, Bornes: [{minObservedX:F1}, {maxObservedX:F1}]");
                 }
                 
                 return true;
@@ -310,33 +325,29 @@ public class LogParadeLateralTracker : MonoBehaviour
         smoothedPosition = Vector3.Lerp(smoothedPosition, adjustedPosition, smoothingFactor);
         
         OnPositionUpdated?.Invoke(smoothedPosition);
-    }
-
-    /// <summary>
+    }    /// <summary>
     /// Calcule et met à jour la voie actuelle avec validation temporelle
     /// </summary>
     private void UpdateLane()
     {
-        float normalizedX = smoothedPosition.x;
+        // Utiliser directement la position X actuelle (données brutes converties)
+        float positionX = currentPosition.x;
         
         // Appliquer le seuil minimum pour éviter les micro-mouvements
-        if (Mathf.Abs(normalizedX - lastStablePosition.x) < laneChangeThreshold && 
+        if (Mathf.Abs(positionX - lastStablePosition.x) < laneChangeThreshold && 
             pendingLane == -1)
         {
             return;
         }
         
         // Mapper la position X sur les 4 voies
-        int targetLane;
+        int targetLane = CalculateLaneFromPosition(positionX);
         
-        if (normalizedX < leftBoundary * 0.5f)
-            targetLane = 1;
-        else if (normalizedX < 0f)
-            targetLane = 2;
-        else if (normalizedX < rightBoundary * 0.5f)
-            targetLane = 3;
-        else
-            targetLane = 4;
+        // Log pour debug
+        if (showDebugInfo && Time.frameCount % 60 == 0)
+        {
+            Debug.Log($"🎯 UpdateLane: posX={positionX:F3}, targetLane={targetLane}, currentLane={currentLane}");
+        }
         
         // Gestion de la validation temporelle
         if (requireLaneChangeValidation)
@@ -347,6 +358,99 @@ public class LogParadeLateralTracker : MonoBehaviour
         {
             ApplyLaneChange(targetLane);
         }
+    }    /// <summary>
+    /// Calcule la voie selon la position X avec mapping adaptatif
+    /// Utilise les données brutes pour un mapping plus précis
+    /// </summary>
+    private int CalculateLaneFromPosition(float positionX)
+    {
+        if (useSimpleMapping)
+        {
+            return CalculateLaneSimple(positionX);
+        }
+        
+        // Convertir la position normalisée (-0.5 à +0.5) en plage utilisable
+        // positionX va de -0.5 à +0.5 environ
+        
+        // Utiliser un mapping direct basé sur les seuils
+        // Ajuster les seuils selon vos données (88 à 517 pixels normalisés)
+        
+        // Mapping plus agressif pour assurer l'accès aux 4 lanes
+        float threshold1 = -0.3f;  // Seuil pour lane 1
+        float threshold2 = -0.1f;  // Seuil pour lane 2
+        float threshold3 = 0.1f;   // Seuil pour lane 3
+        // Au-dessus de threshold3 = lane 4
+        
+        int lane;
+        if (positionX <= threshold1)
+            lane = 1; // Lane gauche
+        else if (positionX <= threshold2)
+            lane = 2; // Lane centre-gauche
+        else if (positionX <= threshold3)
+            lane = 3; // Lane centre-droite
+        else
+            lane = 4; // Lane droite
+        
+        // Log détaillé pour debug
+        if (showDebugInfo && Time.frameCount % 120 == 0)
+        {
+            Debug.Log($"🎯 Mapping: posX={positionX:F3} → Lane {lane} (seuils: {threshold1:F1}, {threshold2:F1}, {threshold3:F1})");
+        }
+        
+        return lane;
+    }
+      /// <summary>
+    /// Mapping simplifié basé sur les bornes min/max observées
+    /// Utilise les données brutes en pixels pour plus de précision
+    /// </summary>
+    private int CalculateLaneSimple(float positionX)
+    {
+        // Reconvertir la position normalisée en pixels pour le calcul
+        float currentPixelX = (positionX + 0.5f) * cameraInputWidth;
+        
+        // Utiliser les bornes observées en pixels (minObservedX, maxObservedX)
+        float minPixelX = minObservedX;
+        float maxPixelX = maxObservedX;
+        
+        // Si pas de calibration, utiliser vos données observées
+        if (minPixelX >= maxPixelX || minPixelX == float.MaxValue)
+        {
+            minPixelX = 88f;  // Votre position extrême gauche
+            maxPixelX = 517f; // Votre position extrême droite
+            
+            if (showDebugInfo)
+            {
+                Debug.Log($"⚠️ Utilisation des valeurs par défaut: [{minPixelX}, {maxPixelX}] pixels");
+            }
+        }
+        
+        // Étendre légèrement les bornes pour faciliter l'accès aux extrêmes
+        float range = maxPixelX - minPixelX;
+        float extendedMin = minPixelX - (range * 0.1f);
+        float extendedMax = maxPixelX + (range * 0.1f);
+        
+        // Normaliser entre 0 et 1
+        float normalizedPosition = (currentPixelX - extendedMin) / (extendedMax - extendedMin);
+        normalizedPosition = Mathf.Clamp01(normalizedPosition);
+        
+        // Diviser en 4 zones égales
+        int lane;
+        if (normalizedPosition < 0.25f)
+            lane = 1; // Lane gauche (0-25%)
+        else if (normalizedPosition < 0.5f)
+            lane = 2; // Lane centre-gauche (25-50%)
+        else if (normalizedPosition < 0.75f)
+            lane = 3; // Lane centre-droite (50-75%)
+        else
+            lane = 4; // Lane droite (75-100%)
+        
+        // Log détaillé pour debug
+        if (showDebugInfo && Time.frameCount % 120 == 0)
+        {
+            Debug.Log($"🎯 Simple Mapping: {currentPixelX:F0}px ({normalizedPosition:P0}) → Lane {lane}, Bornes: [{minPixelX:F0}, {maxPixelX:F0}]");
+        }
+        
+        return lane;
     }
     
     /// <summary>
@@ -416,8 +520,7 @@ public class LogParadeLateralTracker : MonoBehaviour
             StartCalibration();
         }
     }
-    
-    /// <summary>
+      /// <summary>
     /// Configure automatiquement les paramètres selon une résolution de caméra commune
     /// </summary>
     public void SetCameraPreset(string preset)
@@ -430,6 +533,7 @@ public class LogParadeLateralTracker : MonoBehaviour
                 cameraInputHeight = 480;
                 trackingScale = 1.0f;
                 centralDeadZone = 30f;
+                extremeLanesSensitivity = 1.3f; // Plus de sensibilité pour les petites résolutions
                 break;
                 
             case "1280x720":
@@ -438,6 +542,7 @@ public class LogParadeLateralTracker : MonoBehaviour
                 cameraInputHeight = 720;
                 trackingScale = 0.8f; // Moins sensible pour les grandes résolutions
                 centralDeadZone = 50f;
+                extremeLanesSensitivity = 1.2f;
                 break;
                 
             case "1920x1080":
@@ -446,6 +551,7 @@ public class LogParadeLateralTracker : MonoBehaviour
                 cameraInputHeight = 1080;
                 trackingScale = 0.6f;
                 centralDeadZone = 70f;
+                extremeLanesSensitivity = 1.1f;
                 break;
                 
             default:
@@ -454,7 +560,37 @@ public class LogParadeLateralTracker : MonoBehaviour
         }
         
         if (showDebugInfo)
-            Debug.Log($"📷 Preset caméra appliqué : {preset} -> {cameraInputWidth}x{cameraInputHeight}, Scale: {trackingScale}, DeadZone: {centralDeadZone}");
+            Debug.Log($"📷 Preset caméra appliqué : {preset} -> {cameraInputWidth}x{cameraInputHeight}, Scale: {trackingScale}, DeadZone: {centralDeadZone}, ExtremeSensitivity: {extremeLanesSensitivity}");
+    }
+    
+    /// <summary>
+    /// Recalibration étendue pour améliorer l'accès aux lanes extrêmes
+    /// </summary>
+    public void RecalibrateForExtremeLanes()
+    {
+        if (showDebugInfo)
+            Debug.Log("🎯 Calibration étendue - Bougez de GAUCHE à DROITE pendant la calibration !");
+            
+        // Augmenter temporairement le temps de calibration pour permettre plus de mouvement
+        float originalCalibrationTime = calibrationTime;
+        calibrationTime = 5.0f; // 5 secondes au lieu de 3
+        
+        StartCalibration();
+        
+        // Programmer la restauration du temps original
+        StartCoroutine(RestoreCalibrationTime(originalCalibrationTime));
+    }
+    
+    /// <summary>
+    /// Restaure le temps de calibration original après la calibration étendue
+    /// </summary>
+    private System.Collections.IEnumerator RestoreCalibrationTime(float originalTime)
+    {
+        yield return new WaitForSeconds(calibrationTime + 1f);
+        calibrationTime = originalTime;
+        
+        if (showDebugInfo)
+            Debug.Log($"⏰ Temps de calibration restauré : {originalTime}s");
     }
 
     /// <summary>
@@ -504,18 +640,37 @@ public class LogParadeLateralTracker : MonoBehaviour
     public string GetCalibrationInfo()
     {
         return $"Base X: {baseXPosition:F2}, Largeur: {effectiveTrackingWidth:F2}, Centre: {calibrationCenter}";
-    }
-
-    void OnGUI()
+    }    void OnGUI()
     {
         if (!showDebugInfo) return;
 
-        GUILayout.BeginArea(new Rect(10, 10, 400, 300));
-        GUILayout.Label("=== LogParade Lateral Tracker v1.2 ===");
+        GUILayout.BeginArea(new Rect(10, 10, 450, 400));
+        GUILayout.Label("=== LogParade Tracker - Données Réelles ===");
         GUILayout.Label($"Source: {trackingSource}");
         GUILayout.Label($"Caméra: {cameraInputWidth}x{cameraInputHeight}");
-        GUILayout.Label($"Calibré: {(isCalibrated ? "OUI" : "NON")}");
         
+        // Données brutes importantes
+        if (currentPosition != Vector3.zero)
+        {
+            float rawPixelX = (currentPosition.x + 0.5f) * cameraInputWidth;
+            GUILayout.Label($"🎯 Position brute: {rawPixelX:F0} pixels");
+            GUILayout.Label($"Position normalisée: {currentPosition.x:F3}");
+            
+            // Afficher les bornes observées
+            if (minObservedX != float.MaxValue && maxObservedX != float.MinValue)
+            {
+                GUILayout.Label($"Bornes observées: [{minObservedX:F0}, {maxObservedX:F0}] pixels");
+            }
+            else
+            {
+                GUILayout.Label($"Bornes par défaut: [88, 517] pixels");
+            }
+        }
+        
+        GUILayout.Label($"🎮 Voie actuelle: {currentLane}/4");
+        
+        // Status de calibration
+        GUILayout.Label($"Calibré: {(isCalibrated ? "✅ OUI" : "❌ NON")}");
         if (!isCalibrated && enableAutoCalibration)
         {
             float progress = calibrationTimer / calibrationTime;
@@ -523,10 +678,9 @@ public class LogParadeLateralTracker : MonoBehaviour
             GUILayout.Label("🎯 Placez-vous au CENTRE et restez immobile !");
         }
         
-        GUILayout.Label($"Position brute: {currentPosition}");
-        GUILayout.Label($"Position lissée: {smoothedPosition}");
-        GUILayout.Label($"Base X: {baseXPosition:F2}");
-        GUILayout.Label($"Voie actuelle: {currentLane}/4");
+        // Mapping actuel
+        GUILayout.Label($"Mapping: {(useSimpleMapping ? "🔵 SIMPLE" : "🟡 AVANCÉ")}");
+        GUILayout.Label($"Validation: {(requireLaneChangeValidation ? "🔒 ACTIVÉE" : "🔓 DÉSACTIVÉE")}");
         
         // Affichage de la validation en cours
         if (pendingLane != -1)
@@ -535,13 +689,45 @@ public class LogParadeLateralTracker : MonoBehaviour
             GUILayout.Label($"⏳ Validation vers voie {pendingLane}: {progress:P0}");
         }
         
-        GUILayout.Label($"Validation: {(requireLaneChangeValidation ? "ACTIVÉE" : "DÉSACTIVÉE")}");
-        GUILayout.Label($"Seuil mouvement: {laneChangeThreshold:F2}");
-        GUILayout.Label($"Zone morte: {centralDeadZone}px");
+        // Mapping détaillé si on utilise le mode simple
+        if (useSimpleMapping && currentPosition != Vector3.zero)
+        {
+            float currentPixelX = (currentPosition.x + 0.5f) * cameraInputWidth;
+            float minPx = minObservedX != float.MaxValue ? minObservedX : 88f;
+            float maxPx = maxObservedX != float.MinValue ? maxObservedX : 517f;
+            float range = maxPx - minPx;
+            float progress = (currentPixelX - minPx) / range;
+            
+            GUILayout.Label($"📊 Progression: {progress:P0} ({currentPixelX:F0}/{maxPx:F0}px)");
+            
+            // Afficher les zones de lane
+            string zone = "";
+            if (progress < 0.25f) zone = "🔴 LANE 1 (0-25%)";
+            else if (progress < 0.5f) zone = "🟡 LANE 2 (25-50%)";
+            else if (progress < 0.75f) zone = "🟢 LANE 3 (50-75%)";
+            else zone = "🔵 LANE 4 (75-100%)";
+            
+            GUILayout.Label($"Zone: {zone}");
+        }
         
+        GUILayout.Space(10);
+        
+        // Boutons de contrôle
         if (GUILayout.Button("🔄 Recalibrer"))
         {
             Recalibrate();
+        }
+        
+        if (GUILayout.Button(useSimpleMapping ? "→ Mapping Avancé" : "→ Mapping Simple"))
+        {
+            useSimpleMapping = !useSimpleMapping;
+            Debug.Log($"🔄 Mapping changé vers : {(useSimpleMapping ? "SIMPLE" : "AVANCÉ")}");
+        }
+        
+        if (GUILayout.Button(requireLaneChangeValidation ? "→ Validation OFF" : "→ Validation ON"))
+        {
+            requireLaneChangeValidation = !requireLaneChangeValidation;
+            Debug.Log($"🔄 Validation temporelle : {(requireLaneChangeValidation ? "ACTIVÉE" : "DÉSACTIVÉE")}");
         }
         
         GUILayout.EndArea();

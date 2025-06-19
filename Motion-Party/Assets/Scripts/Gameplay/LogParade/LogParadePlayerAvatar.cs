@@ -33,20 +33,34 @@ public class LogParadePlayerAvatar : MonoBehaviour
     private float movementProgress = 0f;
     private Vector3 startMovePosition;
     private Vector3 lastPosition;
-    private AudioSource audioSource;
-
-    [Header("Debug")]
+    private AudioSource audioSource;    [Header("Debug")]
     public bool showDebugInfo = true;
+    
+    [Header("Test Controls")]
+    [Tooltip("Voie à tester (1-4) - changez cette valeur pour tester le mouvement")]
+    [Range(1, 4)]
+    public int testLane = 2;
 
     void Start()
     {
         InitializeAvatar();
-    }
-
-    void Update()
+    }    void Update()
     {
         UpdateMovement();
         UpdateRotation();
+        
+        // Test en mode éditeur
+        #if UNITY_EDITOR
+        if (Application.isPlaying && showDebugInfo)
+        {
+            // Tester le mouvement quand la valeur testLane change
+            if (testLane != targetLane && !isMoving)
+            {
+                Debug.Log($"🧪 Test: Changement vers voie {testLane}");
+                SetTargetLane(testLane);
+            }
+        }
+        #endif
     }
 
     /// <summary>
@@ -71,20 +85,35 @@ public class LogParadePlayerAvatar : MonoBehaviour
         SetLaneInstant(2);
         
         Debug.Log("Avatar du LogParade initialisé.");
-    }
-
-    /// <summary>
+    }    /// <summary>
     /// Change la voie cible de l'avatar
     /// </summary>
     public void SetTargetLane(int lane)
     {
         lane = Mathf.Clamp(lane, 1, 4);
         
+        if (showDebugInfo)
+        {
+            Debug.Log($"🚶 PlayerAvatar: SetTargetLane appelé avec lane {lane} (actuel: {targetLane})");
+        }
+        
         if (lane != targetLane)
         {
+            if (showDebugInfo)
+            {
+                Debug.Log($"🎯 PlayerAvatar: Démarrage mouvement de voie {targetLane} vers {lane}");
+            }
+            
             targetLane = lane;
             StartMovementToLane();
             PlayLaneChangeEffects();
+        }
+        else
+        {
+            if (showDebugInfo)
+            {
+                Debug.Log($"⏸️ PlayerAvatar: Même voie {lane}, pas de mouvement");
+            }
         }
     }
 
@@ -216,14 +245,39 @@ public class LogParadePlayerAvatar : MonoBehaviour
                 }
             }
         }
-    }
-
-    /// <summary>
+    }    /// <summary>
     /// Obtient la voie actuelle de l'avatar
     /// </summary>
     public int GetCurrentLane()
     {
         return targetLane;
+    }
+
+    /// <summary>
+    /// Affichage debug
+    /// </summary>
+    void OnGUI()
+    {
+        if (!showDebugInfo) return;
+
+        GUILayout.BeginArea(new Rect(420, 10, 300, 200));
+        GUILayout.Label("=== Player Avatar Debug ===");
+        GUILayout.Label($"Voie cible: {targetLane}");
+        GUILayout.Label($"Position: {transform.position}");
+        GUILayout.Label($"Position cible: {targetPosition}");
+        GUILayout.Label($"En mouvement: {isMoving}");
+        GUILayout.Label($"Progrès: {movementProgress:P0}");
+        GUILayout.Label($"Mouvement fluide: {enableSmoothMovement}");
+        
+        // Boutons de test
+        GUILayout.BeginHorizontal();
+        if (GUILayout.Button("Lane 1")) SetTargetLane(1);
+        if (GUILayout.Button("Lane 2")) SetTargetLane(2);
+        if (GUILayout.Button("Lane 3")) SetTargetLane(3);
+        if (GUILayout.Button("Lane 4")) SetTargetLane(4);
+        GUILayout.EndHorizontal();
+        
+        GUILayout.EndArea();
     }
 
     /// <summary>
@@ -265,19 +319,5 @@ public class LogParadePlayerAvatar : MonoBehaviour
             Vector3 targetPos = CalculateLanePosition(targetLane);
             Gizmos.DrawSphere(targetPos, 0.3f);
         }
-    }
-
-    void OnGUI()
-    {
-        if (!showDebugInfo) return;
-
-        // Debug info
-        GUILayout.BeginArea(new Rect(Screen.width - 250, 10, 240, 150));
-        GUILayout.Label("=== Player Avatar ===");
-        GUILayout.Label($"Voie actuelle: {targetLane}");
-        GUILayout.Label($"En mouvement: {(isMoving ? "OUI" : "NON")}");
-        GUILayout.Label($"Progrès: {movementProgress:P0}");
-        GUILayout.Label($"Position: {transform.position}");
-        GUILayout.EndArea();
     }
 }
