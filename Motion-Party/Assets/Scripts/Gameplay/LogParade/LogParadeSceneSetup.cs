@@ -123,9 +123,7 @@ public class LogParadeSceneSetup : MonoBehaviour
         {
             avatar.AddComponent<LogParadePlayerAvatar>();
         }
-    }
-    
-    /// <summary>
+    }    /// <summary>
     /// Crée le visualisateur de voies
     /// </summary>
     private void CreateLaneVisualizer()
@@ -142,8 +140,8 @@ public class LogParadeSceneSetup : MonoBehaviour
             viz = visualizer.AddComponent<LogParadeLaneVisualizer>();
         }
         
-        // Générer les voies automatiquement
-        viz.GenerateLanes();
+        // Ne plus générer automatiquement - l'utilisateur utilisera LogParadeLaneManager
+        Debug.Log("LaneVisualizer créé. Utilisez LogParadeLaneManager pour gérer vos lanes préfabriquées.");
     }
     
     /// <summary>

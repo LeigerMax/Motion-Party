@@ -100,11 +100,11 @@ public class LogParadeLateralTracker : MonoBehaviour
         if (string.IsNullOrEmpty(data)) return false;        try
         {
             // Debug du JSON reçu
-            if (showDebugInfo && Time.frameCount % 60 == 0)
-            {
-                Debug.Log($"JSON reçu: '{data}'");
-                Debug.Log($"Longueur: {data.Length} caractères");
-            }
+          //  if (showDebugInfo && Time.frameCount % 60 == 0)
+          //  {
+          //      Debug.Log($"JSON reçu: '{data}'");
+          //      Debug.Log($"Longueur: {data.Length} caractères");
+          //  }
             
             // Nettoyer le JSON au cas où il y aurait des caractères invisibles
             data = data.Trim();

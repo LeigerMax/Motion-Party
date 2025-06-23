@@ -36,9 +36,7 @@ public class LogParadeConfig : ScriptableObject
     };
     
     public Color activeLaneColor = Color.green;
-    public Color inactiveLaneColor = Color.gray;
-    
-    [Header("Audio")]
+    public Color inactiveLaneColor = Color.gray;    [Header("Audio")]
     public AudioClip laneChangeSound;
     public AudioClip backgroundMusic;
     
@@ -72,9 +70,7 @@ public class LogParadeConfig : ScriptableObject
             avatar.movementCurve = movementCurve;
             avatar.laneChangeSound = laneChangeSound;
             avatar.showDebugInfo = showDebugInfoByDefault;
-        }
-        
-        // Trouver et configurer le visualisateur
+        }        // Trouver et configurer le visualisateur
         LogParadeLaneVisualizer visualizer = FindObjectOfType<LogParadeLaneVisualizer>();
         if (visualizer != null)
         {

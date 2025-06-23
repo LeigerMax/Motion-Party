@@ -12,10 +12,18 @@
 /[Uu]ser[Ss]ettings/
 /[Mm]emoryCaptures/
 /[Rr]ecordings/
-/[Mm]otion-[Pp]arty/[Ll]ibrary/
+
+# Specific Unity paths (pour forcer l'ignorance de fichiers déjà trackés)
+Motion-Party/Library/
+Motion-Party/Temp/
+Motion-Party/Logs/
+Motion-Party/UserSettings/
+Motion-Party/MemoryCaptures/
+Motion-Party/Recordings/
 
 # Shader cache
 /[Ll]ibrary/ShaderCache/
+Motion-Party/Library/ShaderCache/
 
 # -------------------------
 # UNITY - IDEs & métadonnées
@@ -78,9 +86,6 @@ crashlytics-build.properties
 # -------------------------
 Packages/com.unity.muse.*
 PackagesCache/com.unity.muse.*
-Library/PackageCache/
-/Motion-Party/Library/PackageCache/
-Library/ShaderCache/
 
 # -------------------------
 # PYTHON - Fichiers à ignorer
@@ -107,7 +112,4 @@ python-tracker/reference_drawings/
 .DS_Store
 Thumbs.db
 desktop.ini
-/Motion-Party/Library/Bee
-/Motion-Party/Library
-/Motion-Party/Library/BurstCache
-/Motion-Party/Library
+

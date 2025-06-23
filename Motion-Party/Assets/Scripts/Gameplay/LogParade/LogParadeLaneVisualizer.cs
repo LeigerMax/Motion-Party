@@ -20,10 +20,8 @@ public class LogParadeLaneVisualizer : MonoBehaviour
         Color.yellow,   // Voie 2 - Centre-gauche  
         Color.green,    // Voie 3 - Centre-droite
         Color.blue      // Voie 4 - Droite
-    };
-    
-    [Header("Auto-Generate")]
-    [SerializeField] private bool autoGenerateInEditor = true;
+    };    [Header("Auto-Generate")]
+    [SerializeField] private bool autoGenerateInEditor = false; // Désactivé par défaut
     
     private GameObject[] laneObjects = new GameObject[4];
 
@@ -31,12 +29,11 @@ public class LogParadeLaneVisualizer : MonoBehaviour
     {
         if (Application.isPlaying)
         {
-            GenerateLanes();
+            // Par défaut, ne rien faire. Le LogParadeLaneManager s'occupe de tout.
+            // On peut toujours générer manuellement si besoin via le menu contextuel.
         }
-    }
-
-    /// <summary>
-    /// Génère les objets visuels pour chaque voie
+    }    /// <summary>
+    /// Génère les objets visuels pour chaque voie (seulement si nécessaire)
     /// </summary>
     [ContextMenu("Generate Lanes")]
     public void GenerateLanes()
@@ -53,23 +50,42 @@ public class LogParadeLaneVisualizer : MonoBehaviour
     }
     
     /// <summary>
-    /// Supprime tous les objets de voie
+    /// Assigne des lanes externes (utilisé par LogParadeLaneManager)
     /// </summary>
-    [ContextMenu("Clear Lanes")]
+    public void SetExternalLanes(GameObject[] externalLanes)
+    {
+        if (externalLanes.Length == 4)
+        {
+            laneObjects = (GameObject[])externalLanes.Clone();
+            Debug.Log("Lanes externes assignées au visualizer");
+        }
+        else
+        {
+            Debug.LogWarning("Impossible d'assigner les lanes externes : il faut exactement 4 lanes");
+        }
+    }    /// <summary>
+    /// Supprime tous les objets de voie générés automatiquement
+    /// </summary>
+    [ContextMenu("Clear Generated Lanes")]
     public void ClearLanes()
     {
         for (int i = 0; i < 4; i++)
         {
             if (laneObjects[i] != null)
             {
-                if (Application.isPlaying)
-                    Destroy(laneObjects[i]);
-                else
-                    DestroyImmediate(laneObjects[i]);
-                    
+                // Vérifier si c'est une lane générée automatiquement (enfant de ce transform)
+                if (laneObjects[i].transform.parent == transform)
+                {
+                    if (Application.isPlaying)
+                        Destroy(laneObjects[i]);
+                    else
+                        DestroyImmediate(laneObjects[i]);
+                }
+                
                 laneObjects[i] = null;
             }
         }
+        Debug.Log("Lanes générées automatiquement supprimées");
     }
     
     /// <summary>
@@ -189,20 +205,13 @@ public class LogParadeLaneVisualizer : MonoBehaviour
         
         // Dessiner le centre de référence
         Gizmos.color = Color.white;
-        Gizmos.DrawWireSphere(basePosition, 0.2f);
-    }
+        Gizmos.DrawWireSphere(basePosition, 0.2f);    }
     
-    #if UNITY_EDITOR
+#if UNITY_EDITOR
     void OnValidate()
     {
-        if (autoGenerateInEditor && !Application.isPlaying)
-        {
-            // Rafraîchir la visualisation dans l'éditeur
-            if (transform.childCount > 0)
-            {
-                GenerateLanes();
-            }
-        }
+        // La génération automatique est désactivée par défaut
+        // Utilisez le menu contextuel "Generate Lanes" si vous voulez générer des lanes
     }
-    #endif
+#endif
 }
