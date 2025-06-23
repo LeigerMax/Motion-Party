@@ -13,9 +13,9 @@ GameObject:
   - component: {fileID: 6856690386018023660}
   - component: {fileID: 72796115957953872}
   - component: {fileID: 7613648075708595863}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: LogPrefab_Medium
-  m_TagString: Untagged
+  m_TagString: Log
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -126,7 +126,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
