@@ -8,12 +8,12 @@ using System.Collections;
 /// Gère le tracking latéral du joueur et son mapping sur 4 voies verticales
 /// </summary>
 public class LogParadeGameController : MiniGameBase
-{
-    [Header("Managers")]
+{    [Header("Managers")]
     public UDPReceive udpReceive;
     public LogParadeUIManager uiManager;
     public LogParadeLateralTracker lateralTracker;
     public LogParadePlayerAvatar playerAvatar;
+    public LogParadeScoreManager scoreManager;
 
     [Header("Game Settings")]
     public float startDelay = 1f;
@@ -32,9 +32,7 @@ public class LogParadeGameController : MiniGameBase
     protected override void Launch()
     {
         InitGame();
-    }
-
-    void Start()
+    }    void Start()
     {
         // S'assurer que les composants sont bien assignés
         ValidateComponents();
@@ -45,6 +43,9 @@ public class LogParadeGameController : MiniGameBase
             lateralTracker.OnLaneChanged += HandleLaneChanged;
             lateralTracker.OnPositionUpdated += HandlePositionUpdated;
         }
+
+        // Lancer automatiquement le jeu
+        Launch();
     }
 
     void Update()
@@ -63,9 +64,7 @@ public class LogParadeGameController : MiniGameBase
             lateralTracker.OnLaneChanged -= HandleLaneChanged;
             lateralTracker.OnPositionUpdated -= HandlePositionUpdated;
         }
-    }
-
-    /// <summary>
+    }    /// <summary>
     /// Initialise le jeu
     /// </summary>
     private void InitGame()
@@ -88,11 +87,16 @@ public class LogParadeGameController : MiniGameBase
             playerAvatar.SetLaneInstant(2);
         }
 
+        // Initialiser le système de score
+        if (scoreManager != null)
+        {
+            scoreManager.ResetScore();
+            Debug.Log("Système de score initialisé et remis à zéro.");
+        }
+
         // Démarrer le jeu après un délai
         StartCoroutine(StartGameAfterDelay());
-    }
-
-    /// <summary>
+    }    /// <summary>
     /// Démarre le jeu après un délai
     /// </summary>
     private IEnumerator StartGameAfterDelay()
@@ -104,6 +108,16 @@ public class LogParadeGameController : MiniGameBase
         if (uiManager != null)
         {
             uiManager.ShowGameStartMessage();
+        }        // Démarrer le système de score automatiquement au lancement du jeu
+        if (scoreManager != null)
+        {
+            scoreManager.StartScoring();
+            Debug.Log("🎯 Système de score démarré automatiquement !");
+        }
+        else
+        {
+            Debug.LogError("❌ ScoreManager non assigné ! Le score ne sera pas comptabilisé.");
+            Debug.LogError("💡 Vérifiez qu'un GameObject avec LogParadeScoreManager existe dans la scène.");
         }
 
         Debug.Log("Jeu démarré ! Bougez latéralement pour contrôler l'avatar.");
@@ -191,9 +205,7 @@ public class LogParadeGameController : MiniGameBase
         {
             uiManager.UpdatePlayerPosition(position);
         }
-    }
-
-    /// <summary>
+    }    /// <summary>
     /// Valide que tous les composants nécessaires sont assignés
     /// </summary>
     private void ValidateComponents()
@@ -220,6 +232,24 @@ public class LogParadeGameController : MiniGameBase
         if (uiManager == null)
         {
             Debug.LogWarning("LogParadeUIManager n'est pas assigné !");
+        }        if (scoreManager == null)
+        {
+            Debug.Log("Tentative de détection automatique du LogParadeScoreManager...");
+            scoreManager = FindObjectOfType<LogParadeScoreManager>();
+            
+            if (scoreManager == null)
+            {
+                Debug.LogError("❌ LogParadeScoreManager non trouvé dans la scène ! Le score ne sera pas comptabilisé.");
+                Debug.LogError("💡 Solution : Ajoutez un GameObject avec le composant LogParadeScoreManager à votre scène.");
+            }
+            else
+            {
+                Debug.Log($"✅ LogParadeScoreManager trouvé automatiquement sur : {scoreManager.gameObject.name}");
+            }
+        }
+        else
+        {
+            Debug.Log($"✅ LogParadeScoreManager déjà assigné sur : {scoreManager.gameObject.name}");
         }
     }
 
@@ -237,13 +267,29 @@ public class LogParadeGameController : MiniGameBase
     public Vector3 GetCurrentPlayerPosition()
     {
         return currentPlayerPosition;
-    }
-
-    /// <summary>
+    }    /// <summary>
     /// Vérifie si le jeu est en cours
     /// </summary>
     public bool IsGameActive()
     {
         return gameStarted && !gameEnded;
+    }
+
+    /// <summary>
+    /// Arrête le jeu et le système de score
+    /// </summary>
+    public void StopGame()
+    {
+        gameEnded = true;
+        gameStarted = false;
+
+        // Arrêter le système de score
+        if (scoreManager != null)
+        {
+            scoreManager.StopScoring();
+            Debug.Log($"Jeu terminé ! Score final : {scoreManager.GetCurrentScore()}");
+        }
+
+        Debug.Log("Le jeu LogParade a été arrêté.");
     }
 }
