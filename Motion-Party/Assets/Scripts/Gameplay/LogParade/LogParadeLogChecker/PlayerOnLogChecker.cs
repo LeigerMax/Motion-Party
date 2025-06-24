@@ -331,27 +331,11 @@ public class PlayerOnLogChecker : MonoBehaviour
         Gizmos.color = IsOnLog ? Color.green : Color.red;
         Gizmos.DrawWireSphere(gizmoCenter, detectionRadius);
         
-        // Indicateur de période de tolérance
-        if (isInTolerancePeriod)
+        // Indicateur de période de tolérance        if (isInTolerancePeriod)
         {
             Gizmos.color = Color.yellow;
             Gizmos.DrawWireCube(transform.position + Vector3.up * 2f, Vector3.one * 0.5f);
         }
-    }
-
-    void OnGUI()
-    {
-        if (!enableDebugLogs) return;
-
-        // Affichage des informations de debug
-        GUILayout.BeginArea(new Rect(10, Screen.height - 180, 300, 170));
-        GUILayout.Label("=== Player On Log Checker ===");
-        GUILayout.Label($"Sur rondin: {(IsOnLog ? "OUI" : "NON")}");
-        GUILayout.Label($"Rondins détectés: {GetDetectedLogCount()}");
-        GUILayout.Label($"Période tolérance: {(isInTolerancePeriod ? $"OUI ({toleranceTimer:F1}s)" : "NON")}");
-        GUILayout.Label($"Rayon détection: {detectionRadius:F1}");
-        GUILayout.Label($"Voie précédente: {previousLane}");
-        GUILayout.EndArea();
     }
 
     #endregion

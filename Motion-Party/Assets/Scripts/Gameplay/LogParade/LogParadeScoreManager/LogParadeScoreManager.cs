@@ -346,27 +346,7 @@ public class LogParadeScoreManager : MonoBehaviour
         
         if (enableDebugLogs)
         {
-            Debug.Log($"[LogParadeScoreManager] 🎮 Points retirés manuellement: -{points}. Score total: {CurrentScore}");
-        }
-    }
-
-    #endregion
-
-    #region Debug
-
-    void OnGUI()
-    {
-        if (!enableDebugLogs) return;
-
-        // Affichage des informations de debug
-        GUILayout.BeginArea(new Rect(320, Screen.height - 180, 300, 170));
-        GUILayout.Label("=== LogParade Score Manager ===");
-        GUILayout.Label($"Score: {CurrentScore}");
-        GUILayout.Label($"Système actif: {(IsScoring ? "OUI" : "NON")}");
-        GUILayout.Label($"Sur rondin: {(playerOnLogChecker != null && playerOnLogChecker.IsPlayerOnLog() ? "OUI" : "NON")}");
-        GUILayout.Label($"Peut pénalité: {(canReceivePenalty ? "OUI" : "NON")}");
-        GUILayout.Label($"Timer: {scoreTimer:F1}s");
-        GUILayout.EndArea();
+            Debug.Log($"[LogParadeScoreManager] 🎮 Points retirés manuellement: -{points}. Score total: {CurrentScore}");        }
     }
 
     #endregion

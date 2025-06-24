@@ -66,13 +66,13 @@ public class LogParadeGameController : MiniGameBase
             lateralTracker.OnLaneChanged -= HandleLaneChanged;
             lateralTracker.OnPositionUpdated -= HandlePositionUpdated;
         }
-    }    /// <summary>
+    }
+
+    /// <summary>
     /// Initialise le jeu
     /// </summary>
     private void InitGame()
     {
-        Debug.Log("Initialisation du mini-jeu 'Le Défilé des Rondins'...");
-        
         gameStarted = false;
         gameEnded = false;
         currentLane = 2;
@@ -93,36 +93,33 @@ public class LogParadeGameController : MiniGameBase
         if (scoreManager != null)
         {
             scoreManager.ResetScore();
-            Debug.Log("Système de score initialisé et remis à zéro.");
         }
 
         // Démarrer le jeu après un délai
         StartCoroutine(StartGameAfterDelay());
-    }    /// <summary>
+    }
+
+    /// <summary>
     /// Démarre le jeu après un délai
     /// </summary>
     private IEnumerator StartGameAfterDelay()
     {
         yield return new WaitForSeconds(startDelay);
-        
+
         gameStarted = true;
-        
+
         if (uiManager != null)
         {
             uiManager.ShowGameStartMessage();
-        }        // Démarrer le système de score automatiquement au lancement du jeu
+        }       
         if (scoreManager != null)
         {
             scoreManager.StartScoring();
-            Debug.Log("🎯 Système de score démarré automatiquement !");
         }
         else
         {
-            Debug.LogError("❌ ScoreManager non assigné ! Le score ne sera pas comptabilisé.");
-            Debug.LogError("💡 Vérifiez qu'un GameObject avec LogParadeScoreManager existe dans la scène.");
+            Debug.LogError("ScoreManager non assigné ! Le score ne sera pas comptabilisé. Vérifiez qu'un GameObject avec LogParadeScoreManager existe dans la scène");
         }
-
-        Debug.Log("Jeu démarré ! Bougez latéralement pour contrôler l'avatar.");
     }
 
     /// <summary>
@@ -137,17 +134,7 @@ public class LogParadeGameController : MiniGameBase
 
         try
         {
-            // Parser les données JSON
             JObject jsonData = JObject.Parse(data);
-            
-            // Le tracker latéral s'occupe du traitement détaillé
-            // Ici on peut ajouter des logs ou des traitements spécifiques au jeu
-            
-            if (enableDebugMode)
-            {
-                // Afficher les données brutes en debug si nécessaire
-                // Debug.Log($"Données reçues: {data}");
-            }
         }
         catch (System.Exception ex)
         {
@@ -181,17 +168,10 @@ public class LogParadeGameController : MiniGameBase
         if (playerAvatar != null)
         {
             playerAvatar.SetTargetLane(newLane);
-        }
-
-        // Mettre à jour l'UI
+        }        // Mettre à jour l'UI
         if (uiManager != null)
         {
             uiManager.UpdateCurrentLane(newLane);
-        }
-
-        if (enableDebugMode)
-        {
-            Debug.Log($"Changement de voie : {newLane}");
         }
     }
 
@@ -207,7 +187,9 @@ public class LogParadeGameController : MiniGameBase
         {
             uiManager.UpdatePlayerPosition(position);
         }
-    }    /// <summary>
+    }
+
+    /// <summary>
     /// Valide que tous les composants nécessaires sont assignés
     /// </summary>
     private void ValidateComponents()
@@ -234,24 +216,15 @@ public class LogParadeGameController : MiniGameBase
         if (uiManager == null)
         {
             Debug.LogWarning("LogParadeUIManager n'est pas assigné !");
-        }        if (scoreManager == null)
+        }
+        if (scoreManager == null)
         {
-            Debug.Log("Tentative de détection automatique du LogParadeScoreManager...");
             scoreManager = FindObjectOfType<LogParadeScoreManager>();
-            
+
             if (scoreManager == null)
             {
-                Debug.LogError("❌ LogParadeScoreManager non trouvé dans la scène ! Le score ne sera pas comptabilisé.");
-                Debug.LogError("💡 Solution : Ajoutez un GameObject avec le composant LogParadeScoreManager à votre scène.");
+                Debug.LogError("LogParadeScoreManager non trouvé dans la scène ! Le score ne sera pas comptabilisé. Solution : Ajoutez un GameObject avec le composant LogParadeScoreManager à votre scène");
             }
-            else
-            {
-                Debug.Log($"✅ LogParadeScoreManager trouvé automatiquement sur : {scoreManager.gameObject.name}");
-            }
-        }
-        else
-        {
-            Debug.Log($"✅ LogParadeScoreManager déjà assigné sur : {scoreManager.gameObject.name}");
         }
     }
 
@@ -269,7 +242,9 @@ public class LogParadeGameController : MiniGameBase
     public Vector3 GetCurrentPlayerPosition()
     {
         return currentPlayerPosition;
-    }    /// <summary>
+    }   
+    
+     /// <summary>
     /// Vérifie si le jeu est en cours
     /// </summary>
     public bool IsGameActive()
@@ -289,10 +264,7 @@ public class LogParadeGameController : MiniGameBase
         if (scoreManager != null)
         {
             scoreManager.StopScoring();
-            Debug.Log($"Jeu terminé ! Score final : {scoreManager.GetCurrentScore()}");
         }
-
-        Debug.Log("Le jeu LogParade a été arrêté.");
     }
 
     /// <summary>
@@ -302,30 +274,24 @@ public class LogParadeGameController : MiniGameBase
     {
         if (gameStarted)
         {
-            Debug.Log("LogParadeGameController: Jeu déjà démarré");
             return;
         }
-        
-        Debug.Log("LogParadeGameController: Démarrage forcé du jeu après calibration");
         
         // Arrêter la coroutine de délai si elle est en cours
         StopAllCoroutines();
         
         gameStarted = true;
         gameEnded = false;
-        
-        // Démarrer le score immédiatement
+          // Démarrer le score immédiatement
         if (scoreManager != null)
         {
             scoreManager.StartScoring();
-            Debug.Log("Score démarré après calibration");
-        }        // Initialiser l'UI
+        }
+
+        // Initialiser l'UI
         if (uiManager != null)
         {
             uiManager.ShowGameUI();
-            Debug.Log("UI de jeu affichée");
         }
-        
-        Debug.Log("Jeu LogParade forcé avec succès!");
     }
 }

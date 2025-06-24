@@ -296,37 +296,9 @@ public class LogParadeLateralTracker : MonoBehaviour
     {
         return smoothedPosition;
     }    /// <summary>
-    /// Vérifie si le tracker est calibré
-    /// </summary>
+    /// Vérifie si le tracker est calibré    /// </summary>
     public bool IsCalibrated()
     {
         return isCalibrated;
-    }
-
-    void OnGUI()
-    {
-        if (!showDebugInfo) return;
-
-        GUILayout.BeginArea(new Rect(10, 10, 300, 200));
-        GUILayout.Label("=== LogParade Lateral Tracker ===");
-        GUILayout.Label($"Source: {trackingSource}");
-        GUILayout.Label($"Calibré: {(isCalibrated ? "OUI" : "NON")}");
-        
-        if (!isCalibrated && enableAutoCalibration)
-        {
-            float progress = calibrationTimer / calibrationTime;
-            GUILayout.Label($"Calibration: {progress:P0}");
-        }
-        
-        GUILayout.Label($"Position brute: {currentPosition}");
-        GUILayout.Label($"Position lissée: {smoothedPosition}");
-        GUILayout.Label($"Voie actuelle: {currentLane}/4");
-        
-        if (GUILayout.Button("Recalibrer"))
-        {
-            Recalibrate();
-        }
-        
-        GUILayout.EndArea();
     }
 }

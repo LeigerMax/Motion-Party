@@ -656,8 +656,7 @@ public class LogParadeCalibrationInteractive : MonoBehaviour
     }
 
     /// <summary>
-    /// Obtient l'état actuel de la calibration
-    /// </summary>
+    /// Obtient l'état actuel de la calibration    /// </summary>
     public string GetCalibrationStatus()
     {
         return currentState.ToString();
@@ -665,34 +664,6 @@ public class LogParadeCalibrationInteractive : MonoBehaviour
 
     // Debug et visualisation
     
-    void OnGUI()
-    {
-        if (!showDebugInfo) return;
-
-        GUILayout.BeginArea(new Rect(10, 10, 300, 200));
-        GUILayout.Label("=== Calibration Interactive ===");
-        GUILayout.Label($"État: {currentState}");
-        GUILayout.Label($"Actif: {(isCalibrationActive ? "OUI" : "NON")}");
-        GUILayout.Label($"Timer: {stateTimer:F1}s / {timeoutDuration:F1}s");
-        
-        if (playerAvatar != null)
-        {
-            GUILayout.Label($"Lane joueur: {GetPlayerCurrentLane()}");
-        }
-
-        if (GUILayout.Button("Start Calibration"))
-        {
-            StartCalibration();
-        }
-        
-        if (GUILayout.Button("Stop Calibration"))
-        {
-            StopCalibration();
-        }
-        
-        GUILayout.EndArea();
-    }
-
     void OnDrawGizmos()
     {
         // Dessiner les zones de détection des lanes

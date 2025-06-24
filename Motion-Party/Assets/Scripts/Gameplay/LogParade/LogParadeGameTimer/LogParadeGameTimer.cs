@@ -66,14 +66,8 @@ public class LogParadeGameTimer : MiniGameBase
     /// Durée totale de la partie
     /// </summary>
     public float GameDuration => gameDurationInSeconds;
-    
-    protected override void Launch()
+      protected override void Launch()
     {
-        if (enableDebugLogs)
-        {
-            Debug.Log("[LogParadeGameTimer] Launch() appelé via MiniGameBase");
-        }
-        
         InitializeTimer();
         LaunchLevel();
     }
@@ -83,27 +77,18 @@ public class LogParadeGameTimer : MiniGameBase
         // Si on n'est pas lancé par MiniGameBase, on peut démarrer automatiquement
         if (!gameObject.activeInHierarchy)
         {
-            if (enableDebugLogs)
-            {
-                Debug.Log("[LogParadeGameTimer] GameObject inactif");
-            }
             return;
         }
         
         // Validation des composants au démarrage
         ValidateComponents();
     }
-    
-    /// <summary>
+      /// <summary>
     /// Initialise le système de timer
     /// </summary>
     private void InitializeTimer()
     {
-        if (enableDebugLogs)
-        {
-            Debug.Log("[LogParadeGameTimer] Initialisation du timer...");
-        }
-          // Reset de l'état
+        // Reset de l'état
         gameStarted = false;
         gameEnded = false;
         timeRemaining = gameDurationInSeconds;
@@ -114,21 +99,11 @@ public class LogParadeGameTimer : MiniGameBase
             StopCoroutine(gameTimerCoroutine);
             gameTimerCoroutine = null;
         }
-        
-        // Nettoyer les rondins existants
+          // Nettoyer les rondins existants
         if (logGenerator != null)
         {
             logGenerator.StopGeneration();
             logGenerator.ClearAllLogs();
-            if (enableDebugLogs)
-            {
-                Debug.Log("[LogParadeGameTimer] ✅ Rondins existants nettoyés");
-            }
-        }
-        
-        if (enableDebugLogs)
-        {
-            Debug.Log($"[LogParadeGameTimer] Timer initialisé - Durée: {gameDurationInSeconds}s");
         }
     }
       /// <summary>
@@ -138,10 +113,6 @@ public class LogParadeGameTimer : MiniGameBase
     {
         if (gameStarted)
         {
-            if (enableDebugLogs)
-            {
-                Debug.LogWarning("[LogParadeGameTimer] LaunchLevel() appelé mais le jeu est déjà démarré !");
-            }
             return;
         }
         
@@ -153,14 +124,7 @@ public class LogParadeGameTimer : MiniGameBase
                 Debug.LogWarning("[LogParadeGameTimer] ⚠️ Impossible de lancer le niveau : calibration en cours!");
             }
             return;
-        }
-        
-        if (enableDebugLogs)
-        {
-            Debug.Log("[LogParadeGameTimer] Lancement du niveau...");
-        }
-        
-        // Validation finale des composants
+        }// Validation finale des composants
         if (!ValidateComponents())
         {
             Debug.LogError("[LogParadeGameTimer] Impossible de lancer le niveau - composants manquants !");
@@ -176,11 +140,6 @@ public class LogParadeGameTimer : MiniGameBase
     /// </summary>
     private IEnumerator StartGameAfterDelay()
     {
-        if (enableDebugLogs)
-        {
-            Debug.Log($"[LogParadeGameTimer] Démarrage dans {startDelay} secondes...");
-        }
-        
         yield return new WaitForSeconds(startDelay);
         
         StartGame();
@@ -201,33 +160,19 @@ public class LogParadeGameTimer : MiniGameBase
             }
             return;
         }
-        
-        gameStarted = true;
+          gameStarted = true;
         gameEnded = false;
         timeRemaining = gameDurationInSeconds;
-        
-        if (enableDebugLogs)
-        {
-            Debug.Log("[LogParadeGameTimer] 🚀 DÉBUT DE PARTIE !");
-        }
         
         // Démarrer le score
         if (scoreManager != null)
         {
             scoreManager.StartScoring();
-            if (enableDebugLogs)
-            {
-                Debug.Log("[LogParadeGameTimer] ✅ Système de score démarré");
-            }
         }
           // Démarrer la génération des rondins
         if (logGenerator != null)
         {
             logGenerator.StartLogGeneration();
-            if (enableDebugLogs)
-            {
-                Debug.Log("[LogParadeGameTimer] ✅ Génération de rondins démarrée");
-            }
         }
         
         // Déclencher l'événement de début
@@ -249,14 +194,8 @@ public class LogParadeGameTimer : MiniGameBase
             
             // Décrémenter le temps
             timeRemaining = Mathf.Max(0f, timeRemaining - 1f);
-            
-            // Déclencher l'événement de tick
+              // Déclencher l'événement de tick
             OnTimerTick?.Invoke(timeRemaining);
-            
-            if (enableDebugLogs)
-            {
-                Debug.Log($"[LogParadeGameTimer] ⏰ Temps restant: {timeRemaining:F0}s");
-            }
         }
         
         // Temps écoulé - fin de partie
@@ -274,30 +213,16 @@ public class LogParadeGameTimer : MiniGameBase
         gameStarted = false;
         timeRemaining = 0f;
         
-        if (enableDebugLogs)
-        {
-            Debug.Log("[LogParadeGameTimer] ⏹️ FIN DE PARTIE !");
-        }
-        
         // Arrêter le score
         if (scoreManager != null)
         {
             scoreManager.StopScoring();
-            int finalScore = scoreManager.GetCurrentScore();
-            if (enableDebugLogs)
-            {
-                Debug.Log($"[LogParadeGameTimer] 🎯 Score final: {finalScore}");
-            }
         }
         
         // Arrêter la génération des rondins
         if (logGenerator != null)
         {
             logGenerator.StopGeneration();
-            if (enableDebugLogs)
-            {
-                Debug.Log("[LogParadeGameTimer] ⏹️ Génération de rondins arrêtée");
-            }
         }
         
         // Arrêter le mouvement de tous les rondins existants
@@ -312,14 +237,8 @@ public class LogParadeGameTimer : MiniGameBase
         
         // Déclencher l'événement de fin
         OnGameEnd?.Invoke();
-        
-        // Appeler FinishMiniGame de MiniGameBase
+          // Appeler FinishMiniGame de MiniGameBase
         FinishMiniGame();
-        
-        if (enableDebugLogs)
-        {
-            Debug.Log("[LogParadeGameTimer] 🏁 Partie terminée et nettoyée");
-        }
     }
     
     /// <summary>
@@ -336,13 +255,7 @@ public class LogParadeGameTimer : MiniGameBase
                 if (log != null)
                 {
                     log.StopMovement();
-                }
-            }
-            
-            if (enableDebugLogs)
-            {
-                Debug.Log($"[LogParadeGameTimer] ⏸️ Mouvement arrêté pour {activeLogs.Length} rondin(s)");
-            }
+                }            }
         }
     }
     
@@ -361,10 +274,9 @@ public class LogParadeGameTimer : MiniGameBase
             {
                 Debug.LogError("[LogParadeGameTimer] ❌ LogParadeScoreManager non trouvé !");
                 allValid = false;
-            }
-            else if (enableDebugLogs)
+            }            else
             {
-                Debug.Log($"[LogParadeGameTimer] ✅ LogParadeScoreManager trouvé automatiquement: {scoreManager.gameObject.name}");
+                // LogParadeScoreManager trouvé automatiquement, pas besoin de log
             }
         }
         
@@ -376,10 +288,9 @@ public class LogParadeGameTimer : MiniGameBase
             {
                 Debug.LogError("[LogParadeGameTimer] ❌ LogParadeLogGenerator non trouvé !");
                 allValid = false;
-            }
-            else if (enableDebugLogs)
+            }            else
             {
-                Debug.Log($"[LogParadeGameTimer] ✅ LogParadeLogGenerator trouvé automatiquement: {logGenerator.gameObject.name}");
+                // LogParadeLogGenerator trouvé automatiquement, pas besoin de log
             }
         }
         
@@ -393,10 +304,9 @@ public class LogParadeGameTimer : MiniGameBase
                 {
                     Debug.LogWarning("[LogParadeGameTimer] ⚠️ LogParadeGameController non trouvé (optionnel)");
                 }
-            }
-            else if (enableDebugLogs)
+            }            else
             {
-                Debug.Log($"[LogParadeGameTimer] ✅ LogParadeGameController trouvé automatiquement: {gameController.gameObject.name}");
+                // LogParadeGameController trouvé automatiquement, pas besoin de log
             }
         }
         
@@ -410,31 +320,16 @@ public class LogParadeGameTimer : MiniGameBase
     {
         if (!gameStarted || gameEnded)
         {
-            if (enableDebugLogs)
-            {
-                Debug.LogWarning("[LogParadeGameTimer] StopGame() appelé mais aucune partie en cours");
-            }
             return;
-        }
-        
-        if (enableDebugLogs)
-        {
-            Debug.Log("[LogParadeGameTimer] Arrêt manuel de la partie");
         }
         
         EndGame();
     }
-    
-    /// <summary>
+      /// <summary>
     /// Redémarre une nouvelle partie
     /// </summary>
     public void RestartGame()
     {
-        if (enableDebugLogs)
-        {
-            Debug.Log("[LogParadeGameTimer] Redémarrage de la partie");
-        }
-        
         // Arrêter la partie en cours si nécessaire
         if (gameStarted && !gameEnded)
         {
@@ -461,11 +356,6 @@ public class LogParadeGameTimer : MiniGameBase
         }
         
         gameDurationInSeconds = Mathf.Max(1f, newDuration);
-        
-        if (enableDebugLogs)
-        {
-            Debug.Log($"[LogParadeGameTimer] Durée de partie définie à {gameDurationInSeconds}s");
-        }
     }
     
     /// <summary>
@@ -481,63 +371,10 @@ public class LogParadeGameTimer : MiniGameBase
     }
     
     void OnDestroy()
-    {
-        // Nettoyer les coroutines
+    {        // Nettoyer les coroutines
         if (gameTimerCoroutine != null)
         {
             StopCoroutine(gameTimerCoroutine);
         }
     }
-    
-    #region Debug Interface
-      void OnGUI()
-    {
-        if (!enableDebugLogs) return;
-        
-        // Interface de debug avec position configurable
-        float posX = debugGuiX < 0 ? Screen.width + debugGuiX : debugGuiX;
-        float posY = debugGuiY;
-        
-        GUILayout.BeginArea(new Rect(posX, posY, 240, 200));
-        GUILayout.Label("=== LogParade Timer Debug ===");
-        
-        GUILayout.Label($"État: {(IsGameActive ? "EN COURS" : (gameEnded ? "TERMINÉ" : "ARRÊTÉ"))}");
-        GUILayout.Label($"Temps restant: {timeRemaining:F1}s");
-        GUILayout.Label($"Durée totale: {gameDurationInSeconds}s");
-        
-        if (scoreManager != null)
-        {
-            GUILayout.Label($"Score: {scoreManager.GetCurrentScore()}");
-        }
-        
-        GUILayout.Space(10);
-        
-        if (!IsGameActive && !gameEnded)
-        {
-            if (GUILayout.Button("Démarrer Partie"))
-            {
-                LaunchLevel();
-            }
-        }
-        
-        if (IsGameActive)
-        {
-            if (GUILayout.Button("Arrêter Partie"))
-            {
-                StopGame();
-            }
-        }
-        
-        if (gameEnded)
-        {
-            if (GUILayout.Button("Nouvelle Partie"))
-            {
-                RestartGame();
-            }
-        }
-        
-        GUILayout.EndArea();
-    }
-    
-    #endregion
 }

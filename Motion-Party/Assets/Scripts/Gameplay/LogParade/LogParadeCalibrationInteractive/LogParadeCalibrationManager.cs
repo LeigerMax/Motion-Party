@@ -461,41 +461,8 @@ public class LogParadeCalibrationManager : MonoBehaviour
     public static void ForceEnableGameplay()
     {
         IsCalibrationInProgress = false;
-        IsGameplayAllowed = true;
-        Debug.LogWarning("[LogParadeCalibrationManager] ⚠️ GAMEPLAY FORCÉ - Pour debug uniquement!");
-    }    // Interface de debug
-
-#if UNITY_EDITOR
-    void OnGUI()
-    {
-        if (!showDebugUI) return;
-
-        GUILayout.BeginArea(new Rect(Screen.width - 300, 10, 290, 150));
-        GUILayout.Label("=== Calibration Manager ===");
-        GUILayout.Label($"Status: {GetCurrentStatus()}");
-        GUILayout.Label($"Calibration OK: {calibrationCompleted}");
-        GUILayout.Label($"Jeu démarré: {gameStarted}");
-        
-        GUILayout.Space(10);
-        
-        if (GUILayout.Button("Start Calibration"))
-        {
-            StartCalibrationProcess();
-        }
-        
-        if (GUILayout.Button("Bypass Calibration"))
-        {
-            BypassCalibration();
-        }
-        
-        if (GUILayout.Button("Restart Calibration"))
-        {
-            RestartCalibration();
-        }
-        
-        GUILayout.EndArea();
+        IsGameplayAllowed = true;        Debug.LogWarning("[LogParadeCalibrationManager] ⚠️ GAMEPLAY FORCÉ - Pour debug uniquement!");
     }
-#endif
 
     /// <summary>
     /// Valide que tous les systèmes de jeu ont bien démarré

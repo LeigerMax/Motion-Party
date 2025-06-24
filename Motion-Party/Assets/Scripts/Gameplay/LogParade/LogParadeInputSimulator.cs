@@ -161,51 +161,9 @@ public class LogParadeInputSimulator : MonoBehaviour
         {
             // Nettoyer les données du UDPReceive
             if (targetUDPReceive != null)
-            {
-                targetUDPReceive.data = "";
+            {                targetUDPReceive.data = "";
             }
         }
-    }
-    
-    void OnGUI()
-    {
-        if (!enableSimulation) return;
-        
-        // Interface de debug
-        GUILayout.BeginArea(new Rect(Screen.width - 300, Screen.height - 200, 290, 190));
-        GUILayout.Label("=== INPUT SIMULATOR ===");
-        GUILayout.Label($"Position X: {currentSimulatedX:F2}");
-        GUILayout.Label($"Mouvement auto: {(autoMoveEnabled ? "ON" : "OFF")}");
-        GUILayout.Space(10);
-        
-        GUILayout.Label("Contrôles:");
-        GUILayout.Label($"• {moveLeftKey} / {moveRightKey} : Bouger");
-        GUILayout.Label($"• {centerKey} : Centrer");
-        GUILayout.Label($"• {autoMoveKey} : Auto mouvement");
-        
-        GUILayout.Space(10);
-        
-        // Boutons d'action rapide
-        GUILayout.BeginHorizontal();
-        if (GUILayout.Button("Voie 1"))
-        {
-            SetSimulatedPosition(-2f);
-        }
-        if (GUILayout.Button("Voie 2"))
-        {
-            SetSimulatedPosition(-0.7f);
-        }
-        if (GUILayout.Button("Voie 3"))
-        {
-            SetSimulatedPosition(0.7f);
-        }
-        if (GUILayout.Button("Voie 4"))
-        {
-            SetSimulatedPosition(2f);
-        }
-        GUILayout.EndHorizontal();
-        
-        GUILayout.EndArea();
     }
     
     void OnDrawGizmos()

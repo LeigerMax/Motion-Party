@@ -261,23 +261,8 @@ public class LogParadePlayerAvatar : MonoBehaviour
         // Mettre en évidence la voie cible
         if (Application.isPlaying)
         {
-            Gizmos.color = Color.red;
-            Vector3 targetPos = CalculateLanePosition(targetLane);
+            Gizmos.color = Color.red;            Vector3 targetPos = CalculateLanePosition(targetLane);
             Gizmos.DrawSphere(targetPos, 0.3f);
         }
-    }
-
-    void OnGUI()
-    {
-        if (!showDebugInfo) return;
-
-        // Debug info
-        GUILayout.BeginArea(new Rect(Screen.width - 250, 10, 240, 150));
-        GUILayout.Label("=== Player Avatar ===");
-        GUILayout.Label($"Voie actuelle: {targetLane}");
-        GUILayout.Label($"En mouvement: {(isMoving ? "OUI" : "NON")}");
-        GUILayout.Label($"Progrès: {movementProgress:P0}");
-        GUILayout.Label($"Position: {transform.position}");
-        GUILayout.EndArea();
     }
 }

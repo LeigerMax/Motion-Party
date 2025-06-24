@@ -536,85 +536,8 @@ public class LogParadeGameLauncher : MonoBehaviour
         if (scoreManager != null)
         {
             var stopMethod = scoreManager.GetType().GetMethod("StopScoring");
-            stopMethod?.Invoke(scoreManager, null);
-        }
+            stopMethod?.Invoke(scoreManager, null);        }
         
         LogStatus("🛑 Tous les systèmes arrêtés");
-    }    /// <summary>
-    /// Interface de debug OnGUI
-    /// </summary>
-    void OnGUI()
-    {
-        if (!enableDetailedLogs) return;
-        
-        // Vérifier l'état GUI avant de commencer
-        if (Event.current == null || Event.current.type == EventType.Used)
-            return;
-            
-        var rect = new Rect(10, 10, 300, 150);
-        bool areaStarted = false;
-        
-        try
-        {
-            GUI.Box(rect, "LogParade Game Launcher");
-            
-            var areaRect = new Rect(rect.x + 5, rect.y + 25, rect.width - 10, rect.height - 30);
-            GUILayout.BeginArea(areaRect);
-            areaStarted = true;
-            
-            GUILayout.Label($"Launching: {isLaunching}");
-            GUILayout.Label($"Game Started: {gameFullyStarted}");
-            GUILayout.Label($"Calibrated: {IsCalibrationCompleted()}");
-            
-            GUILayout.Space(5);
-            
-            if (GUILayout.Button("Force Launch Game"))
-            {
-                LaunchFullGame();
-            }
-            
-            if (GUILayout.Button("Restart Game"))
-            {
-                RestartGame();
-            }
-            
-            if (GUILayout.Button("Stop All"))
-            {
-                StopAllSystems();
-            }
-        }
-        catch (System.Exception ex)
-        {
-            Debug.LogError($"[LogParadeGameLauncher] Erreur OnGUI: {ex}");
-            
-            // Tenter de nettoyer l'état GUI si possible
-            if (areaStarted)
-            {
-                try
-                {
-                    GUILayout.EndArea();
-                    areaStarted = false;
-                }
-                catch { }
-            }
-            
-            // Sortie propre du GUI
-            GUIUtility.ExitGUI();
-        }
-        finally
-        {
-            // Assurer que EndArea() est appelé si BeginArea() a été appelé
-            if (areaStarted)
-            {
-                try
-                {
-                    GUILayout.EndArea();
-                }
-                catch (System.Exception ex)
-                {
-                    Debug.LogError($"[LogParadeGameLauncher] Erreur EndArea: {ex}");
-                }
-            }
-        }
     }
 }
