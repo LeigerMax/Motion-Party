@@ -20,9 +20,10 @@ public class LogParadeLateralTracker : MonoBehaviour
     public float leftBoundary = -1.5f;
     [Range(-2.0f, 2.0f)]
     public float rightBoundary = 1.5f;    [Header("Calibration")]
-    public bool enableAutoCalibration = false; // Désactivé par défaut
+    public bool enableAutoCalibration = false; // Désactivé par défaut pour la calibration interactive
     public float calibrationTime = 1.0f; // Réduit à 1 seconde
     public bool continuousCalibration = true; // Calibration continue
+    public bool bypassCalibrationForInteractiveMode = true; // Nouveau: bypasser pour calibration interactive
     
     [Header("Debug")]
     public bool showDebugInfo = true;
@@ -48,9 +49,7 @@ public class LogParadeLateralTracker : MonoBehaviour
         {
             Debug.LogError("UDPReceive n'est pas assigné dans LogParadeLateralTracker !");
             return;
-        }
-
-        // Initialiser la position au centre
+        }        // Initialiser la position au centre
         smoothedPosition = Vector3.zero;
         currentPosition = Vector3.zero;
         
@@ -60,7 +59,24 @@ public class LogParadeLateralTracker : MonoBehaviour
         }
         else
         {
+            // Si la calibration automatique est désactivée, on considère que le système est calibré
+            // Ceci permet le mouvement pendant la calibration interactive
             isCalibrated = true;
+            
+            if (showDebugInfo)
+            {
+                Debug.Log("LogParadeLateralTracker: Calibration automatique désactivée - mouvement autorisé");
+            }
+        }
+        
+        // Bypass spécial pour la calibration interactive
+        if (bypassCalibrationForInteractiveMode)
+        {
+            isCalibrated = true;
+            if (showDebugInfo)
+            {
+                Debug.Log("LogParadeLateralTracker: Mode calibration interactive - mouvement forcé");
+            }
         }
     }    void Update()
     {

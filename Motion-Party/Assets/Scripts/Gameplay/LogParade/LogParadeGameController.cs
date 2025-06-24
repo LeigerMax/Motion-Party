@@ -46,14 +46,16 @@ public class LogParadeGameController : MiniGameBase
 
         // Lancer automatiquement le jeu
         Launch();
-    }
-
-    void Update()
+    }    void Update()
     {
-        if (!gameStarted || gameEnded) return;
-
+        // Toujours traiter les données MediaPipe pour permettre le mouvement pendant la calibration
         ProcessMediaPipeData();
-        UpdateGameLogic();
+        
+        // Seule la logique de jeu est bloquée si le jeu n'a pas commencé
+        if (gameStarted && !gameEnded)
+        {
+            UpdateGameLogic();
+        }
     }
 
     private void OnDestroy()
@@ -291,5 +293,39 @@ public class LogParadeGameController : MiniGameBase
         }
 
         Debug.Log("Le jeu LogParade a été arrêté.");
+    }
+
+    /// <summary>
+    /// Force le démarrage immédiat du jeu (pour la calibration)
+    /// </summary>
+    public void ForceStartGame()
+    {
+        if (gameStarted)
+        {
+            Debug.Log("LogParadeGameController: Jeu déjà démarré");
+            return;
+        }
+        
+        Debug.Log("LogParadeGameController: Démarrage forcé du jeu après calibration");
+        
+        // Arrêter la coroutine de délai si elle est en cours
+        StopAllCoroutines();
+        
+        gameStarted = true;
+        gameEnded = false;
+        
+        // Démarrer le score immédiatement
+        if (scoreManager != null)
+        {
+            scoreManager.StartScoring();
+            Debug.Log("Score démarré après calibration");
+        }        // Initialiser l'UI
+        if (uiManager != null)
+        {
+            uiManager.ShowGameUI();
+            Debug.Log("UI de jeu affichée");
+        }
+        
+        Debug.Log("Jeu LogParade forcé avec succès!");
     }
 }

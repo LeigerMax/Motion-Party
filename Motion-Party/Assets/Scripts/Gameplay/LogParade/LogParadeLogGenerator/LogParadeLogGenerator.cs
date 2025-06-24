@@ -196,9 +196,18 @@ public class LogParadeLogGenerator : MiniGameBase
         
         Debug.Log("[LogParadeLogGenerator] Boucle de génération terminée");
     }
-    
-    private void GenerateLogRow()
+      private void GenerateLogRow()
     {
+        // Vérifier que la calibration est terminée avant de générer des rondins
+        if (LogParadeCalibrationManager.IsCalibrationInProgress)
+        {
+            if (showDebugInfo)
+            {
+                Debug.Log("[LogParadeLogGenerator] Génération suspendue - Calibration en cours");
+            }
+            return;
+        }
+        
         LogRow newRow = CreateValidLogRow();
         
         if (newRow != null)

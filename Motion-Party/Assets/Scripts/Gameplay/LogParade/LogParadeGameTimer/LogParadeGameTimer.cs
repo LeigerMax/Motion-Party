@@ -131,8 +131,7 @@ public class LogParadeGameTimer : MiniGameBase
             Debug.Log($"[LogParadeGameTimer] Timer initialisé - Durée: {gameDurationInSeconds}s");
         }
     }
-    
-    /// <summary>
+      /// <summary>
     /// Lance le niveau - démarrage manuel propre
     /// </summary>
     public void LaunchLevel()
@@ -142,6 +141,16 @@ public class LogParadeGameTimer : MiniGameBase
             if (enableDebugLogs)
             {
                 Debug.LogWarning("[LogParadeGameTimer] LaunchLevel() appelé mais le jeu est déjà démarré !");
+            }
+            return;
+        }
+        
+        // Vérifier si le gameplay est autorisé (après calibration)
+        if (!LogParadeCalibrationManager.CanStartGameplay())
+        {
+            if (enableDebugLogs)
+            {
+                Debug.LogWarning("[LogParadeGameTimer] ⚠️ Impossible de lancer le niveau : calibration en cours!");
             }
             return;
         }
@@ -176,13 +185,22 @@ public class LogParadeGameTimer : MiniGameBase
         
         StartGame();
     }
-    
-    /// <summary>
+      /// <summary>
     /// Démarre effectivement la partie
     /// </summary>
     private void StartGame()
     {
         if (gameStarted) return;
+        
+        // Vérifier si le gameplay est autorisé (après calibration)
+        if (!LogParadeCalibrationManager.CanStartGameplay())
+        {
+            if (enableDebugLogs)
+            {
+                Debug.LogWarning("[LogParadeGameTimer] ⚠️ Impossible de démarrer la partie : calibration en cours!");
+            }
+            return;
+        }
         
         gameStarted = true;
         gameEnded = false;

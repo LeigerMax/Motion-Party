@@ -51,6 +51,16 @@ public class LogParadeScoreManager : MonoBehaviour
 
     void Update()
     {
+        // Vérifier si le scoring est autorisé (après calibration)
+        if (!LogParadeCalibrationManager.CanStartScoring())
+        {
+            if (enableDebugLogs && IsScoring)
+            {
+                Debug.Log("[LogParadeScoreManager] Score suspendu pendant la calibration");
+            }
+            return;
+        }
+        
         if (!IsScoring) return;
         
         UpdateScoreLogic();
@@ -201,13 +211,21 @@ public class LogParadeScoreManager : MonoBehaviour
         }
     }
 
-    #region API Publique
-
-    /// <summary>
+    #region API Publique    /// <summary>
     /// Démarre le système de score
     /// </summary>
     public void StartScoring()
     {
+        // Vérifier si le scoring est autorisé (après calibration)
+        if (!LogParadeCalibrationManager.CanStartScoring())
+        {
+            if (enableDebugLogs)
+            {
+                Debug.LogWarning("[LogParadeScoreManager] ⚠️ Impossible de démarrer le score : calibration en cours!");
+            }
+            return;
+        }
+        
         IsScoring = true;
         scoreTimer = 0f;
         

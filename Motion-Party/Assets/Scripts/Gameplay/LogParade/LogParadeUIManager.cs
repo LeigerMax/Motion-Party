@@ -142,6 +142,14 @@ public class LogParadeUIManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Affiche l'interface de jeu (alias pour ShowGameStartMessage)
+    /// </summary>
+    public void ShowGameUI()
+    {
+        ShowGameStartMessage();
+    }
+    
+    /// <summary>
     /// Affiche l'interface de calibration
     /// </summary>
     public void ShowCalibrationUI(float progress)
@@ -163,6 +171,25 @@ public class LogParadeUIManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Affiche l'interface de calibration (overload pour bool)
+    /// </summary>
+    public void ShowCalibrationUI(bool show)
+    {
+        if (calibrationPanel != null)
+        {
+            calibrationPanel.SetActive(show);
+        }
+        
+        if (show)
+        {
+            if (calibrationText != null)
+            {
+                calibrationText.text = "Calibration en cours...";
+            }
+        }
+    }
+
+    /// <summary>
     /// Masque l'interface de calibration
     /// </summary>
     public void HideCalibrationUI()
@@ -171,6 +198,73 @@ public class LogParadeUIManager : MonoBehaviour
         {
             calibrationPanel.SetActive(false);
         }
+    }
+
+    /// <summary>
+    /// Met à jour le texte de calibration
+    /// </summary>
+    public void UpdateCalibrationText(string text)
+    {
+        if (calibrationText != null)
+        {
+            calibrationText.text = text;
+        }
+    }
+
+    /// <summary>
+    /// Met à jour la progression de la calibration
+    /// </summary>
+    public void UpdateCalibrationProgress(float progress)
+    {
+        if (calibrationProgressSlider != null)
+        {
+            calibrationProgressSlider.value = progress;
+        }
+    }
+
+    /// <summary>
+    /// Met en évidence une voie spécifique pour la calibration
+    /// </summary>
+    public void HighlightLaneForCalibration(int lane, bool highlight)
+    {
+        if (lane < 1 || lane > 4) return;
+        
+        int index = lane - 1;
+        if (laneHighlights[index] != null)
+        {
+            laneHighlights[index].color = highlight ? Color.yellow : inactiveLaneColor;
+        }
+    }
+
+    /// <summary>
+    /// Marque une voie comme complétée pour la calibration
+    /// </summary>
+    public void SetLaneCompletedForCalibration(int lane)
+    {
+        if (lane < 1 || lane > 4) return;
+        
+        int index = lane - 1;
+        if (laneHighlights[index] != null)
+        {
+            laneHighlights[index].color = Color.green;
+        }
+    }
+
+    /// <summary>
+    /// Réinitialise l'état des voies après calibration
+    /// </summary>
+    public void ResetLaneHighlights()
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            if (laneHighlights[i] != null)
+            {
+                laneHighlights[i].color = inactiveLaneColor;
+            }
+        }
+        
+        // Remettre en évidence la voie actuelle
+        UpdateLaneHighlights();
     }
 
     /// <summary>
