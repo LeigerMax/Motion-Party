@@ -18,35 +18,14 @@ Le système de calibration interactive LogParade demande au joueur de se déplac
 - **Solution**: Ajout d'un système de verrouillage global via `LogParadeCalibrationManager`
 - **Résultat**: Aucun score ni gameplay ne peut démarrer avant la fin de la calibration
 
-### 🔧 Nouveaux Composants Ajoutés
+### 🔧 Composants Principaux
 
-#### LogParadeCalibrationBootstrap
-- **Rôle**: S'assure que la calibration démarre correctement au lancement
-- **Fonctionnalités**:
-  - Validation de tous les systèmes au démarrage
-  - Initialisation automatique de la calibration
-  - Détection et correction des problèmes courants
+## 🚀 Installation Rapide
 
-#### LogParadeCalibrationDiagnostic
-- **Rôle**: Diagnostic en temps réel du système de calibration
-- **Fonctionnalités**:
-  - Vérification continue de l'état du système
-  - Interface de debug visuelle
-  - Correction automatique des problèmes détectés
-
-## 🚀 Installation Rapide (MISE À JOUR)
-
-### Étape 0: Correction des problèmes (NOUVEAU)
-1. Ajoutez le script `LogParadeCalibrationBootstrap` à un GameObject dans votre scène
-2. Ajoutez le script `LogParadeCalibrationDiagnostic` pour le debug (optionnel)
-3. Ces scripts corrigeront automatiquement les problèmes de mouvement et de score
-
-### Étape 1: Setup automatique
-1. Dans Unity, créez un GameObject vide nommé "CalibrationSetup"
-2. Ajoutez le script `LogParadeCalibrationSetup` à ce GameObject
-3. Dans l'inspecteur, cliquez sur les trois points `⋯` du script
-4. Sélectionnez **"Perform Auto Setup"** dans le menu contextuel
-5. Le système configurera automatiquement tous les composants nécessaires
+### Étape 1: Setup manuel
+1. Dans Unity, ajoutez les composants nécessaires à votre scène
+2. Configurez les références entre les composants
+3. Testez le système de calibration
 
 ### Étape 2: Validation
 1. Cliquez sur **"Validate Setup"** dans le menu contextuel du script
@@ -255,12 +234,9 @@ LogParadeGameController: Démarrage forcé du jeu après calibration
 ├── LogParadeCalibrationInteractive.cs    # Script principal
 ├── LogParadeCalibrationManager.cs        # Gestionnaire d'intégration  
 ├── CalibrationTextUI.cs                  # UI spécialisée (optionnel)
-├── LogParadeCalibrationSetup.cs          # Setup automatique
-├── LogParadeCalibrationBootstrap.cs      # Validation démarrage (NOUVEAU)
-├── LogParadeCalibrationDiagnostic.cs     # Debug temps réel (NOUVEAU)
-├── LogParadeCalibrationTest.cs           # Tests unitaires (NOUVEAU)
-├── LogParadeCompilationTest.cs           # Test compilation (NOUVEAU)
-├── CORRECTIONS_APPLIQUEES.md             # Doc corrections (NOUVEAU)
+├── LogParadeCalibrationTest.cs           # Tests unitaires
+├── LogParadeCompilationTest.cs           # Test compilation
+├── CORRECTIONS_APPLIQUEES.md             # Doc corrections
 └── README.md                             # Documentation
 ```
 

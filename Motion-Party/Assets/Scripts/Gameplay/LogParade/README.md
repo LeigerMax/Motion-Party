@@ -51,15 +51,9 @@
 
 ### Scripts de configuration
 
-7. **`LogParadeConfig.cs`** - Configuration globale (ScriptableObject)
-   - Paramètres réutilisables pour tous les composants
+7. **`LogParadeConfig.cs`** - Configuration globale (ScriptableObject)   - Paramètres réutilisables pour tous les composants
    - Profils de configuration pour différents environnements
    - Application automatique des paramètres à la scène
-
-8. **`LogParadeSceneSetup.cs`** - Outil de setup automatique
-   - Création automatique de la hiérarchie d'objets
-   - Configuration des références entre composants
-   - Nettoyage et reconfiguration de scène
 
 ---
 
@@ -67,14 +61,8 @@
 
 ### 1. Création de la scène
 
-1. **Créer une nouvelle scène** : `Assets/Scenes/MiniGames/MiniGame_LogParade.unity`
-   
-   **OU** utiliser le setup automatique :
-   - Ajouter `LogParadeSceneSetup` à un GameObject temporaire
-   - Cliquer "Setup LogParade Scene" dans le menu contextuel
-   - Supprimer le GameObject de setup
-
-2. **Créer manuellement la hiérarchie d'objets** (si pas de setup auto) :
+1. **Créer une nouvelle scène** : `Assets/Scenes/MiniGames/MiniGame_LogParade.unity`   
+2. **Créer manuellement la hiérarchie d'objets** :
    ```
    LogParadeManager (GameObject)
    ├── LogParadeGameController (Script)
@@ -145,8 +133,8 @@
 
 #### Configuration avec ScriptableObject (Recommandé)
 1. **Créer une configuration** : Clic droit → Create → LogParade → Game Configuration
-2. **Assigner la config** : Glisser vers LogParadeSceneSetup ou appliquer manuellement
-3. **Appliquer** : Utiliser `config.ApplyToComponents()` ou le bouton dans l'inspecteur
+2. **Appliquer manuellement** : Configurer les composants selon les paramètres
+3. **Utiliser** : `config.ApplyToComponents()` depuis un script
 
 ### 3. Configuration des composants système
 

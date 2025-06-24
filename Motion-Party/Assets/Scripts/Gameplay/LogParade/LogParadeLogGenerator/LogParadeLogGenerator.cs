@@ -376,13 +376,15 @@ public class LogParadeLogGenerator : MiniGameBase
             StartGeneration();
         }
     }
-    
-    /// <summary>
+      /// <summary>
     /// Détruit tous les rondins actifs
     /// </summary>
     public void ClearAllLogs()
     {
-        foreach (var log in activeLogs)
+        // Créer une copie de la liste pour éviter l'exception de modification pendant l'énumération
+        var logsToDestroy = new List<LogParadeLog>(activeLogs);
+        
+        foreach (var log in logsToDestroy)
         {
             if (log != null)
             {
