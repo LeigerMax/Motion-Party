@@ -295,15 +295,15 @@ public class LogParadeLateralTracker : MonoBehaviour
     public Vector3 GetSmoothedPosition()
     {
         return smoothedPosition;
-    }
-
-    /// <summary>
+    }    /// <summary>
     /// Vérifie si le tracker est calibré
     /// </summary>
     public bool IsCalibrated()
     {
         return isCalibrated;
-    }    void OnGUI()
+    }
+
+    void OnGUI()
     {
         if (!showDebugInfo) return;
 

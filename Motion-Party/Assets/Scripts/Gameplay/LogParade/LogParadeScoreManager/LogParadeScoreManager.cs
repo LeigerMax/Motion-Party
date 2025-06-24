@@ -320,6 +320,36 @@ public class LogParadeScoreManager : MonoBehaviour
         return canReceivePenalty;
     }
 
+    /// <summary>
+    /// Ajoute des points manuellement (pour debug/test)
+    /// </summary>
+    /// <param name="points">Nombre de points à ajouter</param>
+    public void AddPointsManual(int points)
+    {
+        AddScore(points);
+        UpdateScoreDisplay();
+        
+        if (enableDebugLogs)
+        {
+            Debug.Log($"[LogParadeScoreManager] 🎮 Points ajoutés manuellement: +{points}. Score total: {CurrentScore}");
+        }
+    }
+
+    /// <summary>
+    /// Retire des points manuellement (pour debug/test)
+    /// </summary>
+    /// <param name="points">Nombre de points à retirer</param>
+    public void SubtractPointsManual(int points)
+    {
+        SubtractScore(points);
+        UpdateScoreDisplay();
+        
+        if (enableDebugLogs)
+        {
+            Debug.Log($"[LogParadeScoreManager] 🎮 Points retirés manuellement: -{points}. Score total: {CurrentScore}");
+        }
+    }
+
     #endregion
 
     #region Debug
