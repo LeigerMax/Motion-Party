@@ -78,8 +78,7 @@ public class LogParadeLogGenerator : MiniGameBase
             
             return hasConnectedSequence;        }
     }
-    
-    // Pour le debug - démarrage automatique en mode test
+      // Pour le debug - démarrage automatique en mode test
     private void Start()
     {
         Debug.Log("[LogParadeLogGenerator] Start() appelé");
@@ -91,9 +90,10 @@ public class LogParadeLogGenerator : MiniGameBase
             return;
         }
         
-        // Démarrage automatique pour les tests
-        Debug.Log("[LogParadeLogGenerator] Démarrage automatique pour test");
-        Launch();
+        // Initialisation seulement, pas de démarrage automatique
+        // Le démarrage sera contrôlé par LogParadeGameTimer
+        Debug.Log("[LogParadeLogGenerator] Initialisation sans démarrage automatique");
+        InitializeGenerator();
     }
     
     protected override void Launch()
@@ -103,66 +103,66 @@ public class LogParadeLogGenerator : MiniGameBase
         StartGeneration();
     }
       private void InitializeGenerator()
-    {
-        Debug.Log("[LogParadeLogGenerator] Initialisation du générateur...");
-        
-        // Vérification des références requises
-        if (lanes.Length != 4)
-        {
-            Debug.LogError("[LogParadeLogGenerator] Exactement 4 voies sont requises !");
-            return;
-        }
-        
-        if (logPrefabs.Length != 3)
-        {
-            Debug.LogError("[LogParadeLogGenerator] Exactement 3 prefabs de rondins sont requis !");
-            return;
-        }
-        
-        // Vérification que les voies sont assignées
-        for (int i = 0; i < lanes.Length; i++)
-        {
-            if (lanes[i] == null)
-            {
-                Debug.LogError($"[LogParadeLogGenerator] La voie {i + 1} n'est pas assignée !");
-                return;
-            }
-            else
-            {
-                Debug.Log($"[LogParadeLogGenerator] Voie {i + 1} assignée : {lanes[i].name}");
-            }
-        }
-        
-        // Vérification que les prefabs sont assignés
-        for (int i = 0; i < logPrefabs.Length; i++)
-        {
-            if (logPrefabs[i] == null)
-            {
-                Debug.LogError($"[LogParadeLogGenerator] Le prefab de rondin {i + 1} n'est pas assigné !");
-                return;
-            }
-            else
-            {
-                Debug.Log($"[LogParadeLogGenerator] Prefab {i + 1} assigné : {logPrefabs[i].name}");
-            }
-        }
-        
-        // Positionnement des voies selon les spécifications
-        for (int i = 0; i < lanes.Length; i++)
-        {
-            Vector3 lanePos = lanes[i].position;
-            lanePos.x = lanePositions[i];
-            lanes[i].position = lanePos;
-        }
-          // Initialisation des listes
-        upcomingRows.Clear();
-        activeLogs.Clear();
-        
-        Debug.Log("[LogParadeLogGenerator] Générateur initialisé avec succès");
-        Debug.Log($"[LogParadeLogGenerator] Paramètres: Speed={logSpeed}, Interval={generationInterval}, EnableGeneration={enableGeneration}");
-    }
+      {
+          Debug.Log("[LogParadeLogGenerator] Initialisation du générateur...");
+          
+          // Vérification des références requises
+          if (lanes.Length != 4)
+          {
+              Debug.LogError("[LogParadeLogGenerator] Exactement 4 voies sont requises !");
+              return;
+          }
+          
+          if (logPrefabs.Length != 3)
+          {
+              Debug.LogError("[LogParadeLogGenerator] Exactement 3 prefabs de rondins sont requis !");
+              return;
+          }
+          
+          // Vérification que les voies sont assignées
+          for (int i = 0; i < lanes.Length; i++)
+          {
+              if (lanes[i] == null)
+              {
+                  Debug.LogError($"[LogParadeLogGenerator] La voie {i + 1} n'est pas assignée !");
+                  return;
+              }
+              else
+              {
+                  Debug.Log($"[LogParadeLogGenerator] Voie {i + 1} assignée : {lanes[i].name}");
+              }
+          }
+          
+          // Vérification que les prefabs sont assignés
+          for (int i = 0; i < logPrefabs.Length; i++)
+          {
+              if (logPrefabs[i] == null)
+              {
+                  Debug.LogError($"[LogParadeLogGenerator] Le prefab de rondin {i + 1} n'est pas assigné !");
+                  return;
+              }
+              else
+              {
+                  Debug.Log($"[LogParadeLogGenerator] Prefab {i + 1} assigné : {logPrefabs[i].name}");
+              }
+          }
+          
+          // Positionnement des voies selon les spécifications
+          for (int i = 0; i < lanes.Length; i++)
+          {
+              Vector3 lanePos = lanes[i].position;
+              lanePos.x = lanePositions[i];
+              lanes[i].position = lanePos;
+          }
+            // Initialisation des listes
+          upcomingRows.Clear();
+          activeLogs.Clear();
+          
+          Debug.Log("[LogParadeLogGenerator] Générateur initialisé avec succès");
+          Debug.Log($"[LogParadeLogGenerator] Paramètres: Speed={logSpeed}, Interval={generationInterval}, EnableGeneration={enableGeneration}");
+      }
       private void StartGeneration()
-    {
+      {
         Debug.Log("[LogParadeLogGenerator] StartGeneration() appelé");
         
         if (generationCoroutine != null)
@@ -432,6 +432,15 @@ public class LogParadeLogGenerator : MiniGameBase
         GenerateLogRow();
     }
     
+    /// <summary>
+    /// Démarre la génération de rondins (méthode publique pour contrôle externe)
+    /// </summary>
+    public void StartLogGeneration()
+    {
+        Debug.Log("[LogParadeLogGenerator] StartLogGeneration() appelé (contrôle externe)");
+        StartGeneration();
+    }
+
     // Méthodes pour le debug et les tests
     #if UNITY_EDITOR
     private void OnDrawGizmos()
