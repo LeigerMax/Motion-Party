@@ -7,7 +7,7 @@ public class MoveCube : MonoBehaviour
 
     void Start()
     {
-        handTracking = FindObjectOfType<HandTracking>();
+        handTracking = FindFirstObjectByType<HandTracking>();
     }
 
     void Update()

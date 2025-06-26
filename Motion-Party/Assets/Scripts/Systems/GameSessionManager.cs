@@ -32,7 +32,7 @@ public class GameSessionManager : MonoBehaviour
 
         yield return null; // attendre une frame que tout soit bien initialisé
 
-        MiniGameBase loadedMiniGame = FindObjectOfType<MiniGameBase>();
+        MiniGameBase loadedMiniGame = FindFirstObjectByType<MiniGameBase>();
         if (loadedMiniGame != null)
         {
             loadedMiniGame.StartMiniGame(OnMiniGameFinished);

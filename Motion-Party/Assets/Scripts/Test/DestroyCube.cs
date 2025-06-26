@@ -6,7 +6,7 @@ private HandTracking handTracking;
 
 void Start()
 {
-    handTracking = FindObjectOfType<HandTracking>();
+    handTracking = FindFirstObjectByType<HandTracking>();
 }
 
 private void OnTriggerEnter(Collider other)
