@@ -191,11 +191,11 @@ public class LogParadeCalibrationManager : MonoBehaviour
         LogParadeGameStateController.CompleteCalibration();
 
         // Nettoyer les rondins de calibration
-        if (calibrationSystem != null)
-        {
-            calibrationSystem.CleanupCalibrationLogs();
-            LogStatus("  → Rondins de calibration supprimés");
-        }
+        // if (calibrationSystem != null)
+        // {
+        //     calibrationSystem.CleanupCalibrationLogs();
+        //     LogStatus("  → Rondins de calibration supprimés");
+        // }
 
         // Déclencher l'événement local
         OnCalibrationSucceeded?.Invoke();

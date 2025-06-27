@@ -129,43 +129,33 @@ public class LogParadeCalibrationVisualFeedback
             }
         }
 
-        // Créer ou assigner les rondins de calibration pour chaque lane valide
-        int validLanes = Mathf.Min(4, laneTransforms?.Length ?? 0);
-        for (int i = 0; i < validLanes; i++)
+        // Supprimer tous les anciens logs de calibration s'ils existent
+        if (calibrationLogs != null)
         {
-            if (laneTransforms[i] == null)
+            foreach (var t in calibrationLogs)
             {
-                LogParadeLogger.LogWarning($"Lane {i + 1} non assignée - sautée");
-                continue;
-            }
-
-            if (calibrationLogs != null && i < calibrationLogs.Length && calibrationLogs[i] == null && logPrefab != null)
-            {
-                // Créer un rondin fixe pour cette lane
-                GameObject calibrationLog = Object.Instantiate(logPrefab, laneTransforms[i].position, laneTransforms[i].rotation);
-                calibrationLog.name = $"CalibrationLog_Lane{i + 1}";
-                calibrationLog.transform.SetParent(laneTransforms[i]);
-                
-                // Désactiver les scripts de mouvement s'il y en a
-                var moveScript = calibrationLog.GetComponent<Rigidbody>();
-                if (moveScript != null)
-                {
-                    moveScript.isKinematic = true;
-                }
-                
-                calibrationLogs[i] = calibrationLog.transform;
-            }
-
-            // Sauvegarder les matériaux originaux
-            if (calibrationLogs[i] != null)
-            {
-                originalLogRenderers[i] = calibrationLogs[i].GetComponent<Renderer>();
-                if (originalLogRenderers[i] != null)
-                {
-                    originalMaterials[i] = originalLogRenderers[i].material;
-                }
+                // Ne plus détruire automatiquement au démarrage du jeu
+                // if (t != null) GameObject.Destroy(t.gameObject);
             }
         }
+        // Générer un seul rondin de calibration au centre (ex: lane 2 ou 3, ou au centre de la zone)
+        Vector3 calibrationPos = new Vector3(0f, laneTransforms[0].position.y, 0f); // X=0, Y=sol, Z=0
+        Quaternion calibrationRotation = Quaternion.Euler(0f, 180f, 0f);
+        GameObject calibrationLog = Object.Instantiate(logPrefab, calibrationPos, calibrationRotation);
+        calibrationLog.name = "CalibrationLog";
+        // Désactiver les scripts de mouvement s'il y en a
+        var moveScript = calibrationLog.GetComponent<Rigidbody>();
+        if (moveScript != null)
+        {
+            moveScript.isKinematic = true;
+        }
+        // Stocker la référence pour destruction future
+        calibrationLogs = new Transform[1] { calibrationLog.transform };
+
+        // Ajouter le script de destruction automatique si un log généré touche le rondin de calibration
+        if (calibrationLog.GetComponent<Collider>() == null)
+            calibrationLog.AddComponent<BoxCollider>().isTrigger = true;
+        calibrationLog.AddComponent<CalibrationLogDestroyer>();
 
         LogParadeLogger.LogVerbose("Rondins de calibration configurés.");
     }
@@ -199,7 +189,10 @@ public class LogParadeCalibrationVisualFeedback
     /// <param name="laneIndex">Index de lane (0-3)</param>
     public void HighlightLane(int laneIndex)
     {
-        if (laneIndex < 0 || laneIndex >= 4) return;
+        // Correction : éviter l'accès hors tableau si calibrationLogs n'a qu'un seul élément
+        if (calibrationLogs == null || calibrationLogs.Length == 0) return;
+        if (calibrationLogs.Length == 1) laneIndex = 0;
+        if (laneIndex < 0 || laneIndex >= calibrationLogs.Length) return;
         
         // Restaurer tous les matériaux d'abord
         RestoreOriginalMaterials();
@@ -207,7 +200,7 @@ public class LogParadeCalibrationVisualFeedback
         // Appliquer le matériau de surbrillance
         if (calibrationLogs[laneIndex] != null && highlightMaterial != null)
         {
-            Renderer renderer = originalLogRenderers[laneIndex];
+            Renderer renderer = calibrationLogs[laneIndex].GetComponent<Renderer>();
             if (renderer != null)
             {
                 renderer.material = highlightMaterial;
@@ -223,21 +216,12 @@ public class LogParadeCalibrationVisualFeedback
     /// <param name="laneIndex">Index de lane (0-3)</param>
     public void SetLaneCompleted(int laneIndex)
     {
-        if (laneIndex < 0 || laneIndex >= 4) return;
-        
-        if (calibrationLogs[laneIndex] != null)
-        {
-            Renderer renderer = originalLogRenderers[laneIndex];
-            if (renderer != null)
-            {
-                // Créer un matériau vert pour le succès
-                Material completedMaterial = new Material(renderer.material);
-                completedMaterial.color = completedColor;
-                renderer.material = completedMaterial;
-                
-                LogParadeLogger.LogVerbose($"Lane {laneIndex + 1} marquée comme complétée");
-            }
-        }
+        // Correction : éviter l'accès hors tableau si calibrationLogs n'a qu'un seul élément
+        if (calibrationLogs == null || calibrationLogs.Length == 0) return;
+        if (calibrationLogs.Length == 1) laneIndex = 0;
+        if (laneIndex < 0 || laneIndex >= calibrationLogs.Length) return;
+        // Ne rien faire sur le log de calibration (plus de changement de couleur)
+        LogParadeLogger.LogVerbose($"Lane {laneIndex + 1} marquée comme complétée");
     }
 
     /// <summary>
@@ -392,4 +376,27 @@ public class LogParadeCalibrationVisualFeedback
         renderer.material = originalMat;
     }
     #endregion
+
+    // --- Ajout : rendre les rondins de calibration mobiles après la calibration ---
+    public void MakeCalibrationLogsMobile(float moveSpeed = 5f)
+    {
+        // Trouver tous les logs de calibration générés (nommés CalibrationLog_LaneX_ZY)
+        foreach (Transform lane in laneTransforms)
+        {
+            foreach (Transform child in lane)
+            {
+                if (child != null && child.name.StartsWith("CalibrationLog_Lane"))
+                {
+                    var rb = child.GetComponent<Rigidbody>();
+                    if (rb == null) rb = child.gameObject.AddComponent<Rigidbody>();
+                    rb.isKinematic = false;
+                    // Ajoute un script de déplacement temporaire si besoin
+                    if (child.GetComponent<CalibrationLogMover>() == null)
+                    {
+                        child.gameObject.AddComponent<CalibrationLogMover>().SetSpeed(moveSpeed);
+                    }
+                }
+            }
+        }
+    }
 }

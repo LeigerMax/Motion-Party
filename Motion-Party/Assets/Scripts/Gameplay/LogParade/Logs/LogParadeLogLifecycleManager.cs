@@ -102,14 +102,14 @@ public class LogParadeLogLifecycleManager
 
     #region Log Spawning
     /// <summary>
-    /// Spawn les rondins d'une rangée complète.
+    /// Spawn les rondins d'une rangée complète avec un délai entre chaque log pour éviter la superposition.
     /// </summary>
-    public void SpawnLogsFromRow(LogRow row)
+    public IEnumerator SpawnLogsFromRowCoroutine(LogRow row, float delayBetweenLogs = 0.1f)
     {
         if (row == null)
         {
             Debug.LogWarning("[LogLifecycleManager] Tentative de spawn d'une rangée null");
-            return;
+            yield break;
         }
 
         upcomingRows.Enqueue(row);
@@ -119,6 +119,32 @@ public class LogParadeLogLifecycleManager
             if (row.hasLog[i])
             {
                 SpawnLogInLane(i);
+                yield return new WaitForSeconds(delayBetweenLogs);
+            }
+        }
+    }
+
+    /// <summary>
+    /// (Ancienne version, conservée pour compatibilité)
+    /// </summary>
+    public void SpawnLogsFromRow(LogRow row)
+    {
+        // Par défaut, lance la coroutine avec délai 0.1s
+        if (row == null) return;
+        if (Application.isPlaying)
+        {
+            // Nécessite un MonoBehaviour pour StartCoroutine, donc à appeler via le générateur
+            Debug.LogWarning("[LogLifecycleManager] Utilisez SpawnLogsFromRowCoroutine pour éviter la superposition des logs.");
+        }
+        else
+        {
+            // Mode édition ou fallback
+            for (int i = 0; i < laneCount; i++)
+            {
+                if (row.hasLog[i])
+                {
+                    SpawnLogInLane(i);
+                }
             }
         }
     }
@@ -135,13 +161,28 @@ public class LogParadeLogLifecycleManager
         }
 
         // Sélection aléatoire d'un prefab
-        GameObject prefabToSpawn = logPrefabs[Random.Range(0, logPrefabs.Length)];
+        int prefabIndex = Random.Range(0, logPrefabs.Length);
+        GameObject prefabToSpawn = logPrefabs[prefabIndex];
 
-        // Position de spawn
-        Vector3 spawnPosition = CalculateSpawnPosition(laneIndex);
+        // Déterminer la taille du rondin (Short, Medium, Long)
+        float logLength = 100f; // Short par défaut
+        if (prefabIndex == 1) logLength = 200f; // Medium
+        else if (prefabIndex == 2) logLength = 300f; // Long
 
-        // Instanciation
-        GameObject logObject = Object.Instantiate(prefabToSpawn, spawnPosition, Quaternion.identity);
+        // Nouvelle position de spawn : lane sur X, hauteur sur Y, spawn sur Z = 26
+        Vector3 spawnPosition = new Vector3(
+            lanePositions[laneIndex],
+            lanes[laneIndex].position.y, // Y reste fixe (sol ou hauteur de voie)
+            26f // Z = spawn à 26
+        );
+
+        // Nouvelle rotation : x=0, y=90, z=0
+        Quaternion logRotation = Quaternion.Euler(90f, 90f, 0f);
+
+        // Instanciation avec la rotation personnalisée
+        GameObject logObject = Object.Instantiate(prefabToSpawn, spawnPosition, logRotation);
+        // Appliquer l'échelle selon le type
+        logObject.transform.localScale = new Vector3(logLength, logObject.transform.localScale.y, logObject.transform.localScale.z);
         
         // Configuration du composant LogParadeLog
         LogParadeLog logComponent = SetupLogComponent(logObject, laneIndex);
@@ -152,7 +193,7 @@ public class LogParadeLogLifecycleManager
         OnLogSpawned?.Invoke(logComponent);
         OnActiveLogCountChanged?.Invoke(activeLogs.Count);
 
-        Debug.Log($"[LogLifecycleManager] Rondin spawné sur voie {laneIndex + 1} : {logObject.name}");
+        Debug.Log($"[LogLifecycleManager] Rondin spawné sur voie {laneIndex + 1} : {logObject.name}, taille X={logLength}");
         return logComponent;
     }
 

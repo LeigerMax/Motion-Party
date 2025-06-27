@@ -225,7 +225,6 @@ public class DebugPanel_Calibration : BaseDebugPanel
             }
         }
         
-        Debug.LogWarning("[DebugPanel_Calibration] Impossible de trouver l'état de calibration (isCalibrated)");
         return false;
     }
 
@@ -250,10 +249,8 @@ public class DebugPanel_Calibration : BaseDebugPanel
     private bool GetIsCalibrating()
     {
         if (calibrationInteractive == null) return false;
-        
         var field = calibrationInteractive.GetType().GetField("isCalibrating", 
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        
         if (field != null)
         {
             return (bool)field.GetValue(calibrationInteractive);
@@ -264,17 +261,15 @@ public class DebugPanel_Calibration : BaseDebugPanel
         {
             return (bool)prop.GetValue(calibrationInteractive);
         }
-        Debug.LogWarning("[DebugPanel_Calibration] Impossible de trouver l'état de calibration (isCalibrating)");
+        // Suppression du warning inutile
         return false;
     }
 
     private float GetCalibrationTime()
     {
         if (calibrationInteractive == null) return 0f;
-        
         var field = calibrationInteractive.GetType().GetField("calibrationTime", 
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        
         if (field != null)
         {
             return (float)field.GetValue(calibrationInteractive);
@@ -285,7 +280,7 @@ public class DebugPanel_Calibration : BaseDebugPanel
         {
             return (float)prop.GetValue(calibrationInteractive);
         }
-        Debug.LogWarning("[DebugPanel_Calibration] Impossible de trouver le temps de calibration");
+        // Suppression du warning inutile
         return 0f;
     }
 

@@ -356,11 +356,8 @@ public class LogParadeCalibrationInteractive : MonoBehaviour
         {
             calibrationTextUI.OnCalibrationCompleted();
         }
-        visualFeedback?.RestoreOriginalMaterials();
-        
-        // Propager l'événement public
+        StartCoroutine(StartGameAfterCalibration());
         OnCalibrationCompleted?.Invoke();
-        
         Debug.Log("[LogParadeCalibrationInteractive] Calibration terminée avec succès!");
     }
 
@@ -462,6 +459,15 @@ public class LogParadeCalibrationInteractive : MonoBehaviour
             calibrationTextUI.HighlightLane(0);
             calibrationTextUI.UpdateStatus("En attente de la lane 1");
         }
+    }
+
+    private IEnumerator StartGameAfterCalibration()
+    {
+        yield return new WaitForSeconds(2f);
+        // Démarrer la partie normalement (timer, score, etc.)
+        // ... (ajouter ici l'appel à la logique de démarrage du jeu)
+        // Rendre les rondins de calibration mobiles
+        visualFeedback?.MakeCalibrationLogsMobile(5f); // 5f = vitesse, à ajuster si besoin
     }
     #endregion
 

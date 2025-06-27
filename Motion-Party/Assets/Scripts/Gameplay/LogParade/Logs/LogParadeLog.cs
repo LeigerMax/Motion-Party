@@ -75,21 +75,21 @@ public class LogParadeLog : MonoBehaviour
     }
     
     /// <summary>
-    /// Gère le mouvement de descente du rondin
+    /// Gère le mouvement du rondin sur l'axe Z (vue du dessus)
     /// </summary>
     private void MoveDown()
     {
         Vector3 currentPosition = transform.position;
-        currentPosition.y -= moveSpeed * Time.deltaTime;
+        currentPosition.z -= moveSpeed * Time.deltaTime;
         transform.position = currentPosition;
     }
     
     /// <summary>
-    /// Vérifie si le rondin doit être détruit
+    /// Vérifie si le rondin doit être détruit (sur l'axe Z)
     /// </summary>
     private void CheckDestroyCondition()
     {
-        if (transform.position.y <= destroyHeight)
+        if (transform.position.z <= -20f)
         {
             DestroyLog();
         }

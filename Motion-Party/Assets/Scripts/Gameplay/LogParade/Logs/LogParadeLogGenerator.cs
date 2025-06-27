@@ -320,9 +320,9 @@ public class LogParadeLogGenerator : MiniGameBase
         
         if (newRow != null)
         {
-            // Spawn des rondins via le lifecycle manager
-            lifecycleManager.SpawnLogsFromRow(newRow);
-            
+            // Spawn des rondins via le lifecycle manager avec délai pour éviter la superposition
+            StartCoroutine(lifecycleManager.SpawnLogsFromRowCoroutine(newRow, 0.1f));
+
             if (showDebugInfo)
             {
                 Debug.Log($"[LogParadeLogGenerator] {newRow.GetPatternString()}");
