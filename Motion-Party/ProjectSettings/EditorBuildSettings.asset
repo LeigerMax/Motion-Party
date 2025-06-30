@@ -14,6 +14,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/MiniGames/MiniGame_MusicNote.unity
     guid: 08d1307f95e42444f9675905a31530cd
+  - enabled: 1
+    path: Assets/Scenes/MiniGames/MiniGame_LogParade.unity
+    guid: 7d890be8a7467bb49ab80f1d10494c6d
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0

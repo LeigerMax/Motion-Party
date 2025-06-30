@@ -7,6 +7,8 @@ TagManager:
   - Global Resource
   - Hand
   - TargetCube
+  - Log
+  - Lane
   layers:
   - Default
   - TransparentFX
@@ -14,7 +16,7 @@ TagManager:
   - 
   - Water
   - UI
-  - 
+  - Logs
   - 
   - 
   - 

@@ -39,8 +39,7 @@ public class HandTracking : MonoBehaviour
 
                 handPoints[i].transform.localPosition = new Vector3(x, y, z);
             }
-        }
-        catch (Exception e)
+        }        catch (System.Exception)
         {
             //Debug.LogWarning("Erreur de parsing des données UDP : " + e.Message);
         }
