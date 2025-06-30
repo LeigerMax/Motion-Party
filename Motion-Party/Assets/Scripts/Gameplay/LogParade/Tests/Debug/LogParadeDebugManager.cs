@@ -7,6 +7,7 @@ using System.Collections.Generic;
 /// </summary>
 public class LogParadeDebugManager : MonoBehaviour
 {
+#region Champs & Références
     [Header("Global Settings")]
     [Tooltip("Active le système de debug dès le démarrage")]
     [SerializeField] private bool debugEnabledAtStart = false;
@@ -38,6 +39,13 @@ public class LogParadeDebugManager : MonoBehaviour
     /// </summary>
     public System.Action<bool> OnDebugStateChanged;
 
+    [Header("Help System")]
+    [Tooltip("Afficher l'aide au démarrage")]
+    [SerializeField] private bool showHelpAtStart = false;
+    private bool showHelp = false;
+#endregion
+
+#region Initialisation & Cycle de Vie
     void Start()
     {
         // Auto-découverte des panneaux si activée
@@ -50,7 +58,7 @@ public class LogParadeDebugManager : MonoBehaviour
         debugEnabled = debugEnabledAtStart;
         UpdatePanelsVisibility();
           // Log de démarrage
-        Debug.Log($"[LogParadeDebugManager] Système de debug initialisé. " +
+        LogParadeLogger.Log($"[LogParadeDebugManager] Système de debug initialisé. " +
                   $"Panneaux trouvés: {debugPanels.Count}. " +
                   $"Appuyez sur {toggleKey} pour activer/désactiver.");
         
@@ -58,7 +66,7 @@ public class LogParadeDebugManager : MonoBehaviour
         if (showHelpAtStart && debugEnabled)
         {
             showHelp = true;
-            Debug.Log("[LogParadeDebugManager] Aide affichée au démarrage. Appuyez sur F4 pour la masquer.");
+            LogParadeLogger.Log("[LogParadeDebugManager] Aide affichée au démarrage. Appuyez sur F4 pour la masquer.");
         }
     }
 
@@ -92,7 +100,90 @@ public class LogParadeDebugManager : MonoBehaviour
             }
         }
     }
+#endregion
 
+#region Découverte & Gestion des Panneaux
+    /// <summary>
+    /// Recherche automatiquement les panneaux de debug
+    /// </summary>
+    private void AutoDiscoverDebugPanels()
+    {
+        debugPanels.Clear();
+        
+        BaseDebugPanel[] panels;
+          if (searchInEntireScene)
+        {
+            // Recherche dans toute la scène
+            panels = FindObjectsByType<BaseDebugPanel>(FindObjectsSortMode.None);
+        }
+        else
+        {
+            // Recherche seulement dans les enfants
+            panels = GetComponentsInChildren<BaseDebugPanel>(true);
+        }
+          foreach (var panel in panels)
+        {
+            if (panel != null)
+            {
+                debugPanels.Add(panel);
+                // Log supprimé (inutile en debug régulier)
+            }
+        }
+          // Recherche de panneaux spécialisés supplémentaires
+        var scorePanels = FindObjectsByType<DebugPanel_Score>(FindObjectsSortMode.None);
+        var statusPanels = FindObjectsByType<DebugPanel_Status>(FindObjectsSortMode.None);
+        var calibrationPanels = FindObjectsByType<DebugPanel_Calibration>(FindObjectsSortMode.None);
+        var launcherPanels = FindObjectsByType<DebugPanel_GameLauncher>(FindObjectsSortMode.None);
+        var examplePanels = FindObjectsByType<DebugPanel_Example>(FindObjectsSortMode.None);
+        
+        // Ajouter les panneaux spécialisés s'ils ne sont pas déjà dans la liste
+        AddUniquePanel(scorePanels);
+        AddUniquePanel(statusPanels);
+        AddUniquePanel(calibrationPanels);
+        AddUniquePanel(launcherPanels);
+        AddUniquePanel(examplePanels);
+    }
+
+    /// <summary>
+    /// Ajoute des panneaux uniques à la liste (évite les doublons)
+    /// </summary>
+    private void AddUniquePanel<T>(T[] panels) where T : BaseDebugPanel
+    {
+        foreach (var panel in panels)
+        {
+            if (panel != null && !debugPanels.Contains(panel))
+            {
+                debugPanels.Add(panel);
+                // Log supprimé (inutile en debug régulier)
+            }
+        }
+    }
+
+    /// <summary>
+    /// Met à jour la visibilité de tous les panneaux
+    /// </summary>
+    private void UpdatePanelsVisibility()
+    {
+        foreach (var panel in debugPanels)
+        {
+            if (panel != null)
+            {
+                panel.SetVisible(debugEnabled);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Valide les références dans l'inspecteur
+    /// </summary>
+    void OnValidate()
+    {
+        // Retire les références nulles
+        debugPanels.RemoveAll(panel => panel == null);
+    }
+#endregion
+
+#region API Publique
     /// <summary>
     /// Active ou désactive le système de debug
     /// </summary>
@@ -101,7 +192,7 @@ public class LogParadeDebugManager : MonoBehaviour
         debugEnabled = !debugEnabled;
         UpdatePanelsVisibility();
         
-        Debug.Log($"[LogParadeDebugManager] Debug {(debugEnabled ? "ACTIVÉ" : "DÉSACTIVÉ")}");
+        LogParadeLogger.Log($"[LogParadeDebugManager] Debug {(debugEnabled ? "ACTIVÉ" : "DÉSACTIVÉ")}");
         
         // Déclencher l'événement
         OnDebugStateChanged?.Invoke(debugEnabled);
@@ -147,83 +238,46 @@ public class LogParadeDebugManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Recherche automatiquement les panneaux de debug
+    /// Remet toutes les positions de panneaux par défaut
     /// </summary>
-    private void AutoDiscoverDebugPanels()
-    {
-        debugPanels.Clear();
-        
-        BaseDebugPanel[] panels;
-          if (searchInEntireScene)
-        {
-            // Recherche dans toute la scène
-            panels = FindObjectsByType<BaseDebugPanel>(FindObjectsSortMode.None);
-        }
-        else
-        {
-            // Recherche seulement dans les enfants
-            panels = GetComponentsInChildren<BaseDebugPanel>(true);
-        }
-          foreach (var panel in panels)
-        {
-            if (panel != null)
-            {
-                debugPanels.Add(panel);
-                Debug.Log($"[LogParadeDebugManager] Panneau trouvé: {panel.GetType().Name}");
-            }
-        }
-          // Recherche de panneaux spécialisés supplémentaires
-        var scorePanels = FindObjectsByType<DebugPanel_Score>(FindObjectsSortMode.None);
-        var statusPanels = FindObjectsByType<DebugPanel_Status>(FindObjectsSortMode.None);
-        var calibrationPanels = FindObjectsByType<DebugPanel_Calibration>(FindObjectsSortMode.None);
-        var launcherPanels = FindObjectsByType<DebugPanel_GameLauncher>(FindObjectsSortMode.None);
-        var examplePanels = FindObjectsByType<DebugPanel_Example>(FindObjectsSortMode.None);
-        
-        // Ajouter les panneaux spécialisés s'ils ne sont pas déjà dans la liste
-        AddUniquePanel(scorePanels);
-        AddUniquePanel(statusPanels);
-        AddUniquePanel(calibrationPanels);
-        AddUniquePanel(launcherPanels);
-        AddUniquePanel(examplePanels);
-    }
-
-    /// <summary>
-    /// Ajoute des panneaux uniques à la liste (évite les doublons)
-    /// </summary>
-    private void AddUniquePanel<T>(T[] panels) where T : BaseDebugPanel
-    {
-        foreach (var panel in panels)
-        {
-            if (panel != null && !debugPanels.Contains(panel))
-            {
-                debugPanels.Add(panel);
-                Debug.Log($"[LogParadeDebugManager] Panneau spécialisé ajouté: {panel.GetType().Name}");
-            }
-        }
-    }
-
-    /// <summary>
-    /// Met à jour la visibilité de tous les panneaux
-    /// </summary>
-    private void UpdatePanelsVisibility()
+    public void ResetAllPanelPositions()
     {
         foreach (var panel in debugPanels)
         {
             if (panel != null)
             {
-                panel.SetVisible(debugEnabled);
+                panel.ResetPosition();
             }
         }
+        LogParadeLogger.Log("[LogParadeDebugManager] Toutes les positions des panneaux ont été remises par défaut");
     }
 
     /// <summary>
-    /// Valide les références dans l'inspecteur
+    /// Sauvegarde toutes les positions de panneaux
     /// </summary>
-    void OnValidate()
+    public void SaveAllPanelPositions()
     {
-        // Retire les références nulles
-        debugPanels.RemoveAll(panel => panel == null);
-    }    /// <summary>
+        foreach (var panel in debugPanels)
+        {
+            if (panel != null)
+            {
+                panel.SavePosition();
+            }
+        }
+        LogParadeLogger.Log("[LogParadeDebugManager] Toutes les positions des panneaux ont été sauvegardées");
+    }
+
+    /// <summary>
+    /// Active/désactive l'affichage de l'aide
+    /// </summary>
+    public void ToggleHelp()
+    {
+        showHelp = !showHelp;
+    }
+#endregion
+
+#region Affichage & Aide
+    /// <summary>
     /// Affichage d'informations de debug dans la scène
     /// </summary>
     void OnGUI()
@@ -253,7 +307,7 @@ public class LogParadeDebugManager : MonoBehaviour
         }
         catch (System.Exception ex)
         {
-            Debug.LogError($"[LogParadeDebugManager] Erreur OnGUI main: {ex}");
+            LogParadeLogger.LogError($"[LogParadeDebugManager] Erreur OnGUI main: {ex}");
             
             if (mainAreaStarted)
             {
@@ -272,7 +326,7 @@ public class LogParadeDebugManager : MonoBehaviour
                 }
                 catch (System.Exception ex)
                 {
-                    Debug.LogError($"[LogParadeDebugManager] Erreur EndArea main: {ex}");
+                    LogParadeLogger.LogError($"[LogParadeDebugManager] Erreur EndArea main: {ex}");
                 }
             }
         }
@@ -361,7 +415,7 @@ public class LogParadeDebugManager : MonoBehaviour
             }
             catch { }
             
-            Debug.LogError($"[LogParadeDebugManager] Erreur DisplayHelpWindow: {ex}");
+            LogParadeLogger.LogError($"[LogParadeDebugManager] Erreur DisplayHelpWindow: {ex}");
             
             if (helpAreaStarted)
             {
@@ -380,52 +434,10 @@ public class LogParadeDebugManager : MonoBehaviour
                 }
                 catch (System.Exception ex)
                 {
-                    Debug.LogError($"[LogParadeDebugManager] Erreur EndArea help: {ex}");
+                    LogParadeLogger.LogError($"[LogParadeDebugManager] Erreur EndArea help: {ex}");
                 }
             }
         }
     }
-
-    /// <summary>
-    /// Remet toutes les positions de panneaux par défaut
-    /// </summary>
-    public void ResetAllPanelPositions()
-    {
-        foreach (var panel in debugPanels)
-        {
-            if (panel != null)
-            {
-                panel.ResetPosition();
-            }
-        }
-        Debug.Log("[LogParadeDebugManager] Toutes les positions des panneaux ont été remises par défaut");
-    }
-
-    /// <summary>
-    /// Sauvegarde toutes les positions de panneaux
-    /// </summary>
-    public void SaveAllPanelPositions()
-    {
-        foreach (var panel in debugPanels)
-        {
-            if (panel != null)
-            {
-                panel.SavePosition();
-            }
-        }
-        Debug.Log("[LogParadeDebugManager] Toutes les positions des panneaux ont été sauvegardées");
-    }
-
-    // Variables pour l'aide
-    [Header("Help System")]
-    [Tooltip("Afficher l'aide au démarrage")]
-    [SerializeField] private bool showHelpAtStart = false;
-    private bool showHelp = false;
-
-    /// <summary>
-    /// Active/désactive l'affichage de l'aide
-    /// </summary>
-    public void ToggleHelp()
-    {
-        showHelp = !showHelp;
-    }}
+#endregion
+}

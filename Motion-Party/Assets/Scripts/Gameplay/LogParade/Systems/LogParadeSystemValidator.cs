@@ -9,18 +9,19 @@ using System.Linq;
 /// </summary>
 public class LogParadeSystemValidator : MonoBehaviour
 {
+    #region Fields
+    
     [Header("Validation Settings")]
     [SerializeField] private bool enableAutoValidation = true;
     [SerializeField] private float validationInterval = 5f;
     [SerializeField] private bool enableDetailedLogs = true;
-    
+
     [Header("Required Systems")]
     [SerializeField] private bool requireGameController = true;
     [SerializeField] private bool requireGameTimer = true;
     [SerializeField] private bool requireLogGenerator = true;
     [SerializeField] private bool requireScoreManager = true;
     [SerializeField] private bool requireCalibrationManager = true;
-    
     // Cache des composants validés
     private Dictionary<System.Type, Component> componentCache = new Dictionary<System.Type, Component>();
     
@@ -32,11 +33,15 @@ public class LogParadeSystemValidator : MonoBehaviour
     public System.Action<bool> OnSystemHealthChanged;
     public System.Action<string> OnValidationFailed;
     public System.Action OnValidationCompleted;
+    #endregion
 
+    #region Singleton
     // Instance singleton pour accès facile
     private static LogParadeSystemValidator instance;
     public static LogParadeSystemValidator Instance => instance;
+    #endregion
 
+    #region Unity Callbacks
     void Awake()
     {
         // Singleton pattern
@@ -70,8 +75,9 @@ public class LogParadeSystemValidator : MonoBehaviour
             ValidateAllSystems();
         }
     }
+    #endregion
 
-    #region Validation principale
+    #region Validation
 
     /// <summary>
     /// Valide tous les systèmes requis
@@ -127,13 +133,13 @@ public class LogParadeSystemValidator : MonoBehaviour
 
         if (isSystemHealthy)
         {
-            LogStatus($"✅ Validation terminée - Tous les systèmes sont opérationnels");
+            LogStatus($" Validation terminée - Tous les systèmes sont opérationnels");
             OnValidationCompleted?.Invoke();
         }
         else
         {
             string missingList = string.Join(", ", missingComponents);
-            LogError($"❌ Validation échouée - Composants manquants: {missingList}");
+            LogError($" Validation échouée - Composants manquants: {missingList}");
             OnValidationFailed?.Invoke(missingList);
         }
 
@@ -184,7 +190,7 @@ public class LogParadeSystemValidator : MonoBehaviour
 
     #endregion
 
-    #region Récupération de composants
+    #region Component Retrieval
 
     /// <summary>
     /// Récupère un composant validé depuis le cache
@@ -233,7 +239,7 @@ public class LogParadeSystemValidator : MonoBehaviour
 
     #endregion
 
-    #region Diagnostics et monitoring
+    #region Diagnostics
 
     /// <summary>
     /// Génère un rapport complet de l'état du système
@@ -242,7 +248,7 @@ public class LogParadeSystemValidator : MonoBehaviour
     {
         System.Text.StringBuilder report = new System.Text.StringBuilder();
         report.AppendLine("📋 RAPPORT D'ÉTAT DU SYSTÈME LOGPARADE");
-        report.AppendLine($"Santé générale: {(isSystemHealthy ? "✅ SAIN" : "❌ PROBLÈMES DÉTECTÉS")}");
+        report.AppendLine($"Santé générale: {(isSystemHealthy ? " SAIN" : " PROBLÈMES DÉTECTÉS")}");
         report.AppendLine($"Dernière validation: {System.DateTime.Now:HH:mm:ss}");
         report.AppendLine($"Composants en cache: {componentCache.Count}");
         report.AppendLine();
@@ -283,7 +289,7 @@ public class LogParadeSystemValidator : MonoBehaviour
 
     #endregion
 
-    #region API publique
+    #region Public API
 
     /// <summary>
     /// Vérifie si le système est en bonne santé
@@ -312,7 +318,7 @@ public class LogParadeSystemValidator : MonoBehaviour
 
     #endregion
 
-    #region Méthodes de logging
+    #region Logging
 
     private void LogStatus(string message)
     {
@@ -350,7 +356,7 @@ public class LogParadeSystemValidator : MonoBehaviour
     public void DebugForceValidation()
     {
         bool result = ForceValidation();
-        LogParadeLogger.LogVerbose($"Validation forcée - Résultat: {(result ? "✅ SUCCÈS" : "❌ ÉCHEC")}");
+        LogParadeLogger.LogVerbose($"Validation forcée - Résultat: {(result ? "SUCCÈS" : "ÉCHEC")}");
     }
 
     #endregion

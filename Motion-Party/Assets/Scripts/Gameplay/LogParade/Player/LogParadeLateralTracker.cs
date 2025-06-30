@@ -10,6 +10,7 @@ using System;
 /// </summary>
 public class LogParadeLateralTracker : MonoBehaviour
 {
+    #region Fields
     [Header("UDP Settings")]
     public UDPReceive udpReceive;
 
@@ -19,39 +20,43 @@ public class LogParadeLateralTracker : MonoBehaviour
     [Range(-2.0f, 2.0f)]
     public float leftBoundary = -1.5f;
     [Range(-2.0f, 2.0f)]
-    public float rightBoundary = 1.5f;    [Header("Calibration")]
+    public float rightBoundary = 1.5f;
+
+    [Header("Calibration")]
     public bool enableAutoCalibration = false; // Désactivé par défaut pour la calibration interactive
-    public float calibrationTime = 1.0f; // Réduit à 1 seconde
-    public bool continuousCalibration = true; // Calibration continue
-    public bool bypassCalibrationForInteractiveMode = true; // Nouveau: bypasser pour calibration interactive
-    
-    [Header("Debug")]
-    public bool showDebugInfo = true;
-    
+    public float calibrationTime = 1.0f; 
+    public bool continuousCalibration = true; 
+
     // Events - similaire à NoteSequenceManager
     public event Action<int> OnLaneChanged;
-    public event Action<Vector3> OnPositionUpdated;    // Private fields
+    public event Action<Vector3> OnPositionUpdated;
+
+    // Private fields
     private Vector3 currentPosition;
     private Vector3 smoothedPosition;
     private int currentLane = 2; // Démarre au centre (lane 1-4)
     private bool isCalibrated = false;
-    private float calibrationTimer = 0f;    private Vector3 calibrationCenter;
+    private float calibrationTimer = 0f;
+    private Vector3 calibrationCenter;
     private int calibrationSamples = 0;
-    // Note: trackingSource is unused but kept for potential future debugging of data sources
-    private string trackingSource = "None"; // Debug: source des données utilisée
-    
+
     // Offset similaire à HandTracking
     private int offset = 70;
+    #endregion
 
+    #region Unity Lifecycle
     void Start()
-    {        if (udpReceive == null)
+    {
+        if (udpReceive == null)
         {
             LogParadeLogger.LogError("UDPReceive n'est pas assigné dans LogParadeLateralTracker !");
             return;
-        }// Initialiser la position au centre
+        }
+
+        // Initialiser la position au centre
         smoothedPosition = Vector3.zero;
         currentPosition = Vector3.zero;
-        
+
         if (enableAutoCalibration)
         {
             StartCalibration();
@@ -59,38 +64,13 @@ public class LogParadeLateralTracker : MonoBehaviour
         else
         {
             // Si la calibration automatique est désactivée, on considère que le système est calibré
-            // Ceci permet le mouvement pendant la calibration interactive
             isCalibrated = true;
-              if (showDebugInfo)
-            {
-                LogParadeLogger.LogVerbose("Calibration automatique désactivée - mouvement autorisé");
-            }
         }
-        
-        // Bypass spécial pour la calibration interactive
-        if (bypassCalibrationForInteractiveMode)
-        {
-            isCalibrated = true;            if (showDebugInfo)
-            {
-                LogParadeLogger.LogVerbose("Mode calibration interactive - mouvement forcé");
-            }
-        }
-    }    void Update()
-    {
-        // Debug détaillé pour identifier le problème
-        if (showDebugInfo)
-        {            if (udpReceive == null)
-            {
-                LogParadeLogger.LogError("UDPReceive est null ! Assignez-le dans l'inspecteur.");
-                return;
-            }
-            
-            if (string.IsNullOrEmpty(udpReceive.data))
-            {
-                LogParadeLogger.LogVerbose("Aucune donnée UDP reçue. Vérifiez que le tracker Python envoie des données ou activez le simulateur.");
-            }
-        }
+    }
 
+    void Update()
+    {
+       
         if (!ProcessUDPData()) return;
 
         // Toujours mettre à jour la position, même pendant la calibration
@@ -102,68 +82,65 @@ public class LogParadeLateralTracker : MonoBehaviour
         {
             UpdateCalibration();
         }
-    }/// <summary>
+    }
+    #endregion
+
+    #region UDP Processing
+    /// <summary>
     /// Traite les données UDP reçues de MediaPipe
     /// Utilise la position de la tête (landmark 0) pour le tracking latéral
     /// </summary>
     private bool ProcessUDPData()
     {
         string data = udpReceive.data;
-        if (string.IsNullOrEmpty(data)) return false;        try
+        if (string.IsNullOrEmpty(data)) return false;
+        try
         {
-            // Debug du JSON reçu
-          //  if (showDebugInfo && Time.frameCount % 60 == 0)
-          //  {
-          //      Debug.Log($"JSON reçu: '{data}'");
-          //      Debug.Log($"Longueur: {data.Length} caractères");
-          //  }
-            
+
             // Nettoyer le JSON au cas où il y aurait des caractères invisibles
             data = data.Trim();
-            
+
             // Parsing du JSON des données MediaPipe
             JObject jsonData = JObject.Parse(data);
-              // Priorité 1: Utiliser les landmarks de pose (tête = landmark 0)
+
+            // Priorité 1: Utiliser les landmarks de pose (tête = landmark 0)
             JArray poseLandmarks = (JArray)jsonData["pose_landmarks"];
             if (poseLandmarks != null && poseLandmarks.Count > 0)
             {
                 // Utilise la tête/nez (landmark 0) pour le tracking latéral
-                // Les coordonnées sont déjà en pixels et correctement orientées
                 float x = 7 - (float)poseLandmarks[0][0] / this.offset; // Position X inversée comme HandTracking
                 float y = (float)poseLandmarks[0][1] / this.offset;     // Position Y
                 float z = (float)poseLandmarks[0][2] / this.offset;     // Profondeur
-                
+
                 currentPosition = new Vector3(x, y, z);
-                trackingSource = "Head (Pose)";
                 return true;
             }
-            
+
             // Fallback: Utiliser les données de main si la pose n'est pas disponible
             JArray handPositions = (JArray)jsonData["hand_positions"];
             if (handPositions != null && handPositions.Count > 0)
             {
                 // Utilise le poignet comme référence pour la position latérale
-                // Applique le même offset que HandTracking
                 float x = 7 - (float)handPositions[0][0] / this.offset;
                 float y = (float)handPositions[0][1] / this.offset;
                 float z = (float)handPositions[0][2] / this.offset;
-                
+
                 currentPosition = new Vector3(x, y, z);
-                trackingSource = "Hand (Fallback)";
+
                 return true;
             }
-            
-            trackingSource = "No Data";
+
         }
         catch (Exception e)
         {
-            if (showDebugInfo)
-                LogParadeLogger.LogWarning($"Erreur lors du parsing des données UDP : {e.Message}");
+            LogParadeLogger.LogWarning($"Erreur lors du parsing des données UDP : {e.Message}");
         }
 
         return false;
     }
+    #endregion
 
+    #region Calibration
     /// <summary>
     /// Démarre la calibration automatique
     /// </summary>
@@ -173,9 +150,6 @@ public class LogParadeLateralTracker : MonoBehaviour
         calibrationTimer = 0f;
         calibrationCenter = Vector3.zero;
         calibrationSamples = 0;
-        
-        if (showDebugInfo)
-            LogParadeLogger.LogVerbose("Début de la calibration du tracking latéral...");
     }
 
     /// <summary>
@@ -184,18 +158,19 @@ public class LogParadeLateralTracker : MonoBehaviour
     private void UpdateCalibration()
     {
         calibrationTimer += Time.deltaTime;
-        
+
         // Accumuler les échantillons pour calculer la position centrale
         calibrationCenter += currentPosition;
         calibrationSamples++;
-          // Notifier l'UI du progrès
+
+        // Notifier l'UI du progrès
         float progress = calibrationTimer / calibrationTime;
         var uiManager = FindFirstObjectByType<LogParadeUIManager>();
         if (uiManager != null)
         {
             uiManager.ShowCalibrationUI(progress);
         }
-        
+
         if (calibrationTimer >= calibrationTime)
         {
             // Finaliser la calibration
@@ -203,17 +178,19 @@ public class LogParadeLateralTracker : MonoBehaviour
             {
                 calibrationCenter /= calibrationSamples;
                 isCalibrated = true;
-                
+
                 if (uiManager != null)
                 {
                     uiManager.HideCalibrationUI();
                 }
-                
-                if (showDebugInfo)
-                    LogParadeLogger.Log($"Calibration terminée. Centre détecté : {calibrationCenter}");
+
             }
         }
-    }    /// <summary>
+    }
+    #endregion
+
+    #region Position & Lane
+    /// <summary>
     /// Met à jour la position lissée
     /// </summary>
     private void UpdatePosition()
@@ -224,13 +201,13 @@ public class LogParadeLateralTracker : MonoBehaviour
             // Ajustement lent du centre pour compenser les dérives
             calibrationCenter = Vector3.Lerp(calibrationCenter, currentPosition, 0.001f);
         }
-        
+
         // Appliquer le centre de calibration
         Vector3 adjustedPosition = currentPosition - calibrationCenter;
-        
+
         // Lisser la position pour éviter les tremblements
         smoothedPosition = Vector3.Lerp(smoothedPosition, adjustedPosition, smoothingFactor);
-        
+
         OnPositionUpdated?.Invoke(smoothedPosition);
     }
 
@@ -241,10 +218,10 @@ public class LogParadeLateralTracker : MonoBehaviour
     private void UpdateLane()
     {
         float normalizedX = smoothedPosition.x;
-        
+
         // Mapper la position X sur les 4 voies
         int newLane;
-        
+
         if (normalizedX < leftBoundary * 0.5f)
             newLane = 1; // Voie la plus à gauche
         else if (normalizedX < 0f)
@@ -253,18 +230,17 @@ public class LogParadeLateralTracker : MonoBehaviour
             newLane = 3; // Voie centre-droite
         else
             newLane = 4; // Voie la plus à droite
-        
+
         // Déclencher l'event si la voie a changé
         if (newLane != currentLane)
         {
             currentLane = newLane;
             OnLaneChanged?.Invoke(currentLane);
-            
-            if (showDebugInfo)
-                LogParadeLogger.LogVerbose($"Changement de voie : {currentLane}");
         }
     }
+    #endregion
 
+    #region Public API
     /// <summary>
     /// Force la recalibration
     /// </summary>
@@ -290,10 +266,14 @@ public class LogParadeLateralTracker : MonoBehaviour
     public Vector3 GetSmoothedPosition()
     {
         return smoothedPosition;
-    }    /// <summary>
-    /// Vérifie si le tracker est calibré    /// </summary>
+    }
+
+    /// <summary>
+    /// Vérifie si le tracker est calibré
+    /// </summary>
     public bool IsCalibrated()
     {
         return isCalibrated;
     }
+    #endregion
 }

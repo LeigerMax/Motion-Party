@@ -7,6 +7,7 @@ using UnityEngine.UI;
 /// </summary>
 public class LogParadeCalibrationStatusUI : MonoBehaviour
 {
+    #region Champs & Références
     [Header("UI Elements")]
     [SerializeField] private TextMeshProUGUI statusText;
     [SerializeField] private TextMeshProUGUI progressText;
@@ -14,14 +15,14 @@ public class LogParadeCalibrationStatusUI : MonoBehaviour
     [SerializeField] private Button startCalibrationButton;
     [SerializeField] private Button resetCalibrationButton;
     [SerializeField] private Button bypassButton;
-    
     [Header("Settings")]
     [SerializeField] private bool autoFindGameLauncher = true;
     [SerializeField] private float updateInterval = 0.1f;
-    
     private LogParadeGameLauncher gameLauncher;
     private float lastUpdateTime;
-    
+    #endregion
+
+    #region Initialisation & Cycle de Vie
     void Start()
     {
         if (autoFindGameLauncher)
@@ -42,28 +43,9 @@ public class LogParadeCalibrationStatusUI : MonoBehaviour
             lastUpdateTime = Time.time;
         }
     }
-    
-    /// <summary>
-    /// Configure les boutons
-    /// </summary>
-    private void SetupButtons()
-    {
-        if (startCalibrationButton != null)
-        {
-            startCalibrationButton.onClick.AddListener(StartCalibration);
-        }
-        
-        if (resetCalibrationButton != null)
-        {
-            resetCalibrationButton.onClick.AddListener(ResetCalibration);
-        }
-        
-        if (bypassButton != null)
-        {
-            bypassButton.onClick.AddListener(BypassCalibration);
-        }
-    }
-    
+    #endregion
+
+    #region Affichage & Statut
     /// <summary>
     /// Met à jour l'affichage du statut
     /// </summary>
@@ -110,13 +92,13 @@ public class LogParadeCalibrationStatusUI : MonoBehaviour
     private string GetStatusText()
     {
         if (LogParadeGameStateController.IsGameStarted)
-            return "🎮 JEU EN COURS";
+            return "JEU EN COURS";
         else if (LogParadeGameStateController.IsCalibrationInProgress)
-            return "🎯 CALIBRATION EN COURS";
+            return "CALIBRATION EN COURS";
         else if (LogParadeGameStateController.CanStartGameplay())
-            return "✅ CALIBRÉ - PRÊT À JOUER";
+            return "CALIBRÉ - PRÊT À JOUER";
         else
-            return "⏳ EN ATTENTE DE CALIBRATION";
+            return "EN ATTENTE DE CALIBRATION";
     }
     
     /// <summary>
@@ -195,9 +177,32 @@ public class LogParadeCalibrationStatusUI : MonoBehaviour
             bypassButton.interactable = !isGameStarted && !canStart;
         }
     }
-    
-    #region Button Actions
-    
+    #endregion
+
+    #region Setup Boutons
+    /// <summary>
+    /// Configure les boutons
+    /// </summary>
+    private void SetupButtons()
+    {
+        if (startCalibrationButton != null)
+        {
+            startCalibrationButton.onClick.AddListener(StartCalibration);
+        }
+        
+        if (resetCalibrationButton != null)
+        {
+            resetCalibrationButton.onClick.AddListener(ResetCalibration);
+        }
+        
+        if (bypassButton != null)
+        {
+            bypassButton.onClick.AddListener(BypassCalibration);
+        }
+    }
+    #endregion
+
+    #region Actions Boutons
     /// <summary>
     /// Démarre la calibration
     /// </summary>
@@ -251,11 +256,9 @@ public class LogParadeCalibrationStatusUI : MonoBehaviour
         LogParadeLogger.LogWarning("Bypass de la calibration depuis l'UI (DEBUG)");
         gameLauncher.DebugForceLaunchGame();
     }
-    
     #endregion
-    
-    #region Utility
-    
+
+    #region Utilitaires
     /// <summary>
     /// Force la mise à jour immédiate
     /// </summary>
@@ -263,6 +266,5 @@ public class LogParadeCalibrationStatusUI : MonoBehaviour
     {
         UpdateStatus();
     }
-    
     #endregion
 }

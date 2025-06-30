@@ -125,31 +125,6 @@ public class LogParadeLogLifecycleManager
     }
 
     /// <summary>
-    /// (Ancienne version, conservée pour compatibilité)
-    /// </summary>
-    public void SpawnLogsFromRow(LogRow row)
-    {
-        // Par défaut, lance la coroutine avec délai 0.1s
-        if (row == null) return;
-        if (Application.isPlaying)
-        {
-            // Nécessite un MonoBehaviour pour StartCoroutine, donc à appeler via le générateur
-            Debug.LogWarning("[LogLifecycleManager] Utilisez SpawnLogsFromRowCoroutine pour éviter la superposition des logs.");
-        }
-        else
-        {
-            // Mode édition ou fallback
-            for (int i = 0; i < laneCount; i++)
-            {
-                if (row.hasLog[i])
-                {
-                    SpawnLogInLane(i);
-                }
-            }
-        }
-    }
-
-    /// <summary>
     /// Spawn un rondin dans une voie spécifique.
     /// </summary>
     public LogParadeLog SpawnLogInLane(int laneIndex)
@@ -169,14 +144,14 @@ public class LogParadeLogLifecycleManager
         if (prefabIndex == 1) logLength = 200f; // Medium
         else if (prefabIndex == 2) logLength = 300f; // Long
 
-        // Nouvelle position de spawn : lane sur X, hauteur sur Y, spawn sur Z = 26
+        // Position de spawn : lane sur X, hauteur sur Y, spawn sur Z = 23
         Vector3 spawnPosition = new Vector3(
             lanePositions[laneIndex],
-            lanes[laneIndex].position.y, // Y reste fixe (sol ou hauteur de voie)
-            26f // Z = spawn à 26
+            lanes[laneIndex].position.y, 
+            23f // Z = spawn à 23
         );
 
-        // Nouvelle rotation : x=0, y=90, z=0
+        // Rotation des logs : x=0, y=90, z=0
         Quaternion logRotation = Quaternion.Euler(90f, 90f, 0f);
 
         // Instanciation avec la rotation personnalisée
@@ -193,18 +168,9 @@ public class LogParadeLogLifecycleManager
         OnLogSpawned?.Invoke(logComponent);
         OnActiveLogCountChanged?.Invoke(activeLogs.Count);
 
-        Debug.Log($"[LogLifecycleManager] Rondin spawné sur voie {laneIndex + 1} : {logObject.name}, taille X={logLength}");
         return logComponent;
     }
 
-    private Vector3 CalculateSpawnPosition(int laneIndex)
-    {
-        return new Vector3(
-            lanePositions[laneIndex],
-            config.SpawnHeight,
-            lanes[laneIndex].position.z
-        );
-    }
 
     private LogParadeLog SetupLogComponent(GameObject logObject, int laneIndex)
     {
@@ -215,7 +181,7 @@ public class LogParadeLogLifecycleManager
         }
 
         // Configuration du rondin
-        logComponent.Initialize(config.LogSpeed, config.DestroyHeight, laneIndex);
+        logComponent.Initialize(config.LogSpeed, laneIndex);
 
         // Callback de destruction
         logComponent.OnDestroyed += () => OnLogDestroyedCallback(logComponent, laneIndex);
@@ -274,7 +240,6 @@ public class LogParadeLogLifecycleManager
         upcomingRows.Clear();
 
         OnActiveLogCountChanged?.Invoke(0);
-        Debug.Log("[LogLifecycleManager] Tous les rondins ont été détruits");
     }
 
     /// <summary>
@@ -296,33 +261,9 @@ public class LogParadeLogLifecycleManager
         if (removedCount > 0)
         {
             OnActiveLogCountChanged?.Invoke(activeLogs.Count);
-            Debug.Log($"[LogLifecycleManager] {removedCount} références nulles nettoyées");
         }
     }
 
-    /// <summary>
-    /// Détruit les rondins d'une voie spécifique.
-    /// </summary>
-    public void ClearLogsInLane(int laneIndex)
-    {
-        if (!IsValidLaneIndex(laneIndex))
-        {
-            Debug.LogWarning($"[LogLifecycleManager] Index de voie invalide pour le nettoyage : {laneIndex}");
-            return;
-        }
-
-        if (logsByLane.ContainsKey(laneIndex))
-        {
-            var logsInLane = new List<LogParadeLog>(logsByLane[laneIndex]);
-            foreach (var log in logsInLane)
-            {
-                if (log != null)
-                {
-                    log.DestroyLog();
-                }
-            }
-        }
-    }
     #endregion
 
     #region Query Methods
@@ -350,31 +291,6 @@ public class LogParadeLogLifecycleManager
             counts[kvp.Key] = kvp.Value.Count;
         }
         return counts;
-    }
-
-    /// <summary>
-    /// Retourne le rondin le plus bas dans une voie.
-    /// </summary>
-    public LogParadeLog GetLowestLogInLane(int laneIndex)
-    {
-        if (!IsValidLaneIndex(laneIndex) || !logsByLane.ContainsKey(laneIndex))
-        {
-            return null;
-        }
-
-        LogParadeLog lowestLog = null;
-        float lowestY = float.MaxValue;
-
-        foreach (var log in logsByLane[laneIndex])
-        {
-            if (log != null && log.transform.position.y < lowestY)
-            {
-                lowestY = log.transform.position.y;
-                lowestLog = log;
-            }
-        }
-
-        return lowestLog;
     }
     #endregion
 

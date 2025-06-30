@@ -8,25 +8,23 @@ using UnityEngine.UI;
 /// Refactorisé pour utiliser une architecture modulaire et découplée.
 /// </summary>
 public class LogParadeUIManager : MonoBehaviour
-{    [Header("UI Elements")]
+{
+    #region Dependencies
+    [Header("UI Elements")]
     public TMP_Text currentLaneText;
     public TMP_Text positionText;
     public TMP_Text gameStatusText;
     public TMP_Text debugInfoText;
-      // REMOVED: Lane Indicators and Highlights system completely removed for simplification
-      [Header("Calibration UI")]
+    [Header("Calibration UI")]
     public GameObject calibrationPanel;
     [SerializeField] private Slider calibrationProgressSlider; // Optionnel - peut être null
     public TMP_Text calibrationText;
-    
     [Header("Debug Panel")]
     public GameObject debugPanel;
     public Toggle debugToggle;
-
-    // Modules UI
-    // REMOVED: Lane Indicator Manager system completely removed
     private LogParadeCalibrationUIController calibrationUIController;
     private LogParadeGameStatusDisplay gameStatusDisplay;
+    #endregion
 
     #region Properties
     public bool IsInitialized { get; private set; }
@@ -71,8 +69,6 @@ public class LogParadeUIManager : MonoBehaviour
         LogParadeLogger.Log("Interface utilisateur initialisée avec succès");
     }    private void InitializeModules()
     {
-        // Les indicateurs de voies ont été supprimés pour simplifier le système
-        LogParadeLogger.Log("Lane indicators désactivés - système simplifié");
 
         // Initialise le contrôleur d'UI de calibration seulement si les composants sont disponibles
         if (HasValidCalibrationUI())
@@ -243,29 +239,7 @@ public class LogParadeUIManager : MonoBehaviour
         calibrationUIController?.UpdateCalibrationProgress(progress);
     }
 
-    /// <summary>
-    /// Met en évidence une voie spécifique pour la calibration.
-    /// </summary>
-    public void HighlightLaneForCalibration(int lane, bool highlight)
-    {
-        if (!IsInitialized) return;
-        // REMOVED: Lane Indicator Manager method removed
-    }
 
-    /// <summary>
-    /// Marque une voie comme complétée pour la calibration.
-    /// </summary>
-    public void SetLaneCompletedForCalibration(int lane)
-    {
-        if (!IsInitialized) return;
-        // REMOVED: Lane Indicator Manager method removed
-    }    /// <summary>
-    /// REMOVED: Lane highlights system has been completely removed.
-    /// </summary>
-    public void ResetLaneHighlights()
-    {
-        LogParadeLogger.Log("Lane highlights system has been removed - no action needed");
-    }
     #endregion
 
     #region Public API - Debug
@@ -290,21 +264,12 @@ public class LogParadeUIManager : MonoBehaviour
     }
     #endregion
 
-    #region Component Validation    /// <summary>
-    /// REMOVED: Lane indicators validation no longer needed (system removed)
-    /// </summary>
-    private bool HasValidLaneIndicators()
-    {
-        // Lane indicators system has been completely removed
-        return true; // Always return true to avoid breaking existing code
-    }
-
+    #region Private Helpers
     /// <summary>
     /// Vérifie si l'UI de calibration est correctement configurée
     /// </summary>
     private bool HasValidCalibrationUI()
     {
-        // Au moins le panel ou le texte doit être assigné
         return calibrationPanel != null || calibrationText != null;
     }
 
@@ -313,79 +278,52 @@ public class LogParadeUIManager : MonoBehaviour
     /// </summary>
     private bool HasValidStatusDisplay()
     {
-        // Au moins un des textes doit être assigné
         return currentLaneText != null || 
                positionText != null || 
                gameStatusText != null || 
                debugInfoText != null;
     }
+    #endregion
 
+    #region Component Validation
     /// <summary>
     /// Valide la configuration et fournit des conseils pour corriger les problèmes
     /// </summary>
     private void ValidateAndProvideSetupGuidance()
     {
-        LogParadeLogger.Log("=== Validation de la configuration UI LogParade ===");
-        
         int issues = 0;
-          // REMOVED: Lane indicators validation (system removed)
-        LogParadeLogger.Log("✅ Lane indicators system removed - no configuration needed");
-        
         // Vérification de l'UI de calibration
         if (!HasValidCalibrationUI())
         {
             issues++;
-            LogParadeLogger.LogWarning("❌ UI de calibration non configurée");
-            LogParadeLogger.Log("💡 SOLUTION: Assignez au moins 'calibrationPanel' ou 'calibrationText' dans l'inspecteur Unity");
+            LogParadeLogger.LogWarning(" UI de calibration non configurée");
         }
-        else
-        {
-            LogParadeLogger.Log("✅ UI de calibration configurée");
-        }
-        
         // Vérification de l'affichage de statut
         if (!HasValidStatusDisplay())
         {
             issues++;
-            LogParadeLogger.LogWarning("❌ Affichage de statut non configuré");
-            LogParadeLogger.Log("💡 SOLUTION: Assignez au moins un des champs texte (currentLaneText, gameStatusText, etc.) dans l'inspecteur Unity");
+            LogParadeLogger.LogWarning(" Affichage de statut non configuré");
         }
-        else
+        if (issues > 0)
         {
-            LogParadeLogger.Log("✅ Affichage de statut configuré");
+            LogParadeLogger.LogWarning($" {issues} problème(s) de configuration détecté(s). Le jeu fonctionnera avec les fonctionnalités disponibles.");
         }
-        
-        if (issues == 0)
-        {
-            LogParadeLogger.Log("🎉 Configuration UI parfaite ! Tous les modules sont opérationnels.");
-        }
-        else
-        {
-            LogParadeLogger.LogWarning($"⚠️ {issues} problème(s) de configuration détecté(s). Le jeu fonctionnera avec les fonctionnalités disponibles.");
-            LogParadeLogger.Log("📖 Consultez le README.md pour des instructions détaillées de configuration.");
-        }
-        
-        LogParadeLogger.Log("=== Fin de la validation ===");
     }
     #endregion
 
-    #region Event Handlers    // REMOVED: Lane event handlers (LogParadeLaneIndicatorManager system removed)
-
+    #region Event Handlers
     private void OnCalibrationUIShown()
     {
         LogParadeLogger.LogVerbose("Interface de calibration affichée");
     }
-
     private void OnCalibrationUIHidden()
     {
         LogParadeLogger.LogVerbose("Interface de calibration masquée");
     }
-
     private void OnLaneDisplayUpdated(int lane)
     {
         LogParadeLogger.LogVerbose($"Affichage voie mis à jour: {lane}");
     }
-
     private void OnDebugModeToggled(bool enabled)
     {
         LogParadeLogger.LogVerbose($"Mode debug: {enabled}");

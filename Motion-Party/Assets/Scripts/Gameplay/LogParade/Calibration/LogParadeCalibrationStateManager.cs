@@ -12,10 +12,10 @@ public class LogParadeCalibrationStateManager
     {
         NotStarted,
         WaitingForLane1,
-        HoldingOnLane1,        // Nouveau: maintien sur lane 1
+        HoldingOnLane1,       
         Lane1Completed,
         WaitingForLane4,
-        HoldingOnLane4,        // Nouveau: maintien sur lane 4
+        HoldingOnLane4,        
         Completed,
         Failed
     }
@@ -24,7 +24,7 @@ public class LogParadeCalibrationStateManager
     private float stateTimer = 0f;
     private bool isCalibrationActive = false;
     private float timeoutDuration;
-    private const float LANE_HOLD_DURATION = 3f; // 3 secondes de maintien par lane
+    private const float LANE_HOLD_DURATION = 3f;
     #endregion
 
     #region Events
@@ -35,7 +35,8 @@ public class LogParadeCalibrationStateManager
     public event Action OnLane1Reached;
     public event Action OnLane4Reached;
     public event Action OnWaitingForLane4Started;
-    #endregion    
+    #endregion
+     
     #region Properties
     public CalibrationState CurrentState => currentState;
     public float StateTimer => stateTimer;
@@ -66,8 +67,6 @@ public class LogParadeCalibrationStateManager
         isCalibrationActive = true;
         currentState = CalibrationState.WaitingForLane1;
         stateTimer = 0f;
-
-        LogParadeLogger.Log("Calibration démarrée - en attente de la lane 1");
     }
 
     /// <summary>
@@ -111,7 +110,8 @@ public class LogParadeCalibrationStateManager
     }
     #endregion
 
-    #region Private Methods    /// <summary>
+    #region Private Methods    
+    /// <summary>
     /// Met à jour la logique de calibration selon l'état actuel.
     /// </summary>
     private void UpdateCalibrationLogic(bool isPlayerOnLane1, bool isPlayerOnLane4)
@@ -173,7 +173,16 @@ public class LogParadeCalibrationStateManager
                 }
                 break;
         }
-    }    /// <summary>
+    }  
+
+    private void SetState(CalibrationState newState, Action onEnter = null)
+    {
+        currentState = newState;
+        stateTimer = 0f;
+        onEnter?.Invoke();
+    }
+    
+    /// <summary>
     /// Met à jour le timer et gère les timeouts.
     /// </summary>
     private void UpdateTimer()
@@ -181,7 +190,7 @@ public class LogParadeCalibrationStateManager
         stateTimer += Time.deltaTime;
 
         // Vérifier le timeout pour les états d'attente (pas pour les états de maintien)
-        if ((currentState == CalibrationState.WaitingForLane1 || currentState == CalibrationState.WaitingForLane4) 
+        if ((currentState == CalibrationState.WaitingForLane1 || currentState == CalibrationState.WaitingForLane4)
             && stateTimer >= timeoutDuration)
         {
             HandleTimeout();
@@ -193,12 +202,7 @@ public class LogParadeCalibrationStateManager
     /// </summary>
     private void StartHoldingOnLane1()
     {
-        currentState = CalibrationState.HoldingOnLane1;
-        stateTimer = 0f;
-
-        OnLaneReached?.Invoke(1);
-        
-        LogParadeLogger.Log("Joueur sur lane 1 - maintien pendant 3 secondes...");
+        SetState(CalibrationState.HoldingOnLane1, () => OnLane1Reached?.Invoke());
     }
 
     /// <summary>
@@ -206,10 +210,7 @@ public class LogParadeCalibrationStateManager
     /// </summary>
     private void ReturnToWaitingForLane1()
     {
-        currentState = CalibrationState.WaitingForLane1;
-        stateTimer = 0f;
-        
-        LogParadeLogger.Log("Joueur a quitté la lane 1 - retour à l'attente");
+        SetState(CalibrationState.WaitingForLane1);
     }
 
     /// <summary>
@@ -217,12 +218,7 @@ public class LogParadeCalibrationStateManager
     /// </summary>
     private void CompleteLane1()
     {
-        currentState = CalibrationState.Lane1Completed;
-        stateTimer = 0f;
-
-        OnLane1Reached?.Invoke();
-        
-        LogParadeLogger.Log("Lane 1 terminée avec succès! (3 secondes écoulées)");
+        SetState(CalibrationState.Lane1Completed, () => OnLane1Reached?.Invoke());
     }
 
     /// <summary>
@@ -230,12 +226,7 @@ public class LogParadeCalibrationStateManager
     /// </summary>
     private void StartWaitingForLane4()
     {
-        currentState = CalibrationState.WaitingForLane4;
-        stateTimer = 0f;
-
-        OnWaitingForLane4Started?.Invoke();
-        
-        LogParadeLogger.Log("Transition vers l'attente de la lane 4");
+       SetState(CalibrationState.WaitingForLane4, () => OnWaitingForLane4Started?.Invoke());
     }
 
     /// <summary>
@@ -243,12 +234,7 @@ public class LogParadeCalibrationStateManager
     /// </summary>
     private void StartHoldingOnLane4()
     {
-        currentState = CalibrationState.HoldingOnLane4;
-        stateTimer = 0f;
-
-        OnLaneReached?.Invoke(4);
-        
-        LogParadeLogger.Log("Joueur sur lane 4 - maintien pendant 3 secondes...");
+        SetState(CalibrationState.HoldingOnLane4, () => OnLaneReached?.Invoke(4));
     }
 
     /// <summary>
@@ -256,10 +242,7 @@ public class LogParadeCalibrationStateManager
     /// </summary>
     private void ReturnToWaitingForLane4()
     {
-        currentState = CalibrationState.WaitingForLane4;
-        stateTimer = 0f;
-        
-        LogParadeLogger.Log("Joueur a quitté la lane 4 - retour à l'attente");
+        SetState(CalibrationState.WaitingForLane4);
     }
 
     /// <summary>
@@ -267,12 +250,7 @@ public class LogParadeCalibrationStateManager
     /// </summary>
     private void CompleteLane4()
     {
-        currentState = CalibrationState.Completed;
-        stateTimer = 0f;
-
-        OnLane4Reached?.Invoke();
-        
-        LogParadeLogger.Log("Lane 4 terminée - Calibration réussie! (3 secondes écoulées)");
+        SetState(CalibrationState.Completed, () => OnLane4Reached?.Invoke());
     }
 
     /// <summary>

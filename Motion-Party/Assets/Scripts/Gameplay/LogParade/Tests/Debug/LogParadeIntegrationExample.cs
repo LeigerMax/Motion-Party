@@ -6,9 +6,12 @@ using UnityEngine;
 /// </summary>
 public class LogParadeIntegrationExample : MonoBehaviour
 {
+    #region Champs & Initialisation
     [Header("Debug")]
     [SerializeField] private bool enableDetailedLogs = true;
-    
+    #endregion
+
+    #region Cycle de Vie
     void Start()
     {
         // S'abonner aux événements centralisés
@@ -23,7 +26,9 @@ public class LogParadeIntegrationExample : MonoBehaviour
         // Se désabonner des événements
         UnsubscribeFromEvents();
     }
+    #endregion
 
+    #region Abonnement aux Événements
     /// <summary>
     /// Exemple d'abonnement aux événements centralisés
     /// </summary>
@@ -82,7 +87,9 @@ public class LogParadeIntegrationExample : MonoBehaviour
             eventCoordinator.OnSystemHealthChanged -= OnSystemHealthChanged;
         }
     }
+    #endregion
 
+    #region Validation Système
     /// <summary>
     /// Exemple d'utilisation du SystemValidator
     /// </summary>
@@ -106,67 +113,25 @@ public class LogParadeIntegrationExample : MonoBehaviour
             LogMessage("⚠️ SystemValidator non disponible");
         }
     }
+    #endregion
 
-    #region Gestionnaires d'événements
+    #region Gestionnaires d'Événements
 
-    private void OnCalibrationStarted()
-    {
-        LogMessage("🎯 Calibration démarrée");
-    }
-
-    private void OnCalibrationCompleted()
-    {
-        LogMessage("✅ Calibration terminée");
-    }
-
-    private void OnCalibrationFailed()
-    {
-        LogMessage("❌ Calibration échouée");
-    }
-
-    private void OnGameLaunchStarted()
-    {
-        LogMessage("🚀 Lancement du jeu démarré");
-    }
-
-    private void OnGameLaunchCompleted()
-    {
-        LogMessage("✅ Lancement du jeu terminé");
-    }
-
-    private void OnGameLaunchFailed()
-    {
-        LogMessage("❌ Lancement du jeu échoué");
-    }
-
-    private void OnGameStarted()
-    {
-        LogMessage("🎮 Jeu démarré");
-    }
-
-    private void OnGameEnded()
-    {
-        LogMessage("🏁 Jeu terminé");
-    }
-
-    private void OnScoreChanged(int newScore)
-    {
-        LogMessage($"📊 Score modifié: {newScore}");
-    }
-
-    private void OnFinalScoreCalculated(int finalScore)
-    {
-        LogMessage($"🎯 Score final: {finalScore}");
-    }
-
-    private void OnSystemHealthChanged(bool isHealthy)
-    {
-        LogMessage($"🔧 Santé système: {(isHealthy ? "✅ SAIN" : "❌ PROBLÈMES")}");
-    }
+    private void OnCalibrationStarted() { LogMessage("🎯 Calibration démarrée"); }
+    private void OnCalibrationCompleted() { LogMessage("✅ Calibration terminée"); }
+    private void OnCalibrationFailed() { LogMessage("❌ Calibration échouée"); }
+    private void OnGameLaunchStarted() { LogMessage("🚀 Lancement du jeu démarré"); }
+    private void OnGameLaunchCompleted() { LogMessage("✅ Lancement du jeu terminé"); }
+    private void OnGameLaunchFailed() { LogMessage("❌ Lancement du jeu échoué"); }
+    private void OnGameStarted() { LogMessage("🎮 Jeu démarré"); }
+    private void OnGameEnded() { LogMessage("🏁 Jeu terminé"); }
+    private void OnScoreChanged(int newScore) { LogMessage($"📊 Score modifié: {newScore}"); }
+    private void OnFinalScoreCalculated(int finalScore) { LogMessage($"🎯 Score final: {finalScore}"); }
+    private void OnSystemHealthChanged(bool isHealthy) { LogMessage($"🔧 Santé système: {(isHealthy ? "✅ SAIN" : "❌ PROBLÈMES")}"); }
 
     #endregion
 
-    #region Debug Methods
+    #region Méthodes de Test
 
     /// <summary>
     /// Test manuel des événements (pour debug)
@@ -223,7 +188,7 @@ public class LogParadeIntegrationExample : MonoBehaviour
             
             // Afficher le rapport complet
             string report = validator.GenerateSystemReport();
-            Debug.Log(report);
+            LogParadeLogger.Log(report);
             
             // Vider le cache et re-valider
             validator.ClearComponentCache();
@@ -239,9 +204,11 @@ public class LogParadeIntegrationExample : MonoBehaviour
 
     #endregion
 
+    #region Utilitaires
     private void LogMessage(string message)
     {
         if (enableDetailedLogs)
-            Debug.Log($"[IntegrationExample] {message}");
+            LogParadeLogger.Log($"[IntegrationExample] {message}");
     }
+    #endregion
 }

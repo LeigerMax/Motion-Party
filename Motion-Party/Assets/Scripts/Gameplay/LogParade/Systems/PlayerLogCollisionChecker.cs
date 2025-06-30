@@ -8,6 +8,7 @@ using System.Collections.Generic;
 /// </summary>
 public class PlayerLogCollisionChecker : MonoBehaviour
 {
+    #region Fields
     [Header("Detection Settings")]
     [Tooltip("Rayon du collider de détection sous le joueur")]
     public float detectionRadius = 0.8f;
@@ -42,7 +43,9 @@ public class PlayerLogCollisionChecker : MonoBehaviour
     
     // Cache pour éviter les allocations
     private List<Collider> logsToRemove = new List<Collider>();
+    #endregion
 
+    #region Unity Callbacks
     void Start()
     {
         InitializeDetectionSystem();
@@ -54,7 +57,9 @@ public class PlayerLogCollisionChecker : MonoBehaviour
         UpdateTolerancePeriod();
         UpdateLogStatus();
     }
+    #endregion
 
+    #region Detection Logic
     /// <summary>
     /// Initialise le système de détection
     /// </summary>
@@ -97,10 +102,6 @@ public class PlayerLogCollisionChecker : MonoBehaviour
         {
             StartTolerancePeriod();
             
-            if (enableDebugLogs)
-            {
-                LogParadeLogger.LogVerbose($"Changement de voie détecté: {previousLane} -> {currentLane}. Démarrage période de tolérance.");
-            }
         }
         
         previousLane = currentLane;
@@ -118,13 +119,10 @@ public class PlayerLogCollisionChecker : MonoBehaviour
         if (toleranceTimer <= 0f)
         {
             isInTolerancePeriod = false;
-            
-            if (enableDebugLogs)
-            {
-                LogParadeLogger.LogVerbose("Période de tolérance terminée.");
-            }
         }
-    }    /// <summary>
+    }   
+    
+     /// <summary>
     /// Met à jour le statut "sur rondin" du joueur
     /// </summary>
     private void UpdateLogStatus()
@@ -145,11 +143,7 @@ public class PlayerLogCollisionChecker : MonoBehaviour
         {
             isInTolerancePeriod = false;
             toleranceTimer = 0f;
-            
-            if (enableDebugLogs)
-            {
-                LogParadeLogger.LogVerbose("Période de tolérance interrompue - rondin atteint.");
-            }
+    
         }
         
         // Le joueur est considéré sur un rondin si :
@@ -177,11 +171,6 @@ public class PlayerLogCollisionChecker : MonoBehaviour
     private bool IsPlayerBetweenCloseLogs()
     {
         if (detectedLogs.Count >= 2) return true; // Si on détecte plusieurs rondins, on est forcément "entre" eux
-
-        // TODO: Cette logique pourrait être améliorée en vérifiant réellement 
-        // la distance entre rondins sur la même voie, mais cela nécessiterait
-        // des informations sur les rondins environnants que ce module n'a pas.
-        // Pour l'instant, on se contente de la détection par trigger.
         
         return false;
     }
@@ -215,7 +204,9 @@ public class PlayerLogCollisionChecker : MonoBehaviour
         isInTolerancePeriod = true;
         toleranceTimer = laneChangeToleranceTime;
     }
+    #endregion
 
+    #region Public API
     /// <summary>
     /// Méthode publique pour interroger l'état "sur rondin"
     /// Utilisée par les autres systèmes (score, feedback, etc.)
@@ -256,20 +247,15 @@ public class PlayerLogCollisionChecker : MonoBehaviour
             detectionCollider.radius = detectionRadius;
         }
     }
+    #endregion
 
     #region Unity Trigger Events
-
     void OnTriggerEnter(Collider other)
     {
         // Vérifier si c'est un rondin (par tag ou layer)
         if (IsLogObject(other))
         {
             detectedLogs.Add(other);
-            
-            if (enableDebugLogs)
-            {
-                LogParadeLogger.LogVerbose($"Rondin détecté: {other.name} (Total: {detectedLogs.Count})");
-            }
         }
     }
 
@@ -287,16 +273,12 @@ public class PlayerLogCollisionChecker : MonoBehaviour
         if (IsLogObject(other))
         {
             detectedLogs.Remove(other);
-            
-            if (enableDebugLogs)
-            {
-                LogParadeLogger.LogVerbose($"Rondin quitté: {other.name} (Restants: {detectedLogs.Count})");
-            }
+
         }
     }
-
     #endregion
 
+    #region Utilities
     /// <summary>
     /// Détermine si un collider représente un rondin
     /// Utilise le tag "Log" par défaut, mais peut être étendu
@@ -313,30 +295,5 @@ public class PlayerLogCollisionChecker : MonoBehaviour
             
         return false;
     }
-
-    #region Debug & Gizmos
-
-    void OnDrawGizmos()
-    {
-        if (!showDebugGizmos) return;
-
-        // Dessiner la zone de détection
-        Gizmos.color = IsOnLog ? Color.green : Color.red;
-        Gizmos.color = new Color(Gizmos.color.r, Gizmos.color.g, Gizmos.color.b, 0.3f);
-        
-        Vector3 gizmoCenter = transform.position + Vector3.down * 0.2f;
-        Gizmos.DrawSphere(gizmoCenter, detectionRadius);
-        
-        // Contour de la sphère
-        Gizmos.color = IsOnLog ? Color.green : Color.red;
-        Gizmos.DrawWireSphere(gizmoCenter, detectionRadius);
-        
-        // Indicateur de période de tolérance        if (isInTolerancePeriod)
-        {
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawWireCube(transform.position + Vector3.up * 2f, Vector3.one * 0.5f);
-        }
-    }
-
     #endregion
 }

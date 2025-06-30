@@ -8,8 +8,7 @@ using System.Collections;
 /// et le démarrage du jeu au GameLauncher.
 /// </summary>
 public class LogParadeCalibrationManager : MonoBehaviour
-{    [Header("Calibration Settings")]
-    [SerializeField] private bool enableCalibrationOnStart = false; // Toujours false, le lancement auto est géré par le GameLauncher
+{   
     
     [Header("References")]
     [SerializeField] private LogParadeCalibrationInteractive calibrationSystem;
@@ -33,8 +32,6 @@ public class LogParadeCalibrationManager : MonoBehaviour
 
     void Awake()
     {
-        // Toujours désactiver le lancement auto ici, centralisé dans le GameLauncher
-        enableCalibrationOnStart = false;
         if (autoFindReferences)
         {
             AutoAssignReferences();
@@ -51,11 +48,6 @@ public class LogParadeCalibrationManager : MonoBehaviour
             LogParadeCalibrationInteractive.OnLaneReached += OnLaneReached;
         }
         
-        // Démarrer le processus si requis
-        if (enableCalibrationOnStart)
-        {
-            StartCalibrationProcess();
-        }
     }
 
     void OnDestroy()
@@ -190,12 +182,6 @@ public class LogParadeCalibrationManager : MonoBehaviour
         // Informer le GameStateController que la calibration est terminée
         LogParadeGameStateController.CompleteCalibration();
 
-        // Nettoyer les rondins de calibration
-        // if (calibrationSystem != null)
-        // {
-        //     calibrationSystem.CleanupCalibrationLogs();
-        //     LogStatus("  → Rondins de calibration supprimés");
-        // }
 
         // Déclencher l'événement local
         OnCalibrationSucceeded?.Invoke();

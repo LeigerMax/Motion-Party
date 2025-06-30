@@ -8,25 +8,24 @@ using System;
 /// </summary>
 public class LogParadePlayerAvatar : MonoBehaviour
 {
+    #region Fields
+
     [Header("Movement Settings")]
     public float moveSpeed = 5f;
     public float laneWidth = 2f;
     public Vector3 basePosition = Vector3.zero;
-    
+
     [Header("Animation")]
     public bool enableSmoothMovement = true;
     public AnimationCurve movementCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
-    
+
     [Header("Visual Settings")]
     public GameObject avatarModel;
     public bool rotateTowardsMovement = true;
     public float rotationSpeed = 10f;
-    
+
     [Header("Effects")]
     public ParticleSystem[] laneChangeEffects;
-    public AudioClip laneChangeSound;
-    
-    // Private fields
     private int targetLane = 2;
     private Vector3 targetPosition;
     private bool isMoving = false;
@@ -35,9 +34,10 @@ public class LogParadePlayerAvatar : MonoBehaviour
     private Vector3 lastPosition;
     private AudioSource audioSource;
 
-    [Header("Debug")]
-    public bool showDebugInfo = true;
 
+    #endregion
+
+    #region Unity Lifecycle
     void Start()
     {
         InitializeAvatar();
@@ -48,7 +48,9 @@ public class LogParadePlayerAvatar : MonoBehaviour
         UpdateMovement();
         UpdateRotation();
     }
+    #endregion
 
+    #region Initialization
     /// <summary>
     /// Initialise l'avatar
     /// </summary>
@@ -69,10 +71,10 @@ public class LogParadePlayerAvatar : MonoBehaviour
         
         // Positionner l'avatar au centre initialement
         SetLaneInstant(2);
-        
-        LogParadeLogger.LogVerbose("Avatar du LogParade initialisé.");
     }
+    #endregion
 
+    #region Lane Management
     /// <summary>
     /// Change la voie cible de l'avatar
     /// </summary>
@@ -102,8 +104,7 @@ public class LogParadePlayerAvatar : MonoBehaviour
         
         isMoving = false;
         movementProgress = 1f;
-          if (showDebugInfo)
-            LogParadeLogger.LogVerbose($"Avatar positionné instantanément sur la voie {lane}");
+        
     }
 
     /// <summary>
@@ -117,8 +118,6 @@ public class LogParadePlayerAvatar : MonoBehaviour
             targetPosition = CalculateLanePosition(targetLane);
             isMoving = true;
             movementProgress = 0f;
-              if (showDebugInfo)
-                LogParadeLogger.LogVerbose($"Démarrage du mouvement vers la voie {targetLane}");
         }
         else
         {
@@ -136,7 +135,9 @@ public class LogParadePlayerAvatar : MonoBehaviour
         float xOffset = (lane - 2.5f) * laneWidth;
         return basePosition + Vector3.right * xOffset;
     }
+    #endregion
 
+    #region Movement & Rotation
     /// <summary>
     /// Met à jour le mouvement de l'avatar
     /// </summary>
@@ -153,8 +154,6 @@ public class LogParadePlayerAvatar : MonoBehaviour
             movementProgress = 1f;
             isMoving = false;
             transform.position = targetPosition;
-              if (showDebugInfo)
-                LogParadeLogger.LogVerbose($"Mouvement terminé. Avatar sur la voie {targetLane}");
         }
         else
         {
@@ -190,18 +189,14 @@ public class LogParadePlayerAvatar : MonoBehaviour
         
         lastPosition = currentPosition;
     }
+    #endregion
 
+    #region Effects
     /// <summary>
     /// Joue les effets de changement de voie
     /// </summary>
     private void PlayLaneChangeEffects()
     {
-        // Jouer le son
-        if (laneChangeSound != null && audioSource != null)
-        {
-            audioSource.PlayOneShot(laneChangeSound);
-        }
-        
         // Jouer les effets de particules
         if (laneChangeEffects != null && laneChangeEffects.Length > 0)
         {
@@ -214,7 +209,9 @@ public class LogParadePlayerAvatar : MonoBehaviour
             }
         }
     }
+    #endregion
 
+    #region Public API
     /// <summary>
     /// Obtient la voie actuelle de l'avatar
     /// </summary>
@@ -230,36 +227,5 @@ public class LogParadePlayerAvatar : MonoBehaviour
     {
         return isMoving;
     }
-
-    /// <summary>
-    /// Obtient le progrès du mouvement actuel (0-1)
-    /// </summary>
-    public float GetMovementProgress()
-    {
-        return movementProgress;
-    }
-
-    void OnDrawGizmos()
-    {
-        // Dessiner les voies dans l'éditeur
-        Gizmos.color = Color.yellow;
-        
-        for (int i = 1; i <= 4; i++)
-        {
-            Vector3 lanePos = CalculateLanePosition(i);
-            Gizmos.DrawWireCube(lanePos, Vector3.one * 0.5f);
-            
-            // Dessiner une ligne pour chaque voie
-            Vector3 lineStart = lanePos + Vector3.back * 10f;
-            Vector3 lineEnd = lanePos + Vector3.forward * 10f;
-            Gizmos.DrawLine(lineStart, lineEnd);
-        }
-        
-        // Mettre en évidence la voie cible
-        if (Application.isPlaying)
-        {
-            Gizmos.color = Color.red;            Vector3 targetPos = CalculateLanePosition(targetLane);
-            Gizmos.DrawSphere(targetPos, 0.3f);
-        }
-    }
+    #endregion
 }

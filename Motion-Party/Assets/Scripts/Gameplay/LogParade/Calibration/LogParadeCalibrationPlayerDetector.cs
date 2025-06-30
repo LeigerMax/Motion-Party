@@ -48,7 +48,7 @@ public class LogParadeCalibrationPlayerDetector
             return CalculateLaneFromPosition(playerAvatar.transform.position);
         }
 
-        return 2; // Défaut au centre
+        return 2; 
     }
 
     /// <summary>
@@ -83,33 +83,6 @@ public class LogParadeCalibrationPlayerDetector
     }
 
     /// <summary>
-    /// Calcule la distance du joueur à une lane spécifique.
-    /// </summary>
-    /// <param name="laneIndex">Index de lane (0-3)</param>
-    /// <returns>Distance en unités world</returns>
-    public float GetDistanceToLane(int laneIndex)
-    {
-        if (playerAvatar == null || laneIndex < 0 || laneIndex >= laneTransforms.Length)
-            return float.MaxValue;
-
-        Vector3 playerPos = playerAvatar.transform.position;
-        Vector3 lanePos = laneTransforms[laneIndex].position;
-        
-        return Vector3.Distance(playerPos, lanePos);
-    }
-
-    /// <summary>
-    /// Obtient la lane la plus proche du joueur.
-    /// </summary>
-    /// <returns>Numéro de lane (1-4)</returns>
-    public int GetClosestLane()
-    {
-        if (playerAvatar == null) return 2;
-        
-        return CalculateLaneFromPosition(playerAvatar.transform.position);
-    }
-
-    /// <summary>
     /// Valide que tous les composants nécessaires sont présents.
     /// </summary>
     /// <returns>True si tous les composants sont valides</returns>
@@ -125,7 +98,8 @@ public class LogParadeCalibrationPlayerDetector
         }
 
         for (int i = 0; i < 4; i++)
-        {            if (laneTransforms[i] == null)
+        {
+            if (laneTransforms[i] == null)
             {
                 LogParadeLogger.LogError($"Lane Transform {i + 1} non assigné!");
                 return false;
@@ -183,25 +157,4 @@ public class LogParadeCalibrationPlayerDetector
     }
     #endregion
 
-    #region Debug
-    /// <summary>
-    /// Obtient des informations de debug sur la position du joueur.
-    /// </summary>
-    /// <returns>String avec les informations de debug</returns>
-    public string GetDebugInfo()
-    {
-        if (playerAvatar == null) return "PlayerAvatar manquant";
-
-        Vector3 playerPos = GetPlayerPosition();
-        int currentLane = GetPlayerCurrentLane();
-        int closestLane = GetClosestLane();
-        float distanceToClosest = GetDistanceToLane(closestLane - 1);
-
-        return $"Position: {playerPos:F2}\n" +
-               $"Lane actuelle: {currentLane}\n" +
-               $"Lane la plus proche: {closestLane}\n" +
-               $"Distance: {distanceToClosest:F2}\n" +
-               $"Tolérance: {laneDetectionTolerance:F2}";
-    }
-    #endregion
 }

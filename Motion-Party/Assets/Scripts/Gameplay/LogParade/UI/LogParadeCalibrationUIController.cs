@@ -35,6 +35,21 @@ public class LogParadeCalibrationUIController
     public bool IsInitialized { get; private set; }
     #endregion
 
+    #region Logging
+    private void Log(string message)
+    {
+        LogParadeLogger.Log($"[CalibrationUI] {message}");
+    }
+    private void LogWarning(string message)
+    {
+        LogParadeLogger.LogWarning($"[CalibrationUI] {message}");
+    }
+    private void LogError(string message)
+    {
+        LogParadeLogger.LogError($"[CalibrationUI] {message}");
+    }
+    #endregion
+
     #region Constructor
     public LogParadeCalibrationUIController(GameObject calibrationPanel, Slider calibrationProgressSlider, TMP_Text calibrationText)
     {
@@ -51,7 +66,7 @@ public class LogParadeCalibrationUIController
     {
         if (!ValidateComponents())
         {
-            LogParadeLogger.LogError("Composants invalides");
+            LogError("Composants invalides");
             return;
         }
 
@@ -64,24 +79,22 @@ public class LogParadeCalibrationUIController
         SetupInitialState();
 
         IsInitialized = true;
-        LogParadeLogger.Log("Initialisé avec succès");
+        Log("Initialisé avec succès");
     }    private bool ValidateComponents()
     {
         if (calibrationPanel == null)
         {
-            LogParadeLogger.LogWarning("Panel de calibration non assigné");
-            // Non critique, peut fonctionner sans panel
+            LogWarning("Panel de calibration non assigné");
         }
 
         if (calibrationProgressSlider == null)
         {
-            LogParadeLogger.LogVerbose("Slider de progression non assigné - fonctionnement sans slider");
-            // Le slider n'est pas obligatoire
+            // LogVerbose supprimé (inutile)
         }
 
         if (calibrationText == null)
         {
-            LogParadeLogger.LogWarning("Texte de calibration non assigné");
+            LogWarning("Texte de calibration non assigné");
         }
 
         // Au moins un composant doit être assigné pour être fonctionnel
@@ -265,13 +278,7 @@ public class LogParadeCalibrationUIController
         UpdateProgress(1f);
         UpdateMessage("Calibration terminée avec succès !");
         
-        // Masque automatiquement après un délai
-        if (calibrationPanel != null)
-        {
-            // Note: Dans un contexte Unity réel, utiliser une coroutine
-            // Ici on documente l'intention
-            LogParadeLogger.LogVerbose("Calibration complète - masquage automatique recommandé");
-        }
+        // Masquage automatique recommandé (à implémenter côté appelant si besoin)
     }
 
     /// <summary>
@@ -334,8 +341,6 @@ public class LogParadeCalibrationUIController
         HideCalibrationUI();
         currentProgress = 0f;
         currentCalibrationMessage = "Calibration prête";
-        
-        LogParadeLogger.LogVerbose("Nettoyage terminé");
     }
     #endregion
 }

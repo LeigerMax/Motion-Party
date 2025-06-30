@@ -6,45 +6,47 @@ using UnityEngine;
 /// </summary>
 public abstract class BaseDebugPanel : MonoBehaviour
 {
+    #region Champs & Références
     [Header("Panel Settings")]
     [Tooltip("Titre affiché en haut du panneau")]
     [SerializeField] protected string panelTitle = "Debug Panel";
-    
     [Tooltip("Visible dès le démarrage")]
     [SerializeField] protected bool visibleAtStart = false;
-    
     [Header("Position")]
     [Tooltip("Position du panneau sur l'écran")]
     [SerializeField] protected Vector2 anchor = new Vector2(10, 10);
-    
     [Tooltip("Décalage par rapport à l'anchor")]
     [SerializeField] protected Vector2 offset = Vector2.zero;
-    
     [Header("Size")]
     [Tooltip("Largeur du panneau")]
     [SerializeField] protected float width = 200f;
-    
     [Tooltip("Hauteur du panneau (0 = auto)")]
     [SerializeField] protected float height = 0f;
-    
     [Header("Style")]
     [Tooltip("Taux de rafraîchissement des données (secondes)")]
     [SerializeField] protected float refreshRate = 0.1f;
-    
     [Tooltip("Utiliser un style encadré")]
     [SerializeField] protected bool useBoxStyle = true;
-    
     // État du panneau
     protected bool isVisible = false;
     protected float lastRefreshTime = 0f;
-    
     // Position calculée
     protected Rect panelRect;
-    
+    // Variables pour la détection de changement de résolution
+    private int lastScreenWidth = 0;
+    private int lastScreenHeight = 0;
+    // Variables pour le glisser-déposer
+    protected bool isDragging = false;
+    protected Vector2 dragOffset;
+    #endregion
+
+    #region Cycle de Vie & Initialisation
     /// <summary>
     /// Indique si le panneau est actuellement visible
     /// </summary>
-    public bool IsVisible => isVisible;    protected virtual void Start()
+    public bool IsVisible => isVisible;
+
+    protected virtual void Start()
     {
         // Charger la position sauvegardée
         LoadPosition();
@@ -70,66 +72,17 @@ public abstract class BaseDebugPanel : MonoBehaviour
             lastRefreshTime = Time.time;
             RefreshData();
         }
-        
-        // Gérer les interactions de souris pour le glisser-déposer
-        HandleMouseInput();
+        // Suppression de HandleMouseInput ici (géré dans OnGUI)
     }
+    #endregion
+
+    #region Affichage & IMGUI
+    /// <summary>
+    /// Méthode à surcharger pour dessiner le contenu spécifique du panneau.
+    /// </summary>
+    protected abstract void DrawPanelContent();
 
     /// <summary>
-    /// Active ou désactive la visibilité du panneau
-    /// </summary>
-    /// <param name="visible">Nouvel état de visibilité</param>
-    public virtual void SetVisible(bool visible)
-    {
-        isVisible = visible;
-        enabled = visible; // Optimisation: désactiver Update si invisible
-    }
-
-    /// <summary>
-    /// Met à jour la position du panneau en fonction des paramètres
-    /// </summary>
-    protected virtual void UpdatePanelPosition()
-    {
-        float x = anchor.x;
-        float y = anchor.y;
-        
-        // Gérer les positions négatives (depuis le bord opposé)
-        if (anchor.x < 0)
-        {
-            x = Screen.width + anchor.x - width;
-        }
-        
-        if (anchor.y < 0)
-        {
-            y = Screen.height + anchor.y;
-        }
-        
-        // Appliquer l'offset
-        x += offset.x;
-        y += offset.y;
-        
-        // Créer le rect
-        float finalHeight = height > 0 ? height : GetEstimatedHeight();
-        panelRect = new Rect(x, y, width, finalHeight);
-    }
-
-    /// <summary>
-    /// Estime la hauteur nécessaire pour le contenu
-    /// </summary>
-    /// <returns>Hauteur estimée</returns>
-    protected virtual float GetEstimatedHeight()
-    {
-        // Hauteur par défaut, à surcharger dans les classes filles
-        return 100f;
-    }
-
-    /// <summary>
-    /// Rafraîchit les données affichées
-    /// </summary>
-    protected virtual void RefreshData()
-    {
-        // À implémenter dans les classes filles
-    }    /// <summary>
     /// Affiche le contenu du panneau
     /// </summary>
     protected virtual void OnGUI()
@@ -186,7 +139,7 @@ public abstract class BaseDebugPanel : MonoBehaviour
                 }
                 catch { }
                 
-                Debug.LogError($"[BaseDebugPanel] Erreur dans DrawPanelContent: {ex}");
+                LogParadeLogger.LogError($"[BaseDebugPanel] Erreur dans DrawPanelContent: {ex}");
                 
                 // Nettoyer l'état si possible
                 if (areaStarted)
@@ -207,7 +160,7 @@ public abstract class BaseDebugPanel : MonoBehaviour
                     }
                     catch (System.Exception ex)
                     {
-                        Debug.LogError($"[BaseDebugPanel] Erreur EndArea: {ex}");
+                        LogParadeLogger.LogError($"[BaseDebugPanel] Erreur EndArea: {ex}");
                     }
                 }
                 
@@ -217,7 +170,7 @@ public abstract class BaseDebugPanel : MonoBehaviour
         }
         catch (System.Exception ex)
         {
-            Debug.LogError($"[BaseDebugPanel] Erreur OnGUI: {ex}");
+            LogParadeLogger.LogError($"[BaseDebugPanel] Erreur OnGUI: {ex}");
             // S'assurer que le GUI est dans un état cohérent
             GUIUtility.ExitGUI();
         }
@@ -242,11 +195,55 @@ public abstract class BaseDebugPanel : MonoBehaviour
         }
         
         GUILayout.EndHorizontal();
-    }// Variables pour la détection de changement de résolution
-    private int lastScreenWidth = 0;
-    private int lastScreenHeight = 0;
-    
+    }
+    #endregion
+
+    #region Position & Persistance
     /// <summary>
+    /// Met à jour la position du panneau en fonction des paramètres
+    /// </summary>
+    protected virtual void UpdatePanelPosition()
+    {
+        float x = anchor.x;
+        float y = anchor.y;
+        
+        // Gérer les positions négatives (depuis le bord opposé)
+        if (anchor.x < 0)
+        {
+            x = Screen.width + anchor.x - width;
+        }
+        
+        if (anchor.y < 0)
+        {
+            y = Screen.height + anchor.y;
+        }
+        
+        // Appliquer l'offset
+        x += offset.x;
+        y += offset.y;
+        
+        // Créer le rect
+        float finalHeight = height > 0 ? height : GetEstimatedHeight();
+        panelRect = new Rect(x, y, width, finalHeight);
+    }
+
+    /// <summary>
+    /// Estime la hauteur nécessaire pour le contenu
+    /// </summary>
+    /// <returns>Hauteur estimée</returns>
+    protected virtual float GetEstimatedHeight()
+    {
+        // Hauteur par défaut, à surcharger dans les classes filles
+        return 100f;
+    }
+
+    /// <summary>
+    /// Rafraîchit les données affichées
+    /// </summary>
+    protected virtual void RefreshData()
+    {
+        // À implémenter dans les classes filles
+    }    /// <summary>
     /// Vérifie si la position doit être mise à jour
     /// </summary>
     /// <returns>True si la position doit être recalculée</returns>
@@ -261,102 +258,6 @@ public abstract class BaseDebugPanel : MonoBehaviour
         }
         
         return false;
-    }
-
-    // Variables pour le glisser-déposer
-    protected bool isDragging = false;
-    protected Vector2 dragOffset;
-    
-    /// <summary>
-    /// Gère les interactions de souris pour le glisser-déposer
-    /// </summary>
-    protected virtual void HandleMouseInput()
-    {
-        if (!isVisible) return;
-        
-        Event currentEvent = Event.current;
-        if (currentEvent == null) return;
-        
-        Vector2 mousePos = currentEvent.mousePosition;
-        
-        // Vérifier si la souris est sur le panneau
-        bool mouseOnPanel = panelRect.Contains(mousePos);
-        
-        if (currentEvent.type == EventType.MouseDown && currentEvent.button == 0 && mouseOnPanel)
-        {
-            // Commencer le glisser-déposer
-            isDragging = true;
-            dragOffset = mousePos - new Vector2(panelRect.x, panelRect.y);
-            currentEvent.Use();
-        }
-        else if (currentEvent.type == EventType.MouseDrag && isDragging)
-        {
-            // Continuer le glisser-déposer
-            Vector2 newPosition = mousePos - dragOffset;
-            MoveTo(newPosition);
-            currentEvent.Use();
-        }
-        else if (currentEvent.type == EventType.MouseUp && currentEvent.button == 0 && isDragging)
-        {
-            // Finir le glisser-déposer
-            isDragging = false;
-            SavePosition(); // Sauvegarder la nouvelle position
-            currentEvent.Use();
-        }
-    }
-
-    /// <summary>
-    /// Dessine le contenu spécifique du panneau
-    /// À implémenter dans les classes filles
-    /// </summary>
-    protected abstract void DrawPanelContent();
-
-    /// <summary>
-    /// Enregistre le panneau auprès du LogParadeDebugManager
-    /// </summary>
-    protected virtual void RegisterWithManager()
-    {
-        var manager = FindFirstObjectByType<LogParadeDebugManager>();
-        if (manager != null)
-        {
-            manager.AddDebugPanel(this);
-        }
-    }
-
-    /// <summary>
-    /// Méthode utilitaire pour formater les booléens
-    /// </summary>
-    /// <param name="value">Valeur booléenne</param>
-    /// <returns>Texte formaté avec couleur</returns>
-    protected string FormatBool(bool value)
-    {
-        return value ? "<color=green>TRUE</color>" : "<color=red>FALSE</color>";
-    }
-
-    /// <summary>
-    /// Méthode utilitaire pour formater les nombres
-    /// </summary>
-    /// <param name="value">Valeur numérique</param>
-    /// <param name="decimals">Nombre de décimales</param>
-    /// <returns>Texte formaté</returns>
-    protected string FormatNumber(float value, int decimals = 2)
-    {
-        return value.ToString($"F{decimals}");
-    }
-
-    /// <summary>
-    /// Validation des paramètres dans l'inspecteur
-    /// </summary>
-    protected virtual void OnValidate()
-    {
-        // Contraintes de taille
-        width = Mathf.Max(100f, width);
-        refreshRate = Mathf.Max(0.05f, refreshRate);
-        
-        if (Application.isPlaying)
-        {
-            UpdatePanelPosition();
-        }
     }
 
     /// <summary>
@@ -431,4 +332,109 @@ public abstract class BaseDebugPanel : MonoBehaviour
         UpdatePanelPosition();
         SavePosition();
     }
+    #endregion
+
+    #region Interaction & Drag
+    /// <summary>
+    /// Gère les interactions de souris pour le glisser-déposer
+    /// </summary>
+    protected virtual void HandleMouseInput()
+    {
+        if (!isVisible) return;
+        
+        Event currentEvent = Event.current;
+        if (currentEvent == null) return;
+        
+        Vector2 mousePos = currentEvent.mousePosition;
+        
+        // Vérifier si la souris est sur le panneau
+        bool mouseOnPanel = panelRect.Contains(mousePos);
+        
+        if (currentEvent.type == EventType.MouseDown && currentEvent.button == 0 && mouseOnPanel)
+        {
+            // Commencer le glisser-déposer
+            isDragging = true;
+            dragOffset = mousePos - new Vector2(panelRect.x, panelRect.y);
+            currentEvent.Use();
+        }
+        else if (currentEvent.type == EventType.MouseDrag && isDragging)
+        {
+            // Continuer le glisser-déposer
+            Vector2 newPosition = mousePos - dragOffset;
+            MoveTo(newPosition);
+            currentEvent.Use();
+        }
+        else if (currentEvent.type == EventType.MouseUp && currentEvent.button == 0 && isDragging)
+        {
+            // Finir le glisser-déposer
+            isDragging = false;
+            SavePosition(); // Sauvegarder la nouvelle position
+            currentEvent.Use();
+        }
+    }
+    #endregion
+
+    #region Rafraîchissement & Données
+    /// <summary>
+    /// Méthode utilitaire pour formater les booléens
+    /// </summary>
+    /// <param name="value">Valeur booléenne</param>
+    /// <returns>Texte formaté avec couleur</returns>
+    protected string FormatBool(bool value)
+    {
+        return value ? "<color=green>TRUE</color>" : "<color=red>FALSE</color>";
+    }
+
+    /// <summary>
+    /// Méthode utilitaire pour formater les nombres
+    /// </summary>
+    /// <param name="value">Valeur numérique</param>
+    /// <param name="decimals">Nombre de décimales</param>
+    /// <returns>Texte formaté</returns>
+    protected string FormatNumber(float value, int decimals = 2)
+    {
+        return value.ToString($"F{decimals}");
+    }
+
+    /// <summary>
+    /// Validation des paramètres dans l'inspecteur
+    /// </summary>
+    protected virtual void OnValidate()
+    {
+        // Contraintes de taille
+        width = Mathf.Max(100f, width);
+        refreshRate = Mathf.Max(0.05f, refreshRate);
+        
+        if (Application.isPlaying)
+        {
+            UpdatePanelPosition();
+        }
+    }
+    #endregion
+
+    #region Utilitaires & Validation
+    /// <summary>
+    /// Enregistre le panneau auprès du LogParadeDebugManager
+    /// </summary>
+    protected virtual void RegisterWithManager()
+    {
+        var manager = FindFirstObjectByType<LogParadeDebugManager>();
+        if (manager != null)
+        {
+            manager.AddDebugPanel(this);
+        }
+    }
+    #endregion
+
+    #region Visibilité
+    /// <summary>
+    /// Active ou désactive la visibilité du panneau
+    /// </summary>
+    /// <param name="visible">Nouvel état de visibilité</param>
+    public virtual void SetVisible(bool visible)
+    {
+        isVisible = visible;
+        enabled = visible; // Optimisation: désactiver Update si invisible
+    }
+    #endregion
 }

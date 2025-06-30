@@ -8,6 +8,7 @@ using Core;
 /// </summary>
 public class LogParadeInputSimulator : MonoBehaviour
 {
+#region Fields
     [Header("Simulation Settings")]
     public bool enableSimulation = true;
     public float simulationSpeed = 2f;
@@ -26,16 +27,14 @@ public class LogParadeInputSimulator : MonoBehaviour
     private float currentSimulatedX = 0f;
     private bool autoMoveEnabled = false;
     private float autoMoveTimer = 0f;
-    
+#endregion
+
+#region Unity Lifecycle
     void Start()
-    {        if (targetUDPReceive == null)
+    {
+        if (targetUDPReceive == null)
         {
             targetUDPReceive = FindFirstObjectByType<UDPReceive>();
-        }
-        
-        if (enableSimulation)
-        {
-            Debug.Log("LogParade Input Simulator activé. Utilisez A/D pour bouger, S pour centrer, Espace pour mouvement auto.");
         }
     }
     
@@ -47,7 +46,23 @@ public class LogParadeInputSimulator : MonoBehaviour
         HandleAutoMovement();
         SendSimulatedData();
     }
-    
+
+    void OnDrawGizmos()
+    {
+        if (!enableSimulation) return;
+        
+        // Visualiser la position simulée
+        Vector3 simulatedPos = Vector3.right * currentSimulatedX;
+        Gizmos.color = Color.red;
+        Gizmos.DrawSphere(simulatedPos, 0.2f);
+        
+        // Dessiner la plage de simulation
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawLine(Vector3.right * -simulationRange, Vector3.right * simulationRange);
+    }
+#endregion
+
+#region Simulation Logic
     /// <summary>
     /// Gère les entrées clavier pour contrôler la simulation
     /// </summary>
@@ -100,7 +115,8 @@ public class LogParadeInputSimulator : MonoBehaviour
         // Oscillation sinusoïdale entre -simulationRange et +simulationRange
         currentSimulatedX = Mathf.Sin(autoMoveTimer * 0.5f) * simulationRange;
     }
-      /// <summary>
+
+    /// <summary>
     /// Envoie les données simulées au UDPReceive
     /// Utilise le même format JSON que les vraies données MediaPipe
     /// Inclut maintenant les données de pose avec la tête (landmark 0)
@@ -110,13 +126,13 @@ public class LogParadeInputSimulator : MonoBehaviour
         // Simuler les données de pose et de main
         float simulatedY = 0f;
         float simulatedZ = 0f;
-        
+
         // Convertir en format MediaPipe (coordonnées écran simulées)
         int offset = 70; // Même offset que LogParadeLateralTracker
         float screenX = (7 - currentSimulatedX) * offset;
         float screenY = simulatedY * offset;
         float screenZ = simulatedZ * offset;
-          // Créer le JSON dans le format attendu avec données de pose
+        // Créer le JSON dans le format attendu avec données de pose
         // Utiliser la culture invariante pour éviter les problèmes de localisation
         string jsonData = $@"{{
             ""pose_landmarks"": [
@@ -129,17 +145,19 @@ public class LogParadeInputSimulator : MonoBehaviour
             ""open_fingers"": 5,
             ""simulated"": true,
             ""simulator_x"": {currentSimulatedX.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)}        }}";
-        
+
         // Debug du JSON généré (temporaire)
         if (enableSimulation && Time.frameCount % 60 == 0) // Log toutes les secondes environ
         {
             Debug.Log($"JSON Simulator: {jsonData}");
         }
-        
+
         // Injecter directement dans UDPReceive
         targetUDPReceive.data = jsonData;
     }
-    
+#endregion
+
+#region Public API
     /// <summary>
     /// Définit manuellement la position X simulée
     /// </summary>
@@ -160,22 +178,10 @@ public class LogParadeInputSimulator : MonoBehaviour
         {
             // Nettoyer les données du UDPReceive
             if (targetUDPReceive != null)
-            {                targetUDPReceive.data = "";
+            {
+                targetUDPReceive.data = "";
             }
         }
     }
-    
-    void OnDrawGizmos()
-    {
-        if (!enableSimulation) return;
-        
-        // Visualiser la position simulée
-        Vector3 simulatedPos = Vector3.right * currentSimulatedX;
-        Gizmos.color = Color.red;
-        Gizmos.DrawSphere(simulatedPos, 0.2f);
-        
-        // Dessiner la plage de simulation
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawLine(Vector3.right * -simulationRange, Vector3.right * simulationRange);
-    }
+#endregion
 }

@@ -6,10 +6,9 @@ using UnityEngine;
 /// </summary>
 public class LogParadeGameStateController : MonoBehaviour
 {
+#region Champs & Singleton
     [Header("State Settings")]
     [SerializeField] private bool showDetailedLogs = true;
-    
-    // État global du jeu (statique pour accès depuis n'importe où)
     /// <summary>
     /// Indique si la calibration est actuellement en cours
     /// </summary>
@@ -25,10 +24,12 @@ public class LogParadeGameStateController : MonoBehaviour
     /// </summary>
     public static bool IsGameStarted { get; private set; } = false;
     
-    // Instance singleton pour accès facilité
+    // Instance singleton pour accès facilitée
     private static LogParadeGameStateController instance;
     public static LogParadeGameStateController Instance => instance;
-    
+#endregion
+
+#region Unity Lifecycle
     void Awake()
     {
         // Singleton pattern
@@ -43,10 +44,19 @@ public class LogParadeGameStateController : MonoBehaviour
             return;
         }
         
-        // Initialiser l'état par défaut
         InitializeState();
     }
-    
+
+    void OnDestroy()
+    {
+        if (instance == this)
+        {
+            instance = null;
+        }
+    }
+#endregion
+
+#region Initialisation
     /// <summary>
     /// Initialise l'état par défaut du jeu
     /// </summary>
@@ -55,14 +65,14 @@ public class LogParadeGameStateController : MonoBehaviour
         IsCalibrationInProgress = false;
         IsGameplayAllowed = false;
         IsGameStarted = false;
-          if (showDetailedLogs)
+        if (showDetailedLogs)
         {
             LogParadeLogger.LogVerbose("État initialisé - Calibration et gameplay désactivés");
         }
     }
-    
-    #region Calibration State Management
-    
+#endregion
+
+#region Calibration State Management
     /// <summary>
     /// Démarre la phase de calibration
     /// </summary>
@@ -71,7 +81,7 @@ public class LogParadeGameStateController : MonoBehaviour
         IsCalibrationInProgress = true;
         IsGameplayAllowed = false;
         IsGameStarted = false;
-          if (instance?.showDetailedLogs == true)
+        if (instance?.showDetailedLogs == true)
         {
             LogParadeLogger.LogVerbose("Calibration démarrée - Gameplay bloqué");
         }
@@ -84,8 +94,7 @@ public class LogParadeGameStateController : MonoBehaviour
     {
         IsCalibrationInProgress = false;
         IsGameplayAllowed = true;
-        // IsGameStarted reste false jusqu'au lancement effectif
-          if (instance?.showDetailedLogs == true)
+        if (instance?.showDetailedLogs == true)
         {
             LogParadeLogger.Log("Calibration terminée - Gameplay autorisé");
         }
@@ -99,28 +108,26 @@ public class LogParadeGameStateController : MonoBehaviour
         IsCalibrationInProgress = true;
         IsGameplayAllowed = false;
         IsGameStarted = false;
-          if (instance?.showDetailedLogs == true)
+        if (instance?.showDetailedLogs == true)
         {
             LogParadeLogger.LogVerbose("Calibration redémarrée");
         }
     }
-    
-    #endregion
-    
-    #region Game State Management
-    
+#endregion
+
+#region Game State Management
     /// <summary>
     /// Démarre le jeu principal
     /// </summary>
     public static void StartGame()
-    {        if (!IsGameplayAllowed)
+    {
+        if (!IsGameplayAllowed)
         {
             LogParadeLogger.LogWarning("Tentative de démarrage du jeu avant autorisation (calibration non terminée)");
             return;
         }
-        
         IsGameStarted = true;
-          if (instance?.showDetailedLogs == true)
+        if (instance?.showDetailedLogs == true)
         {
             LogParadeLogger.Log("Jeu principal démarré");
         }
@@ -132,7 +139,7 @@ public class LogParadeGameStateController : MonoBehaviour
     public static void StopGame()
     {
         IsGameStarted = false;
-          if (instance?.showDetailedLogs == true)
+        if (instance?.showDetailedLogs == true)
         {
             LogParadeLogger.Log("Jeu arrêté");
         }
@@ -146,7 +153,7 @@ public class LogParadeGameStateController : MonoBehaviour
         IsCalibrationInProgress = false;
         IsGameplayAllowed = false;
         IsGameStarted = false;
-          if (instance?.showDetailedLogs == true)
+        if (instance?.showDetailedLogs == true)
         {
             LogParadeLogger.LogVerbose("État du jeu réinitialisé");
         }
@@ -157,30 +164,26 @@ public class LogParadeGameStateController : MonoBehaviour
     /// </summary>
     public static void RestartGame()
     {
-        // Reset complet de l'état
         ResetGameState();
-          if (instance?.showDetailedLogs == true)
+        if (instance?.showDetailedLogs == true)
         {
             LogParadeLogger.LogVerbose("Jeu redémarré - état réinitialisé");
         }
     }
-    
-    #endregion
-    
-    #region State Queries
-    
+#endregion
+
+#region State Queries
     /// <summary>
     /// Vérifie si le scoring peut être démarré (après calibration)
     /// </summary>
     public static bool CanStartScoring()
     {
         bool canStart = IsGameplayAllowed && !IsCalibrationInProgress;
-          if (instance?.showDetailedLogs == true && !canStart)
+        if (instance?.showDetailedLogs == true && !canStart)
         {
             string reason = IsCalibrationInProgress ? "calibration en cours" : "gameplay non autorisé";
             LogParadeLogger.LogVerbose($"Score bloqué - {reason}");
         }
-        
         return canStart;
     }
     
@@ -190,12 +193,11 @@ public class LogParadeGameStateController : MonoBehaviour
     public static bool CanStartGameplay()
     {
         bool canStart = IsGameplayAllowed && !IsCalibrationInProgress;
-          if (instance?.showDetailedLogs == true && !canStart)
+        if (instance?.showDetailedLogs == true && !canStart)
         {
             string reason = IsCalibrationInProgress ? "calibration en cours" : "gameplay non autorisé";
             LogParadeLogger.LogVerbose($"Gameplay bloqué - {reason}");
         }
-        
         return canStart;
     }
     
@@ -213,11 +215,9 @@ public class LogParadeGameStateController : MonoBehaviour
         else
             return "Jeu en cours";
     }
-    
-    #endregion
-    
-    #region Debug Methods
-    
+#endregion
+
+#region Debug Methods
     /// <summary>
     /// Force l'activation du gameplay (pour debug uniquement)
     /// </summary>
@@ -226,13 +226,13 @@ public class LogParadeGameStateController : MonoBehaviour
     {
         IsCalibrationInProgress = false;
         IsGameplayAllowed = true;
-        
         LogParadeLogger.LogWarning("GAMEPLAY FORCÉ - Pour debug uniquement!");
     }
     
     /// <summary>
     /// Affiche l'état actuel dans la console
-    /// </summary>    [ContextMenu("Debug State")]
+    /// </summary>
+    [ContextMenu("Debug State")]
     public void DebugCurrentState()
     {
         LogParadeLogger.Log($"État actuel:\n" +
@@ -243,18 +243,5 @@ public class LogParadeGameStateController : MonoBehaviour
                   $"- Peut jouer: {CanStartGameplay()}\n" +
                   $"- Statut: {GetCurrentStatusText()}");
     }
-    
-    #endregion
-    
-    #region Unity Events
-    
-    void OnDestroy()
-    {
-        if (instance == this)
-        {
-            instance = null;
-        }
-    }
-    
-    #endregion
+#endregion
 }

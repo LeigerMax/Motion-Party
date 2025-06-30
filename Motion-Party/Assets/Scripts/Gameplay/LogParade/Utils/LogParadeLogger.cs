@@ -6,9 +6,12 @@ using UnityEngine;
 /// </summary>
 public static class LogParadeLogger
 {
+    #region Fields
     private static bool _enableDebugLogs = true;
     private static bool _enableVerboseLogs = false;
-    
+    #endregion
+
+    #region Properties
     /// <summary>
     /// Active/désactive tous les logs LogParade
     /// </summary>
@@ -26,7 +29,9 @@ public static class LogParadeLogger
         get => _enableVerboseLogs;
         set => _enableVerboseLogs = value;
     }
-    
+    #endregion
+
+    #region Logging Methods
     /// <summary>
     /// Log normal avec tag [LogParade]
     /// </summary>
@@ -67,7 +72,9 @@ public static class LogParadeLogger
     {
         Debug.LogError($"[LogParade] {message}", context);
     }
-    
+    #endregion
+
+    #region Toggle Methods
     /// <summary>
     /// Toggle des logs via input (F1 par défaut)
     /// </summary>
@@ -101,4 +108,5 @@ public static class LogParadeLogger
         _enableVerboseLogs = !_enableVerboseLogs;
         Debug.Log($"[LogParade] Verbose logs: {(_enableVerboseLogs ? "ENABLED" : "DISABLED")} (F2 to toggle)");
     }
+    #endregion
 }

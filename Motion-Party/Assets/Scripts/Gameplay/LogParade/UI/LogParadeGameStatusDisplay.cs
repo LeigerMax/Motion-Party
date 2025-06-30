@@ -5,6 +5,8 @@ using TMPro;
 /// Gestionnaire d'affichage du statut de jeu pour LogParade.
 /// Responsable de l'affichage des informations de jeu, position du joueur, et messages de statut.
 /// Centralise tout l'affichage textuel non lié à la calibration.
+/// 
+/// Cette classe n'est pas un MonoBehaviour, elle doit être instanciée et gérée par un contrôleur externe.
 /// </summary>
 public class LogParadeGameStatusDisplay
 {
@@ -78,7 +80,8 @@ public class LogParadeGameStatusDisplay
             return false;
         }
 
-        // Log des composants manquants (non critique)        if (currentLaneText == null) LogParadeLogger.LogWarning("Texte de voie courante non assigné");
+        // Log des composants manquants (non critique)
+        if (currentLaneText == null) LogParadeLogger.LogWarning("Texte de voie courante non assigné");
         if (positionText == null) LogParadeLogger.LogWarning("Texte de position non assigné");
         if (gameStatusText == null) LogParadeLogger.LogWarning("Texte de statut non assigné");
         if (debugInfoText == null) LogParadeLogger.LogWarning("Texte de debug non assigné");
@@ -149,11 +152,13 @@ public class LogParadeGameStatusDisplay
         OnPositionUpdated?.Invoke(position);
     }
 
+    // Amélioration : affichage XYZ
     private void UpdatePlayerPositionDisplay(Vector3 position)
     {
         if (positionText != null)
         {
-            positionText.text = $"Position: X={position.x:F2}";
+            // Affiche X/Y/Z pour plus de clarté
+            positionText.text = $"Position: X={position.x:F2} Y={position.y:F2} Z={position.z:F2}";
         }
     }
 
@@ -294,28 +299,34 @@ public class LogParadeGameStatusDisplay
     {
         if (!isDebugMode || debugInfoText == null) return;
 
-        string currentDebugText = debugInfoText.text;
-        string newLine = $"{key}: {value}\n";
-        
-        if (!currentDebugText.Contains(key))
-        {
-            debugInfoText.text = currentDebugText + newLine;
-        }
-        else
-        {
-            // Remplace la linha existante
-            var lines = currentDebugText.Split('\n');
-            for (int i = 0; i < lines.Length; i++)
-            {
-                if (lines[i].StartsWith(key + ":"))
-                {
-                    lines[i] = $"{key}: {value}";
-                    break;
-                }
-            }
-            debugInfoText.text = string.Join("\n", lines);
-        }
+        debugInfoText.text = ReplaceOrAddLine(debugInfoText.text, key, value);
     }
+
+    #region Private Helpers
+    /// <summary>
+    /// Remplace ou ajoute une ligne clé: valeur dans un texte multi-lignes.
+    /// </summary>
+    private string ReplaceOrAddLine(string text, string key, string value)
+    {
+        string newLine = $"{key}: {value}";
+        var lines = text.Split('\n');
+        bool found = false;
+        for (int i = 0; i < lines.Length; i++)
+        {
+            if (lines[i].StartsWith(key + ":"))
+            {
+                lines[i] = newLine;
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+        {
+            return text + newLine + "\n";
+        }
+        return string.Join("\n", lines);
+    }
+    #endregion
     #endregion
 
     #region Preset Messages
@@ -372,8 +383,7 @@ public class LogParadeGameStatusDisplay
     {
         SetDebugMode(false);
         UpdateGameStatus("Nettoyage terminé");
-        
-        LogParadeLogger.LogVerbose("Nettoyage terminé");
+        // LogParadeLogger.LogVerbose("Nettoyage terminé"); // Suppression du log inutile
     }
     #endregion
 }

@@ -6,6 +6,7 @@ using UnityEngine;
 /// </summary>
 public class LogParadeLaneVisualizer : MonoBehaviour
 {
+    #region Fields
     [Header("Lane Visualization")]
     public float laneWidth = 2f;
     public float laneLength = 20f;
@@ -20,20 +21,13 @@ public class LogParadeLaneVisualizer : MonoBehaviour
         Color.yellow,   // Voie 2 - Centre-gauche  
         Color.green,    // Voie 3 - Centre-droite
         Color.blue      // Voie 4 - Droite
-    };    [Header("Auto-Generate")]
-    // Note: autoGenerateInEditor is unused but kept for potential future auto-generation features
-    [SerializeField] private bool autoGenerateInEditor = false; // Désactivé par défaut
+    };
     
     private GameObject[] laneObjects = new GameObject[4];
+    #endregion
 
-    void Start()
-    {
-        if (Application.isPlaying)
-        {
-            // Par défaut, ne rien faire. Le LogParadeLaneManager s'occupe de tout.
-            // On peut toujours générer manuellement si besoin via le menu contextuel.
-        }
-    }    /// <summary>
+    #region Lane Generation
+    /// <summary>
     /// Génère les objets visuels pour chaque voie (seulement si nécessaire)
     /// </summary>
     [ContextMenu("Generate Lanes")]
@@ -46,25 +40,9 @@ public class LogParadeLaneVisualizer : MonoBehaviour
         {
             CreateLaneObject(i + 1);
         }
-        
-        LogParadeLogger.LogVerbose("Voies générées pour LogParade");
     }
     
     /// <summary>
-    /// Assigne des lanes externes (utilisé par LogParadeLaneManager)
-    /// </summary>
-    public void SetExternalLanes(GameObject[] externalLanes)
-    {
-        if (externalLanes.Length == 4)
-        {
-            laneObjects = (GameObject[])externalLanes.Clone();
-            LogParadeLogger.LogVerbose("Lanes externes assignées au visualizer");
-        }
-        else
-        {
-            LogParadeLogger.LogWarning("Impossible d'assigner les lanes externes : il faut exactement 4 lanes");
-        }
-    }    /// <summary>
     /// Supprime tous les objets de voie générés automatiquement
     /// </summary>
     [ContextMenu("Clear Generated Lanes")]
@@ -86,7 +64,6 @@ public class LogParadeLaneVisualizer : MonoBehaviour
                 laneObjects[i] = null;
             }
         }
-        LogParadeLogger.LogVerbose("Lanes générées automatiquement supprimées");
     }
     
     /// <summary>
@@ -125,7 +102,22 @@ public class LogParadeLaneVisualizer : MonoBehaviour
         // Stocker la référence
         laneObjects[index] = laneObj;
     }
-    
+    #endregion
+
+    #region Lane Assignment
+    /// <summary>
+    /// Assigne des lanes externes (utilisé par LogParadeLaneManager)
+    /// </summary>
+    public void SetExternalLanes(GameObject[] externalLanes)
+    {
+        if (externalLanes.Length == 4)
+        {
+            laneObjects = (GameObject[])externalLanes.Clone();
+        }
+    }
+    #endregion
+
+    #region Utilities
     /// <summary>
     /// Crée un label 3D pour identifier la voie
     /// </summary>
@@ -158,28 +150,9 @@ public class LogParadeLaneVisualizer : MonoBehaviour
         float xOffset = (lane - 2.5f) * laneWidth;
         return basePosition + Vector3.right * xOffset;
     }
-    
-    /// <summary>
-    /// Met en surbrillance une voie spécifique
-    /// </summary>
-    public void HighlightLane(int laneNumber)
-    {
-        for (int i = 0; i < 4; i++)
-        {
-            if (laneObjects[i] != null)
-            {
-                Renderer renderer = laneObjects[i].GetComponentInChildren<Renderer>();
-                if (renderer != null)
-                {
-                    bool isHighlighted = (i + 1) == laneNumber;
-                    Color color = laneColors[i];
-                    color.a = isHighlighted ? 1f : 0.5f;
-                    renderer.material.color = color;
-                }
-            }
-        }
-    }
-    
+    #endregion
+
+    #region Gizmos & Editor
     void OnDrawGizmos()
     {
         // Dessiner les voies dans l'éditeur même sans objets
@@ -206,13 +179,8 @@ public class LogParadeLaneVisualizer : MonoBehaviour
         
         // Dessiner le centre de référence
         Gizmos.color = Color.white;
-        Gizmos.DrawWireSphere(basePosition, 0.2f);    }
-    
-#if UNITY_EDITOR
-    void OnValidate()
-    {
-        // La génération automatique est désactivée par défaut
-        // Utilisez le menu contextuel "Generate Lanes" si vous voulez générer des lanes
+        Gizmos.DrawWireSphere(basePosition, 0.2f);
     }
-#endif
+    
+    #endregion
 }

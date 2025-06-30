@@ -6,16 +6,17 @@ using UnityEngine.UI;
 /// </summary>
 public class LogParadeGameStarter : MonoBehaviour
 {
+    #region Champs & Références
     [Header("UI References")]
     [SerializeField] private Button startGameButton;
     [SerializeField] private Button restartGameButton;
     [SerializeField] private Button calibrateOnlyButton;
-    
     [Header("Auto-assignment")]
     [SerializeField] private bool autoFindGameLauncher = true;
-    
     private LogParadeGameLauncher gameLauncher;
+    #endregion
 
+    #region Initialisation
     void Start()
     {
         if (autoFindGameLauncher)
@@ -26,13 +27,17 @@ public class LogParadeGameStarter : MonoBehaviour
         SetupButtons();
         UpdateButtonStates();
     }
+    #endregion
 
+    #region Update
     void Update()
     {
         // Mettre à jour l'état des boutons en fonction du jeu
         UpdateButtonStates();
     }
+    #endregion
 
+    #region Setup
     /// <summary>
     /// Configure les événements des boutons
     /// </summary>
@@ -96,8 +101,9 @@ public class LogParadeGameStarter : MonoBehaviour
             calibrateOnlyButton.interactable = !isCalibrating;
         }
     }
+    #endregion
 
-    #region Button Actions
+    #region Actions Boutons
 
     /// <summary>
     /// Démarre le processus complet (calibration + jeu)
@@ -110,7 +116,7 @@ public class LogParadeGameStarter : MonoBehaviour
             return;
         }
         
-        LogParadeLogger.Log("🎮 Démarrage du jeu LogParade depuis l'UI");
+        LogParadeLogger.Log(" Démarrage du jeu LogParade depuis l'UI");
         gameLauncher.StartCompleteGameProcess();
     }
 
@@ -125,7 +131,7 @@ public class LogParadeGameStarter : MonoBehaviour
             return;
         }
         
-        LogParadeLogger.Log("🔄 Redémarrage du jeu LogParade depuis l'UI");
+        LogParadeLogger.Log(" Redémarrage du jeu LogParade depuis l'UI");
         gameLauncher.RestartGame();
     }
 
@@ -140,29 +146,10 @@ public class LogParadeGameStarter : MonoBehaviour
             return;
         }
         
-        LogParadeLogger.Log("🎯 Démarrage de la calibration depuis l'UI");
+        LogParadeLogger.Log(" Démarrage de la calibration depuis l'UI");
         gameLauncher.StartCalibrationProcess();
     }
 
     #endregion
 
-    #region Utility Methods
-
-    /// <summary>
-    /// Affiche l'état actuel du système dans la console
-    /// </summary>
-    [ContextMenu("Debug - Show Game State")]
-    public void ShowGameState()
-    {
-        if (gameLauncher != null)
-        {
-            gameLauncher.DebugShowSystemState();
-        }
-        else
-        {
-            LogParadeLogger.LogWarning("GameLauncher non trouvé pour afficher l'état");
-        }
-    }
-
-    #endregion
 }

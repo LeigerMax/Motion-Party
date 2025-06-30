@@ -1050,7 +1050,6 @@ MonoBehaviour:
   - {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   - {r: 0, g: 1, b: 0, a: 1}
   - {r: 0, g: 0, b: 1, a: 1}
-  autoGenerateInEditor: 0
 --- !u!4 &628033629
 Transform:
   m_ObjectHideFlags: 0
@@ -1347,7 +1346,6 @@ MonoBehaviour:
   timeoutDuration: 15
   laneDetectionTolerance: 0.5
   autoStartCalibration: 1
-  showDebugInfo: 0
   playerAvatar: {fileID: 1543242584}
   lateralTracker: {fileID: 1591830348}
   laneTransforms:
@@ -1359,12 +1357,6 @@ MonoBehaviour:
   calibrationLogs:
   - {fileID: 399428748}
   calibrationTextUI: {fileID: 1090373713}
-  highlightColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  completedColor: {r: 0, g: 1, b: 0, a: 1}
-  highlightMaterial: {fileID: 0}
-  successSound: {fileID: 0}
-  timeoutSound: {fileID: 0}
-  audioSource: {fileID: 0}
 --- !u!4 &836782104
 Transform:
   m_ObjectHideFlags: 0
@@ -1392,7 +1384,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0250f4b96badfb94798eaa06af19de4f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enableCalibrationOnStart: 1
   calibrationSystem: {fileID: 836782103}
   playerAvatar: {fileID: 1543242584}
   gameLauncher: {fileID: 0}
@@ -1899,11 +1890,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mainInstructionText: {fileID: 705855966}
-  statusText: {fileID: 0}
-  timerText: {fileID: 0}
-  progressBar: {fileID: 0}
-  successPanel: {fileID: 0}
-  timeoutPanel: {fileID: 0}
   textFadeDuration: 0.5
   pulseSpeed: 2
   pulseIntensity: 0.3
@@ -2646,81 +2632,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7097ba7ba649e1f41bba232312bdcbd8, type: 3}
---- !u!1 &1447422966
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1447422967}
-  - component: {fileID: 1447422969}
-  - component: {fileID: 1447422968}
-  m_Layer: 0
-  m_Name: calibrationPanel
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &1447422967
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1447422966}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1908275076}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
-  m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1447422968
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1447422966}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.392}
-  m_RaycastTarget: 1
-  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  m_Sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
-  m_PreserveAspect: 0
-  m_FillCenter: 1
-  m_FillMethod: 4
-  m_FillAmount: 1
-  m_FillClockwise: 1
-  m_FillOrigin: 0
-  m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
---- !u!222 &1447422969
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1447422966}
-  m_CullTransparentMesh: 1
 --- !u!1 &1457078222
 GameObject:
   m_ObjectHideFlags: 0
@@ -2957,8 +2868,6 @@ MonoBehaviour:
   rotateTowardsMovement: 1
   rotationSpeed: 10
   laneChangeEffects: []
-  laneChangeSound: {fileID: 0}
-  showDebugInfo: 0
 --- !u!4 &1543242585
 Transform:
   m_ObjectHideFlags: 0
@@ -3038,8 +2947,6 @@ MonoBehaviour:
   enableAutoCalibration: 0
   calibrationTime: 2
   continuousCalibration: 1
-  bypassCalibrationForInteractiveMode: 1
-  showDebugInfo: 0
 --- !u!4 &1558307761 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1507636620937791777, guid: 7097ba7ba649e1f41bba232312bdcbd8, type: 3}
@@ -3081,8 +2988,6 @@ MonoBehaviour:
   enableAutoCalibration: 1
   calibrationTime: 3
   continuousCalibration: 1
-  bypassCalibrationForInteractiveMode: 1
-  showDebugInfo: 1
 --- !u!4 &1591830349
 Transform:
   m_ObjectHideFlags: 0
@@ -3336,6 +3241,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1689009127}
   - component: {fileID: 1689009126}
+  - component: {fileID: 1689009128}
   m_Layer: 0
   m_Name: LogParadeGenerator
   m_TagString: Untagged
@@ -3355,20 +3261,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8f60d03776b518e4cb7a54b6d4982947, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lanes:
-  - {fileID: 522347898}
-  - {fileID: 2062016437}
-  - {fileID: 1457078223}
-  - {fileID: 2048908256}
-  logPrefabs:
-  - {fileID: 279380836}
-  - {fileID: 359736868}
-  - {fileID: 1039773201}
-  logSpeed: 1.2
-  verticalSpacing: 2.5
-  generationInterval: 3
-  spawnHeight: 10
-  destroyHeight: -5
   enableGeneration: 1
   showDebugInfo: 0
 --- !u!4 &1689009127
@@ -3386,6 +3278,31 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1529318296}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1689009128
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1689009125}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 182ab46b992c08543a32f10ee9013469, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  lanes:
+  - {fileID: 522347898}
+  - {fileID: 2062016437}
+  - {fileID: 1457078223}
+  - {fileID: 2048908256}
+  logPrefabs:
+  - {fileID: 279380836}
+  - {fileID: 359736868}
+  - {fileID: 1039773201}
+  logSpeed: 1.2
+  verticalSpacing: 2.5
+  generationInterval: 2.5
+  showDebugInfo: 0
 --- !u!4 &1701681791 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2894652416639355859, guid: bee651b89d6b3ef48b19cfe8a4c9fa42, type: 3}
@@ -3946,7 +3863,7 @@ MonoBehaviour:
   positionText: {fileID: 0}
   gameStatusText: {fileID: 0}
   debugInfoText: {fileID: 0}
-  calibrationPanel: {fileID: 1447422966}
+  calibrationPanel: {fileID: 0}
   calibrationProgressSlider: {fileID: 0}
   calibrationText: {fileID: 705855966}
   debugPanel: {fileID: 0}
@@ -4027,7 +3944,6 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1897720325}
-  - {fileID: 1447422967}
   - {fileID: 705855965}
   - {fileID: 1090373712}
   m_Father: {fileID: 1894786790}
@@ -4066,8 +3982,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c918f501c91561c4fb28a481dc1145e6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  usePrebuiltLanes: 1
-  disableAutoGeneration: 1
   prebuiltLanes:
   - {fileID: 522347897}
   - {fileID: 2062016436}

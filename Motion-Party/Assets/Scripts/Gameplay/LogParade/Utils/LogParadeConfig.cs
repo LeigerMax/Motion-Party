@@ -7,6 +7,7 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "LogParadeConfig", menuName = "LogParade/Game Configuration")]
 public class LogParadeConfig : ScriptableObject
 {
+    #region Fields
     [Header("Tracking Settings")]
     [Range(0.1f, 1.0f)]
     public float defaultSmoothingFactor = 0.8f;
@@ -26,27 +27,20 @@ public class LogParadeConfig : ScriptableObject
     public float laneWidth = 2f;
     public AnimationCurve movementCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
     
-    [Header("Visual Settings")]
-    public Color[] laneColors = new Color[4] 
-    { 
-        Color.red,      // Voie 1 - Gauche
-        Color.yellow,   // Voie 2 - Centre-gauche  
-        Color.green,    // Voie 3 - Centre-droite
-        Color.blue      // Voie 4 - Droite
-    };    
-    // REMOVED: Lane indicator colors (system removed)[Header("Audio")]
-    public AudioClip laneChangeSound;
+
     public AudioClip backgroundMusic;
     
     [Header("Debug")]
-    public bool showDebugInfoByDefault = true;
     public bool enableInputSimulator = false;
-    
+    #endregion
+
+    #region Public Methods
     /// <summary>
     /// Applique cette configuration aux composants LogParade
     /// </summary>
     public void ApplyToComponents()
-    {        // Trouver et configurer le tracker
+    {
+        // Trouver et configurer le tracker
         LogParadeLateralTracker tracker = FindFirstObjectByType<LogParadeLateralTracker>();
         if (tracker != null)
         {
@@ -55,32 +49,32 @@ public class LogParadeConfig : ScriptableObject
             tracker.rightBoundary = defaultRightBoundary;
             tracker.enableAutoCalibration = enableAutoCalibration;
             tracker.calibrationTime = calibrationTime;
-            tracker.showDebugInfo = showDebugInfoByDefault;
         }
-          // Trouver et configurer l'avatar
+
+        // Trouver et configurer l'avatar
         LogParadePlayerAvatar avatar = FindFirstObjectByType<LogParadePlayerAvatar>();
         if (avatar != null)
         {
             avatar.moveSpeed = avatarMoveSpeed;
             avatar.laneWidth = laneWidth;
             avatar.movementCurve = movementCurve;
-            avatar.laneChangeSound = laneChangeSound;
-            avatar.showDebugInfo = showDebugInfoByDefault;
-        }        // Trouver et configurer le visualisateur
+        }
+
+        // Trouver et configurer le visualisateur
         LogParadeLaneVisualizer visualizer = FindFirstObjectByType<LogParadeLaneVisualizer>();
         if (visualizer != null)
         {
             visualizer.laneWidth = laneWidth;
-            visualizer.laneColors = laneColors;
-        }        // REMOVED: Lane colors configuration (lane indicators system removed)
-          // Configurer le simulateur si nécessaire
+        } 
+
+        // Configurer le simulateur si nécessaire
         LogParadeInputSimulator simulator = FindFirstObjectByType<LogParadeInputSimulator>();
         if (simulator != null)
         {
             simulator.enableSimulation = enableInputSimulator;
         }
         
-        Debug.Log("Configuration LogParade appliquée aux composants de la scène.");
+
     }
     
     /// <summary>
@@ -98,15 +92,12 @@ public class LogParadeConfig : ScriptableObject
         laneWidth = 2f;
         movementCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
         
-        laneColors = new Color[4] 
-        { 
-            Color.red, Color.yellow, Color.green, Color.blue
-        };        
-        // REMOVED: Lane indicator colors (system removed)
-        showDebugInfoByDefault = true;
+
         enableInputSimulator = false;
     }
-    
+    #endregion
+
+    #region Unity Callbacks
     void OnValidate()
     {
         // S'assurer que les boundaries sont logiques
@@ -115,10 +106,6 @@ public class LogParadeConfig : ScriptableObject
             defaultRightBoundary = defaultLeftBoundary + 1f;
         }
         
-        // S'assurer qu'on a bien 4 couleurs pour les voies
-        if (laneColors == null || laneColors.Length != 4)
-        {
-            laneColors = new Color[4] { Color.red, Color.yellow, Color.green, Color.blue };
-        }
     }
+    #endregion
 }

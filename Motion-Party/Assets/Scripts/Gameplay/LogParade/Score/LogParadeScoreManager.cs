@@ -4,26 +4,23 @@ using TMPro;
 /// <summary>
 /// Module de gestion du score pour le mini-jeu LogParade.
 /// Basé sur la position du joueur (sur rondin ou non) via PlayerLogCollisionChecker.
-/// Adapté au public senior avec un système tolérant et stable.
 /// </summary>
 public class LogParadeScoreManager : MonoBehaviour
 {
+    #region Fields
+
     [Header("Score Settings")]
     [Tooltip("Points gagnés par seconde quand le joueur est sur un rondin")]
     public int pointsPerSecond = 1;
-    
     [Tooltip("Points perdus quand le joueur tombe à l'eau")]
     public int penaltyPoints = 5;
-    
     [Tooltip("Score initial du joueur")]
     public int initialScore = 0;
-      [Header("References")]
+    [Header("References")]
     [Tooltip("Référence au PlayerLogCollisionChecker pour détecter la position du joueur")]
     public PlayerLogCollisionChecker PlayerLogCollisionChecker;
-    
     [Tooltip("(Optionnel) Champ texte UI pour afficher le score")]
     public TextMeshProUGUI scoreDisplayText;
-    
     [Header("Debug")]
     [Tooltip("Afficher les logs de debug dans la console")]
     public bool enableDebugLogs = true;
@@ -43,7 +40,9 @@ public class LogParadeScoreManager : MonoBehaviour
     private bool wasOnLogLastFrame = false;
     private bool canReceivePenalty = true;
     private float scoreTimer = 0f;
+    #endregion
 
+    #region Unity Lifecycle
     void Start()
     {
         InitializeScoreSystem();
@@ -62,7 +61,9 @@ public class LogParadeScoreManager : MonoBehaviour
         UpdateScoreLogic();
         UpdateScoreDisplay();
     }
+    #endregion
 
+    #region Score Logic
     /// <summary>
     /// Initialise le système de score
     /// </summary>
@@ -87,20 +88,12 @@ public class LogParadeScoreManager : MonoBehaviour
                 LogParadeLogger.LogError("Aucun PlayerLogCollisionChecker trouvé ! Le système de score ne peut pas fonctionner.");
                 return;
             }
-            else
-            {
-                LogParadeLogger.LogVerbose($"PlayerLogCollisionChecker trouvé automatiquement sur {PlayerLogCollisionChecker.gameObject.name}");
-            }
         }
         
         // Initialiser l'état
         wasOnLogLastFrame = PlayerLogCollisionChecker.IsPlayerOnLog();
-        canReceivePenalty = !wasOnLogLastFrame; // Si on commence dans l'eau, on peut recevoir une pénalité
-          if (enableDebugLogs)
-        {
-            LogParadeLogger.Log($"Système initialisé. Score initial: {CurrentScore}, État initial: {(wasOnLogLastFrame ? "sur rondin" : "dans l'eau")}");
-        }
-        
+        canReceivePenalty = !wasOnLogLastFrame;
+
         UpdateScoreDisplay();
     }
 
@@ -122,10 +115,6 @@ public class LogParadeScoreManager : MonoBehaviour
             {
                 AddScore(pointsPerSecond);
                 scoreTimer = 0f;
-                  if (enableDebugLogs)
-                {
-                    LogParadeLogger.LogVerbose($"+{pointsPerSecond} point(s) gagné(s). Score: {CurrentScore}");
-                }
             }
         }
         else
@@ -152,27 +141,17 @@ public class LogParadeScoreManager : MonoBehaviour
             if (canReceivePenalty)
             {
                 SubtractScore(penaltyPoints);
-                canReceivePenalty = false; // Empêcher les pénalités répétées
-                  if (enableDebugLogs)
-                {
-                    LogParadeLogger.LogWarning($"PÉNALITÉ! -{penaltyPoints} points. Score: {CurrentScore}");
-                }
-            }            else
-            {
-                LogParadeLogger.LogVerbose("Chute détectée mais pénalité déjà appliquée.");
+                canReceivePenalty = false; 
             }
         }
         // Transition : de dans l'eau → sur rondin
         else if (!wasOnLogLastFrame && isOnLogNow)
         {
-            // Le joueur vient de remonter sur un rondin
-            canReceivePenalty = true; // Réactiver le droit à la pénalité
-              if (enableDebugLogs)
-            {
-                LogParadeLogger.LogVerbose("Joueur remonté sur rondin. Droit à la pénalité réactivé.");
-            }
+            canReceivePenalty = true;
         }
-    }    /// <summary>
+    }
+
+    /// <summary>
     /// Ajoute des points au score et notifie l'EventCoordinator
     /// </summary>
     private void AddScore(int points)
@@ -202,8 +181,10 @@ public class LogParadeScoreManager : MonoBehaviour
             scoreDisplayText.text = $"Score: {CurrentScore}";
         }
     }
+    #endregion
 
-    #region API Publique    /// <summary>
+    #region Public API
+    /// <summary>
     /// Démarre le système de score
     /// </summary>
     public void StartScoring()
@@ -213,13 +194,9 @@ public class LogParadeScoreManager : MonoBehaviour
             LogParadeLogger.LogWarning("Impossible de démarrer le score : calibration en cours!");
             return;
         }
-          IsScoring = true;
+        IsScoring = true;
         scoreTimer = 0f;
         LogParadeEventCoordinator.TriggerScoringStarted();
-          if (enableDebugLogs)
-        {
-            LogParadeLogger.Log("Système de score démarré.");
-        }
     }
 
     /// <summary>
@@ -229,10 +206,6 @@ public class LogParadeScoreManager : MonoBehaviour
     {
         IsScoring = false;
         scoreTimer = 0f;
-          if (enableDebugLogs)
-        {
-            LogParadeLogger.Log("Système de score arrêté.");
-        }
     }
 
     /// <summary>
@@ -251,10 +224,6 @@ public class LogParadeScoreManager : MonoBehaviour
         }
         
         UpdateScoreDisplay();
-          if (enableDebugLogs)
-        {
-            LogParadeLogger.Log($"Score remis à {initialScore}.");
-        }
     }
 
     /// <summary>
@@ -274,10 +243,6 @@ public class LogParadeScoreManager : MonoBehaviour
     {
         CurrentScore = Mathf.Max(0, newScore);
         UpdateScoreDisplay();
-          if (enableDebugLogs)
-        {
-            LogParadeLogger.Log($"Score défini à {CurrentScore}.");
-        }
     }
 
     /// <summary>
@@ -288,10 +253,6 @@ public class LogParadeScoreManager : MonoBehaviour
     {
         AddScore(bonusPoints);
         UpdateScoreDisplay();
-          if (enableDebugLogs)
-        {
-            LogParadeLogger.Log($"Bonus +{bonusPoints} points! Score: {CurrentScore}");
-        }
     }
 
     /// <summary>
@@ -311,10 +272,6 @@ public class LogParadeScoreManager : MonoBehaviour
     {
         AddScore(points);
         UpdateScoreDisplay();
-          if (enableDebugLogs)
-        {
-            LogParadeLogger.Log($"Points ajoutés manuellement: +{points}. Score total: {CurrentScore}");
-        }
     }
 
     /// <summary>
@@ -324,10 +281,7 @@ public class LogParadeScoreManager : MonoBehaviour
     public void SubtractPointsManual(int points)
     {
         SubtractScore(points);
-        UpdateScoreDisplay();        if (enableDebugLogs)
-        {
-            LogParadeLogger.Log($"Points retirés manuellement: -{points}. Score total: {CurrentScore}");
-        }
+        UpdateScoreDisplay();
     }
 
     #endregion

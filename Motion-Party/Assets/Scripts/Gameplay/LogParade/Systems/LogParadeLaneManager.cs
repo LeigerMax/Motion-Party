@@ -2,48 +2,31 @@ using UnityEngine;
 
 /// <summary>
 /// Gestionnaire principal pour les lanes dans LogParade
-/// Permet de contrôler facilement l'utilisation des lanes préexistantes vs génération automatique
+/// Permet de gérer l'utilisation des lanes préfabriquées uniquement
 /// </summary>
 public class LogParadeLaneManager : MonoBehaviour
 {
-    [Header("Configuration des Lanes")]
-    [SerializeField] private bool usePrebuiltLanes = true; // Utiliser les lanes préfabriquées
-    [SerializeField] private bool disableAutoGeneration = true; // Désactiver la génération automatique
-    
+    #region Fields
     [Header("Lanes Préfabriquées")]
     [SerializeField] private GameObject[] prebuiltLanes = new GameObject[4];
-    
     [Header("Références")]
     [SerializeField] private LogParadeLaneVisualizer laneVisualizer;
-    
+    #endregion
+
+    #region Unity Callbacks
     void Awake()
     {
-        // S'assurer que la génération automatique est désactivée si on veut utiliser des lanes préfabriquées
-        if (usePrebuiltLanes && disableAutoGeneration)
-        {
-            DisableAutoGeneration();
-        }
+        // Plus de génération automatique : on suppose toujours l'utilisation des lanes préfabriquées
     }
-    
     void Start()
     {
-        if (usePrebuiltLanes)
-        {
-            SetupPrebuiltLanes();
-        }
+        SetupPrebuiltLanes();
     }
-      /// <summary>
-    /// Désactive la génération automatique de lanes
-    /// </summary>
-    public void DisableAutoGeneration()
-    {
-        // Maintenant que la génération automatique est désactivée par défaut,
-        // cette méthode sert principalement à confirmer le statut
-        LogParadeLogger.LogVerbose("Génération automatique de lanes désactivée - utilisation des lanes préfabriquées");
-    }
-    
+    #endregion
+
+    #region Lane Management
     /// <summary>
-    /// Configure les lanes préfabriquées
+    /// Configure les lanes 
     /// </summary>
     public void SetupPrebuiltLanes()
     {
@@ -52,20 +35,20 @@ public class LogParadeLaneManager : MonoBehaviour
             LogParadeLogger.LogWarning("Toutes les 4 lanes préfabriquées ne sont pas assignées !");
             return;
         }
-          if (laneVisualizer == null)
+        if (laneVisualizer == null)
         {
             laneVisualizer = FindFirstObjectByType<LogParadeLaneVisualizer>();
         }
-          if (laneVisualizer != null)
+        if (laneVisualizer != null)
         {
-            // Assigner les lanes préfabriquées au visualizer
             laneVisualizer.SetExternalLanes(prebuiltLanes);
-            LogParadeLogger.LogVerbose("Lanes préfabriquées configurées avec succès !");
         }
     }
-    
+    #endregion
+
+    #region Utilities
     /// <summary>
-    /// Vérifie si toutes les lanes préfabriquées sont assignées
+    /// Vérifie si toutes les lanes sont assignées
     /// </summary>
     private bool HasAllPrebuiltLanes()
     {
@@ -76,7 +59,6 @@ public class LogParadeLaneManager : MonoBehaviour
         }
         return true;
     }
-    
     /// <summary>
     /// Assigne automatiquement les lanes trouvées dans la scène
     /// </summary>
@@ -85,7 +67,6 @@ public class LogParadeLaneManager : MonoBehaviour
     {
         GameObject[] allObjects = FindObjectsByType<GameObject>(FindObjectsSortMode.None);
         int laneCount = 0;
-        
         // Chercher des objets qui ressemblent à des lanes
         foreach (GameObject obj in allObjects)
         {
@@ -93,40 +74,14 @@ public class LogParadeLaneManager : MonoBehaviour
             if ((objName.Contains("lane") || objName.Contains("voie") || objName.Contains("track")) 
                 && laneCount < 4)
             {
-                // Éviter les lanes générées automatiquement
-                if (!objName.StartsWith("lane_"))
-                {
-                    prebuiltLanes[laneCount] = obj;
-                    laneCount++;
-                }
+                prebuiltLanes[laneCount] = obj;
+                laneCount++;
             }
         }
-        
-        if (laneCount == 4)
+        if (laneCount != 4)
         {
-            LogParadeLogger.LogVerbose($"4 lanes préfabriquées trouvées et assignées automatiquement !");
-            usePrebuiltLanes = true;
-        }
-        else
-        {
-            LogParadeLogger.LogWarning($"Seulement {laneCount} lanes trouvées. Veuillez créer ou assigner les lanes manuellement.");
+           LogParadeLogger.LogWarning($"Seulement {laneCount} lanes trouvées. Veuillez créer ou assigner les lanes manuellement.");
         }
     }
-    
-    /// <summary>
-    /// Réactive la génération automatique (si nécessaire)
-    /// </summary>
-    [ContextMenu("Enable Auto Generation")]
-    public void EnableAutoGeneration()
-    {
-        usePrebuiltLanes = false;
-        disableAutoGeneration = false;
-        
-        if (laneVisualizer != null)
-        {
-            laneVisualizer.GenerateLanes();
-        }
-        
-        LogParadeLogger.LogVerbose("Génération automatique de lanes réactivée");
-    }
+    #endregion
 }
