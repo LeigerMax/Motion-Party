@@ -214,12 +214,10 @@ namespace Gameplay.FireFlyDance.Core
     /// </summary>
     private void HandleFireflyCaptured(FireflyController firefly)
     {
-        FireflyDanceLogger.Log($"Luciole capturée ! Score +{config.ScorePerFirefly}");
+        FireflyDanceLogger.Log($"Luciole capturée ! (Score géré par FireflyScoreManager)");
         
-        if (scoreManager != null)
-        {
-            scoreManager.AddScore(config.ScorePerFirefly);
-        }
+        // Le score est maintenant automatiquement géré par le FireflyScoreManager
+        // qui écoute l'événement OnFireflyCaptured
     }
 
     /// <summary>

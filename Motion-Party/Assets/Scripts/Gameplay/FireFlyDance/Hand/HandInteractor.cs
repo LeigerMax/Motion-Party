@@ -81,9 +81,12 @@ namespace Gameplay.FireFlyDance.Hand
 
             Vector2 handPosition = handTracker.CurrentPosition;
             
-            // Chercher les lucioles dans le rayon de capture
-            Collider2D[] nearbyFireflies = Physics2D.OverlapCircleAll(
-                handPosition, 
+            // Convertir la position 2D de la main en position 3D pour la détection 3D
+            Vector3 handPosition3D = new Vector3(handPosition.x, handPosition.y, 0f);
+            
+            // Chercher les lucioles dans le rayon de capture (utilisation de Physics.OverlapSphere pour les colliders 3D)
+            Collider[] nearbyFireflies = Physics.OverlapSphere(
+                handPosition3D, 
                 config.CaptureRadius, 
                 fireflyLayer
             );
@@ -156,8 +159,11 @@ namespace Gameplay.FireFlyDance.Hand
         {
             if (!FireflyDanceStateController.CanInteract()) return false;
             
-            Collider2D[] nearbyFireflies = Physics2D.OverlapCircleAll(
-                position, 
+            // Convertir la position 2D en position 3D
+            Vector3 position3D = new Vector3(position.x, position.y, 0f);
+            
+            Collider[] nearbyFireflies = Physics.OverlapSphere(
+                position3D, 
                 config.CaptureRadius, 
                 fireflyLayer
             );
@@ -170,8 +176,11 @@ namespace Gameplay.FireFlyDance.Hand
         /// </summary>
         public FireflyController[] GetFirefliesInRange(Vector2 position)
         {
-            Collider2D[] colliders = Physics2D.OverlapCircleAll(
-                position, 
+            // Convertir la position 2D en position 3D
+            Vector3 position3D = new Vector3(position.x, position.y, 0f);
+            
+            Collider[] colliders = Physics.OverlapSphere(
+                position3D, 
                 config.CaptureRadius, 
                 fireflyLayer
             );
