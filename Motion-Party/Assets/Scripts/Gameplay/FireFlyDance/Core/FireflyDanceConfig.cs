@@ -1,15 +1,18 @@
 using UnityEngine;
 
-/// <summary>
-/// Configuration pour le jeu de danse des lucioles
-/// Contient tous les paramètres modifiables depuis l'inspecteur Unity
-/// </summary>
-[CreateAssetMenu(fileName = "FireflyDanceConfig", menuName = "Motion Party/Firefly Dance/Config")]
-public class FireflyDanceConfig : ScriptableObject
+namespace Gameplay.FireFlyDance.Core
+{
+    /// <summary>
+    /// Configuration pour le jeu de danse des lucioles
+    /// Contient tous les paramètres modifiables depuis l'inspecteur Unity
+    /// </summary>
+    [CreateAssetMenu(fileName = "FireflyDanceConfig", menuName = "Motion Party/Firefly Dance/Config")]
+    public class FireflyDanceConfig : ScriptableObject
 {
     [Header("Limites de la zone de jeu")]
     [SerializeField] private Vector2 topLeft = new Vector2(-2.413f, 3.386f);      // Coin supérieur gauche
     [SerializeField] private Vector2 bottomRight = new Vector2(1.371f, 1.832f);  // Coin inférieur droit
+    [SerializeField] private float depth = 2f;                                    // Profondeur de la zone de jeu (axe Z)
     
     [Header("Paramètres des lucioles")]
     [SerializeField] private int maxFireflies = 10;    // Nombre maximum de lucioles simultanées
@@ -27,6 +30,7 @@ public class FireflyDanceConfig : ScriptableObject
     // Propriétés publiques pour l'accès en lecture seule
     public Vector2 TopLeft => topLeft;
     public Vector2 BottomRight => bottomRight;
+    public float Depth => depth;
     public int MaxFireflies => maxFireflies;
     public float MaxSpeed => maxSpeed;
     public float MinSpeed => minSpeed;
@@ -34,6 +38,11 @@ public class FireflyDanceConfig : ScriptableObject
     public float FireflyLifetime => fireflyLifetime;
     public float CaptureRadius => captureRadius;
     public int ScorePerFirefly => scorePerFirefly;
+    
+    // Propriétés additionnelles pour FireflyController
+    public float MinFireflyLifetime => fireflyLifetime * 0.8f;  // 80% de la durée de vie
+    public float MaxFireflyLifetime => fireflyLifetime * 1.2f;  // 120% de la durée de vie
+    public float FireflyMoveSpeed => (minSpeed + maxSpeed) * 0.5f;  // Vitesse moyenne
     
     // Propriétés calculées pour faciliter l'utilisation
     public float Width => bottomRight.x - topLeft.x;           // Largeur de la zone de jeu
@@ -94,9 +103,24 @@ public class FireflyDanceConfig : ScriptableObject
         spawnInterval = Mathf.Max(0.1f, spawnInterval);
         fireflyLifetime = Mathf.Max(1f, fireflyLifetime);
         captureRadius = Mathf.Max(0.1f, captureRadius);
+        depth = Mathf.Max(0.1f, depth);
         
         // S'assurer que la vitesse min n'est pas supérieure à la vitesse max
         if (minSpeed > maxSpeed)
             minSpeed = maxSpeed;
     }
+
+    /// <summary>
+    /// Crée une instance de configuration avec des valeurs par défaut
+    /// </summary>
+    public static FireflyDanceConfig CreateDefault()
+    {
+        var config = CreateInstance<FireflyDanceConfig>();
+        
+        // Les valeurs par défaut sont déjà définies dans les champs [SerializeField]
+        // Cette méthode peut être étendue pour personnaliser davantage les valeurs par défaut
+        
+        return config;
+    }
+}
 }

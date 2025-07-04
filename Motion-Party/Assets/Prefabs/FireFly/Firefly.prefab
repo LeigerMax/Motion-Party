@@ -98,7 +98,7 @@ GameObject:
   - component: {fileID: 2224352241345187639}
   - component: {fileID: 4570146763344362077}
   - component: {fileID: 3394048225496908517}
-  - component: {fileID: 5230567313839539019}
+  - component: {fileID: 8782613288068728716}
   m_Layer: 0
   m_Name: Firefly
   m_TagString: Untagged
@@ -184,7 +184,7 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2011190886760989105}
   m_Mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &5230567313839539019
+--- !u!114 &8782613288068728716
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -193,7 +193,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 2011190886760989105}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 868c25e452d09484ca076063b9ff077f, type: 3}
+  m_Script: {fileID: 11500000, guid: 5cd50116226a0b64ba32e99b1a38b3ed, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   config: {fileID: 11400000, guid: bcdac94cfcb9463428b4e15da7b88498, type: 2}
@@ -202,9 +202,11 @@ MonoBehaviour:
   directionChangeInterval: 2
   oscillationAmplitude: 0.5
   oscillationFrequency: 1
-  currentSpeed: 0
-  currentDirection: {x: 0, y: 0}
-  isMoving: 0
+  enableBlinkEffect: 1
+  blinkSpeed: 2
+  movementBounds:
+    m_Center: {x: 0, y: 0, z: 0}
+    m_Extent: {x: 5, y: 5, z: 5}
 --- !u!1 &3242887359581163303
 GameObject:
   m_ObjectHideFlags: 0

@@ -989,7 +989,7 @@ MonoBehaviour:
   m_AudioPlay: 0
   m_DebugDrawModesUseInteractiveLightBakingData: 0
   m_Position:
-    m_Target: {x: -0.3915247, y: 2.4875607, z: 22.027771}
+    m_Target: {x: 0.011397876, y: 2.0198443, z: -0.050484672}
     speed: 2
     m_Value: {x: -0.3915247, y: 2.4875607, z: 22.027771}
   m_RenderMode: 0
@@ -1037,11 +1037,11 @@ MonoBehaviour:
     m_GridAxis: 1
     m_gridOpacity: 0.5
   m_Rotation:
-    m_Target: {x: 0.0740099, y: -0.21513954, z: 0.016505972, w: 0.9736871}
+    m_Target: {x: 0.24893236, y: -0.36477715, z: 0.102096416, w: 0.89143413}
     speed: 2
     m_Value: {x: -0.0740099, y: 0.21513954, z: -0.016505972, w: -0.9736872}
   m_Size:
-    m_Target: 0.6062179
+    m_Target: 0.79134464
     speed: 2
     m_Value: 0.6062179
   m_Ortho:
@@ -1258,7 +1258,7 @@ MonoBehaviour:
     m_SkipHidden: 0
     m_SearchArea: 1
     m_Folders:
-    - Assets/Scripts/Gameplay/LucioleDance
+    - Assets/Scripts/Gameplay
     m_Globs: []
     m_ProductIds: 
     m_AnyWithAssetOrigin: 0
@@ -1277,7 +1277,7 @@ MonoBehaviour:
     scrollPos: {x: 0, y: 383}
     m_SelectedIDs: 9ee40000
     m_LastClickedID: 58526
-    m_ExpandedIDs: 00000000dab70000dcb70000deb70000e0b70000e2b70000e4b70000e6b70000
+    m_ExpandedIDs: 00000000f2b80000f4b80000f6b80000f8b80000fab80000fcb80000feb8000000b9000002b9000004b9000006b90000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -1306,7 +1306,7 @@ MonoBehaviour:
     scrollPos: {x: 0, y: 0}
     m_SelectedIDs: 
     m_LastClickedID: 0
-    m_ExpandedIDs: 00000000dab70000dcb70000deb70000e0b70000e2b70000e4b70000e6b70000
+    m_ExpandedIDs: 00000000f2b80000f4b80000f6b80000f8b80000fab80000fcb80000feb8000000b9000002b9000004b9000006b90000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
