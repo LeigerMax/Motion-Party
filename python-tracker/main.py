@@ -88,7 +88,8 @@ def main():
                 data["gesture"] = hand_tracker.detect_gestures(lmList)
                 data["open_fingers"] = hand_tracker.count_open_fingers(lmList)
                 for lm in lmList:
-                    x, y, z = lm[0], CONFIG["HEIGHT"] - lm[1], lm[2] * 2
+                    # Inverser la coordonnée X pour corriger l'effet miroir (CONFIG["WIDTH"] - lm[0])
+                    x, y, z = CONFIG["WIDTH"] - lm[0], CONFIG["HEIGHT"] - lm[1], lm[2] * 2
                     data["hand_positions"].append([x, y, z])
 
             # Détection de la pose
