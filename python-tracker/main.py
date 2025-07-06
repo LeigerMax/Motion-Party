@@ -87,16 +87,9 @@ def main():
                 lmList = hand["lmList"]
                 data["gesture"] = hand_tracker.detect_gestures(lmList)
                 data["open_fingers"] = hand_tracker.count_open_fingers(lmList)
-                
-                # Convertir les landmarks en format plat pour Unity
-                hand_positions_flat = []
                 for lm in lmList:
-                    # Inverser la coordonnée X pour corriger l'effet miroir
-                    x = CONFIG["WIDTH"] - lm[0]
-                    y = lm[1]
-                    hand_positions_flat.extend([x, y])
-                
-                data["hand_positions"] = [hand_positions_flat]
+                    x, y, z = lm[0], CONFIG["HEIGHT"] - lm[1], lm[2] * 2
+                    data["hand_positions"].append([x, y, z])
 
             # Détection de la pose
             if results_pose and results_pose.pose_landmarks:

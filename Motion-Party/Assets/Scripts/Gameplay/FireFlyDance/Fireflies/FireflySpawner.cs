@@ -9,7 +9,6 @@ namespace Gameplay.FireFlyDance.Fireflies
 {
     /// <summary>
     /// Gestionnaire de spawn des lucioles pour le mini-jeu Danse des Lucioles
-    /// Version refactorisée suivant l'architecture modulaire
     /// </summary>
     public class FireflySpawner : MonoBehaviour
     {
@@ -182,7 +181,7 @@ namespace Gameplay.FireFlyDance.Fireflies
             // Créer l'effet visuel basique
             CreateBasicVisual(firefly);
             
-            // Le marquer comme DontDestroyOnLoad pour qu'il persiste
+            // Le marquer comme prefab de base
             DontDestroyOnLoad(firefly);
             
             return firefly;
@@ -263,6 +262,32 @@ namespace Gameplay.FireFlyDance.Fireflies
         }
 
         /// <summary>
+        /// Met en pause le spawn des lucioles
+        /// </summary>
+        public void PauseSpawning()
+        {
+            if (isSpawning && spawnCoroutine != null)
+            {
+                StopCoroutine(spawnCoroutine);
+                spawnCoroutine = null;
+                isSpawning = false;
+                FireflyDanceLogger.LogSpawn("Spawn des lucioles mis en pause");
+            }
+        }
+
+        /// <summary>
+        /// Reprend le spawn des lucioles après une pause
+        /// </summary>
+        public void ResumeSpawning()
+        {
+            if (!isSpawning && isInitialized && autoSpawn)
+            {
+                StartSpawning();
+                FireflyDanceLogger.LogSpawn("Spawn des lucioles repris");
+            }
+        }
+
+        /// <summary>
         /// Coroutine de spawn automatique
         /// </summary>
         private IEnumerator SpawnRoutine()
@@ -290,7 +315,7 @@ namespace Gameplay.FireFlyDance.Fireflies
             }
 
             Vector2 spawnPosition = config.GetRandomPosition();
-            // Utiliser toute la zone de jeu définie dans la config, y compris la profondeur Z
+            // Utiliser toute la zone de jeu définie dans la config
             float randomZ = Random.Range(-config.Depth/2f, config.Depth/2f);
             Vector3 worldPosition = new Vector3(spawnPosition.x, spawnPosition.y, randomZ);
 
@@ -303,29 +328,12 @@ namespace Gameplay.FireFlyDance.Fireflies
                 activeFireflies.Add(fireflyController);
                 activeFireflyCount = activeFireflies.Count;
                 
-                FireflyDanceLogger.LogSpawn($"Luciole spawnée à {spawnPosition}");
                 FireflyDanceEvents.OnFireflySpawned?.Invoke(fireflyController);
             }
             else
             {
                 FireflyDanceLogger.LogError("FireflyController manquant sur le prefab spawné");
                 Destroy(fireflyGO);
-            }
-        }
-
-        /// <summary>
-        /// Spawn forcé d'une luciole (pour debug)
-        /// </summary>
-        [ContextMenu("Force Spawn Firefly")]
-        public void ForceSpawnFirefly()
-        {
-            if (isInitialized)
-            {
-                SpawnFirefly();
-            }
-            else
-            {
-                FireflyDanceLogger.LogWarning("Spawner non initialisé - impossible de forcer le spawn");
             }
         }
 
@@ -342,94 +350,39 @@ namespace Gameplay.FireFlyDance.Fireflies
             {
                 activeFireflies.Remove(firefly);
                 activeFireflyCount = activeFireflies.Count;
-                FireflyDanceLogger.LogSpawn($"Luciole supprimée - Actives: {activeFireflyCount}");
             }
         }
 
         /// <summary>
-        /// Supprime toutes les lucioles actives
+        ///  Nettoie toutes les lucioles actives (utilisé à la fin du jeu)
         /// </summary>
         public void ClearAllFireflies()
         {
-            for (int i = activeFireflies.Count - 1; i >= 0; i--)
+            if (activeFireflies.Count == 0) return;
+
+            FireflyDanceLogger.LogSpawn($" Nettoyage de {activeFireflies.Count} lucioles actives");
+
+            // Créer une copie de la liste pour éviter les modifications pendant l'itération
+            var firefliesCopy = new List<FireflyController>(activeFireflies);
+            
+            foreach (var firefly in firefliesCopy)
             {
-                if (activeFireflies[i] != null)
+                if (firefly != null)
                 {
-                    Destroy(activeFireflies[i].gameObject);
+                    // Détruire la luciole directement
+                    if (firefly.gameObject != null)
+                        Destroy(firefly.gameObject);
                 }
             }
-            
+
+            // Nettoyer la liste
             activeFireflies.Clear();
             activeFireflyCount = 0;
-            FireflyDanceLogger.LogSpawn("Toutes les lucioles supprimées");
-        }
 
-        /// <summary>
-        /// Nettoie les références nulles dans la liste
-        /// </summary>
-        private void CleanupNullReferences()
-        {
-            activeFireflies.RemoveAll(firefly => firefly == null);
-            activeFireflyCount = activeFireflies.Count;
+            FireflyDanceLogger.LogSpawn("Toutes les lucioles ont été supprimées");
         }
 
         #endregion
 
-        #region Debug Methods
-
-        /// <summary>
-        /// Debug les informations du spawner
-        /// </summary>
-        [ContextMenu("Debug Spawner Info")]
-        public void DebugSpawnerInfo()
-        {
-            FireflyDanceLogger.Log("=== FIREFLY SPAWNER DEBUG ===");
-            FireflyDanceLogger.Log($"Initialisé: {isInitialized}");
-            FireflyDanceLogger.Log($"En cours de spawn: {isSpawning}");
-            FireflyDanceLogger.Log($"Lucioles actives: {activeFireflyCount}/{config?.MaxFireflies}");
-            FireflyDanceLogger.Log($"Config: {(config != null ? "OK" : "MANQUANTE")}");
-            FireflyDanceLogger.Log($"Prefab: {(fireflyPrefab != null ? fireflyPrefab.name : "MANQUANT")}");
-            FireflyDanceLogger.Log($"Parent: {(fireflyParent != null ? fireflyParent.name : "MANQUANT")}");
-        }
-
-        /// <summary>
-        /// Teste le spawn d'une luciole
-        /// </summary>
-        [ContextMenu("Test Spawn")]
-        public void TestSpawn()
-        {
-            if (fireflyPrefab == null)
-            {
-                FireflyDanceLogger.LogError("Aucun prefab assigné pour le test");
-                return;
-            }
-            
-            SpawnFirefly();
-        }
-
-        #endregion
-
-        #region Validation
-
-        /// <summary>
-        /// Validation dans l'éditeur
-        /// </summary>
-        private void OnValidate()
-        {
-            if (fireflyParent == null && transform.childCount > 0)
-            {
-                // Chercher un enfant nommé "Fireflies"
-                for (int i = 0; i < transform.childCount; i++)
-                {
-                    if (transform.GetChild(i).name == "Fireflies")
-                    {
-                        fireflyParent = transform.GetChild(i);
-                        break;
-                    }
-                }
-            }
-        }
-
-        #endregion
     }
 }

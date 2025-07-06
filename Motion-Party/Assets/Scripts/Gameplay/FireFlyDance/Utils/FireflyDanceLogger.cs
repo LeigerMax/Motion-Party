@@ -122,7 +122,7 @@ namespace Gameplay.FireFlyDance.Utils
     /// </summary>
     public static void Log(string message, Object context = null)
     {
-        if (_enableDebugLogs)
+        if (_enableDebugLogs && !string.IsNullOrEmpty(message))
         {
             Debug.Log($"[FireflyDance] {message}", context);
         }
@@ -133,7 +133,7 @@ namespace Gameplay.FireFlyDance.Utils
     /// </summary>
     public static void LogVerbose(string message, Object context = null)
     {
-        if (_enableVerboseLogs)
+        if (_enableVerboseLogs && !string.IsNullOrEmpty(message))
         {
             Debug.Log($"[FireflyDance-V] {message}", context);
         }
@@ -144,7 +144,7 @@ namespace Gameplay.FireFlyDance.Utils
     /// </summary>
     public static void LogWarning(string message, Object context = null)
     {
-        if (_enableDebugLogs)
+        if (_enableDebugLogs && !string.IsNullOrEmpty(message))
         {
             Debug.LogWarning($"[FireflyDance] {message}", context);
         }
@@ -155,7 +155,10 @@ namespace Gameplay.FireFlyDance.Utils
     /// </summary>
     public static void LogError(string message, Object context = null)
     {
-        Debug.LogError($"[FireflyDance] {message}", context);
+        if (!string.IsNullOrEmpty(message))
+        {
+            Debug.LogError($"[FireflyDance] {message}", context);
+        }
     }
 
     #endregion
@@ -167,7 +170,7 @@ namespace Gameplay.FireFlyDance.Utils
     /// </summary>
     public static void LogTracking(string message, Object context = null)
     {
-        if (_enableDebugLogs && _enableTrackingLogs)
+        if (_enableDebugLogs && _enableTrackingLogs && !string.IsNullOrEmpty(message))
         {
             Debug.Log($"[FireflyDance-Tracking] {message}", context);
         }
@@ -178,7 +181,7 @@ namespace Gameplay.FireFlyDance.Utils
     /// </summary>
     public static void LogSpawn(string message, Object context = null)
     {
-        if (_enableDebugLogs && _enableSpawnLogs)
+        if (_enableDebugLogs && _enableSpawnLogs && !string.IsNullOrEmpty(message))
         {
             Debug.Log($"[FireflyDance-Spawn] {message}", context);
         }
@@ -189,7 +192,7 @@ namespace Gameplay.FireFlyDance.Utils
     /// </summary>
     public static void LogCapture(string message, Object context = null)
     {
-        if (_enableDebugLogs && _enableCaptureLogs)
+        if (_enableDebugLogs && _enableCaptureLogs && !string.IsNullOrEmpty(message))
         {
             Debug.Log($"[FireflyDance-Capture] {message}", context);
         }
@@ -200,7 +203,7 @@ namespace Gameplay.FireFlyDance.Utils
     /// </summary>
     public static void LogScore(string message, Object context = null)
     {
-        if (_enableDebugLogs && _enableScoreLogs)
+        if (_enableDebugLogs && _enableScoreLogs && !string.IsNullOrEmpty(message))
         {
             Debug.Log($"[FireflyDance-Score] {message}", context);
         }
@@ -211,7 +214,7 @@ namespace Gameplay.FireFlyDance.Utils
     /// </summary>
     public static void LogState(string message, Object context = null)
     {
-        if (_enableDebugLogs && _enableStateLogs)
+        if (_enableDebugLogs && _enableStateLogs && !string.IsNullOrEmpty(message))
         {
             Debug.Log($"[FireflyDance-State] {message}", context);
         }
@@ -222,7 +225,7 @@ namespace Gameplay.FireFlyDance.Utils
     /// </summary>
     public static void LogEvent(string message, Object context = null)
     {
-        if (_enableDebugLogs && _enableEventLogs)
+        if (_enableDebugLogs && _enableEventLogs && !string.IsNullOrEmpty(message))
         {
             Debug.Log($"[FireflyDance-Event] {message}", context);
         }
@@ -294,6 +297,46 @@ namespace Gameplay.FireFlyDance.Utils
     public static void LogCurrentSettings()
     {
         Debug.Log($"[FireflyDance] État des logs - Debug: {_enableDebugLogs}, Verbose: {_enableVerboseLogs}, Tracking: {_enableTrackingLogs}, Spawn: {_enableSpawnLogs}, Capture: {_enableCaptureLogs}, Score: {_enableScoreLogs}, State: {_enableStateLogs}, Events: {_enableEventLogs}");
+    }
+
+    /// <summary>
+    /// Remet tous les paramètres de log aux valeurs par défaut
+    /// </summary>
+    public static void ResetToDefaults()
+    {
+        _enableDebugLogs = true;
+        _enableVerboseLogs = false;
+        _enableTrackingLogs = false;
+        _enableSpawnLogs = true;
+        _enableCaptureLogs = true;
+        _enableScoreLogs = true;
+        _enableStateLogs = true;
+        _enableEventLogs = false;
+        
+        Debug.Log("[FireflyDance] Paramètres de log remis aux valeurs par défaut");
+    }
+
+    /// <summary>
+    /// Désactive tous les logs sauf les erreurs (mode silencieux)
+    /// </summary>
+    public static void SetSilentMode(bool silent)
+    {
+        if (silent)
+        {
+            _enableDebugLogs = false;
+            _enableVerboseLogs = false;
+            _enableTrackingLogs = false;
+            _enableSpawnLogs = false;
+            _enableCaptureLogs = false;
+            _enableScoreLogs = false;
+            _enableStateLogs = false;
+            _enableEventLogs = false;
+            Debug.Log("[FireflyDance] Mode silencieux activé - seules les erreurs seront affichées");
+        }
+        else
+        {
+            ResetToDefaults();
+        }
     }
 
     #endregion

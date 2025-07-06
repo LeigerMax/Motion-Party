@@ -7,7 +7,6 @@ namespace Gameplay.FireFlyDance.Fireflies
 {
     /// <summary>
     /// Contrôleur de comportement individuel des lucioles
-    /// Version refactorisée pour l'architecture FireflyDance
     /// </summary>
     public class FireflyController : MonoBehaviour
 {
@@ -116,9 +115,8 @@ namespace Gameplay.FireFlyDance.Fireflies
 
     void Update()
     {
-        if (config == null) return;
+        if (!IsConfigValid()) return;
 
-        UpdateLifetime();
         UpdateMovement();
         UpdateVisualEffects();
         
@@ -126,7 +124,6 @@ namespace Gameplay.FireFlyDance.Fireflies
         if (!IsWithinBounds())
         {
             ClampPositionToBounds();
-            FireflyDanceLogger.LogWarning($"Luciole forcée dans les limites: {transform.position}");
         }
     }
 
@@ -148,7 +145,7 @@ namespace Gameplay.FireFlyDance.Fireflies
         if (newConfig != null)
             config = newConfig;
             
-        if (config == null)
+        if (!IsConfigValid())
         {
             FireflyDanceLogger.LogError("FireflyController - Configuration manquante", this);
             return;
@@ -160,7 +157,6 @@ namespace Gameplay.FireFlyDance.Fireflies
         // Démarrer la transition vers l'état actif
         StartCoroutine(ActivateAfterDelay(0.5f));
         
-        FireflyDanceLogger.LogSpawn($"Luciole initialisée - Type: {movementType}");
     }
 
     /// <summary>
@@ -170,9 +166,6 @@ namespace Gameplay.FireFlyDance.Fireflies
     {
         // Durée de vie aléatoire
         maxLifetime = Random.Range(config.MinFireflyLifetime, config.MaxFireflyLifetime);
-        
-        // Position initiale dans les limites (en fait, utiliser la position de spawn)
-        // La position est déjà définie par le spawner via GetRandomPosition()
         
         // Direction initiale
         SetRandomDirection();
@@ -295,14 +288,6 @@ namespace Gameplay.FireFlyDance.Fireflies
     #region Lifetime Management
 
     /// <summary>
-    /// Met à jour la durée de vie
-    /// </summary>
-    private void UpdateLifetime()
-    {
-        // Géré par la coroutine LifetimeCoroutine
-    }
-
-    /// <summary>
     /// Fait expirer la luciole
     /// </summary>
     private void ExpireFirefly()
@@ -405,7 +390,7 @@ namespace Gameplay.FireFlyDance.Fireflies
         targetDirection = new Vector3(
             Random.Range(-1f, 1f),
             Random.Range(-1f, 1f),
-            Random.Range(-1f, 1f)  // Utiliser toute la profondeur disponible
+            Random.Range(-1f, 1f)
         ).normalized;
     }
 
@@ -414,12 +399,12 @@ namespace Gameplay.FireFlyDance.Fireflies
     /// </summary>
     private void CheckBoundsAndMove()
     {
-        if (config == null) return;
+        if (!IsConfigValid()) return;
         
         Vector3 pos = transform.position;
         bool bounced = false;
         
-        // Utiliser les limites de la configuration au lieu de movementBounds
+        // Utiliser les limites de la configuration
         if (pos.x < config.TopLeft.x || pos.x > config.BottomRight.x)
         {
             targetDirection.x = -targetDirection.x;
@@ -449,7 +434,6 @@ namespace Gameplay.FireFlyDance.Fireflies
         if (bounced)
         {
             directionTimer = 0f; // Reset timer on bounce
-            FireflyDanceLogger.LogVerbose($"Luciole rebondie aux limites: {pos}");
         }
     }
 
@@ -458,7 +442,7 @@ namespace Gameplay.FireFlyDance.Fireflies
     /// </summary>
     public void ClampPositionToBounds()
     {
-        if (config == null) return;
+        if (!IsConfigValid()) return;
         
         Vector2 clampedPos = config.ClampToBounds(transform.position);
         float clampedZ = Mathf.Clamp(transform.position.z, -config.Depth/2f, config.Depth/2f);
@@ -470,7 +454,7 @@ namespace Gameplay.FireFlyDance.Fireflies
     /// </summary>
     public bool IsWithinBounds()
     {
-        if (config == null) return true;
+        if (!IsConfigValid()) return true;
         
         Vector3 pos = transform.position;
         
@@ -564,7 +548,6 @@ namespace Gameplay.FireFlyDance.Fireflies
         if (currentState == FireflyState.Captured) return;
         
         SetState(FireflyState.Captured);
-        FireflyDanceEvents.OnFireflyCaptured?.Invoke(this);
         
         // Destruction avec délai pour l'animation
         StartCoroutine(DestroyAfterDelay(1.5f));
@@ -575,29 +558,24 @@ namespace Gameplay.FireFlyDance.Fireflies
     #region Public Methods
 
     /// <summary>
-    /// Change le type de mouvement
-    /// </summary>
-    public void SetMovementType(MovementBehavior newType)
-    {
-        movementType = newType;
-        SetRandomDirection();
-    }
-
-    /// <summary>
-    /// Active ou désactive le mouvement
-    /// </summary>
-    public void SetMovementEnabled(bool enabled)
-    {
-        enableMovement = enabled;
-    }
-
-    /// <summary>
     /// Détruit la luciole immédiatement
     /// </summary>
     public void DestroyFirefly()
     {
         StopAllCoroutines();
         Destroy(gameObject);
+    }
+
+    #endregion
+
+    #region Utility Methods
+
+    /// <summary>
+    /// Vérifie si la configuration est valide
+    /// </summary>
+    private bool IsConfigValid()
+    {
+        return config != null;
     }
 
     #endregion
@@ -624,9 +602,11 @@ namespace Gameplay.FireFlyDance.Fireflies
         }
     }
 
+    /// <summary>
+    /// Valide les paramètres dans l'éditeur
+    /// </summary>
     void OnValidate()
     {
-        // Validation des paramètres dans l'éditeur
         directionChangeInterval = Mathf.Max(0.1f, directionChangeInterval);
         oscillationAmplitude = Mathf.Max(0f, oscillationAmplitude);
         oscillationFrequency = Mathf.Max(0.1f, oscillationFrequency);
@@ -653,7 +633,7 @@ namespace Gameplay.FireFlyDance.Fireflies
     void OnDrawGizmosSelected()
     {
         // Dessiner les limites de mouvement depuis la configuration
-        if (config != null)
+        if (IsConfigValid())
         {
             Gizmos.color = Color.yellow;
             Vector3 center = new Vector3(config.Center.x, config.Center.y, 0);

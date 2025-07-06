@@ -24,7 +24,6 @@ namespace Gameplay.FireFlyDance.Scoring
     [SerializeField] private int currentScore = 0;
     [SerializeField] private int highScore = 0;
     [SerializeField] private int firefliesCaptured = 0;
-    [SerializeField] private float gameStartTime = 0f;
 
     // État interne
     private bool isInitialized = false;
@@ -34,7 +33,6 @@ namespace Gameplay.FireFlyDance.Scoring
     public int CurrentScore => currentScore;
     public int HighScore => highScore;
     public int FirefliesCaptured => firefliesCaptured;
-    public float GameDuration => isGameActive ? Time.time - gameStartTime : 0f;
 
     #endregion
 
@@ -42,9 +40,25 @@ namespace Gameplay.FireFlyDance.Scoring
 
     void Start()
     {
-        if (config != null)
+        // Auto-initialisation si pas déjà fait
+        if (!isInitialized)
         {
-            Initialize(config);
+            
+            if (config == null)
+                config = FindFirstObjectByType<FireflyDanceConfig>();
+                
+            if (config != null)
+            {
+                Initialize(config);
+            }
+            else
+            {
+                // Initialisation d'urgence sans config
+                LoadHighScore();
+                SetupEventListeners();
+                ResetScore();
+                isInitialized = true;
+            }
         }
     }
 
@@ -80,6 +94,7 @@ namespace Gameplay.FireFlyDance.Scoring
         FireflyDanceEvents.OnGameStarted += OnGameStarted;
         FireflyDanceEvents.OnGameEnded += OnGameEnded;
         FireflyDanceEvents.OnFireflyCaptured += OnFireflyCaptured;
+        
     }
 
     /// <summary>
@@ -101,16 +116,20 @@ namespace Gameplay.FireFlyDance.Scoring
     /// </summary>
     public void AddScore(int points)
     {
-        if (!isInitialized || !isGameActive)
+        if (!isInitialized)
         {
-            FireflyDanceLogger.LogWarning("Impossible d'ajouter des points - jeu inactif");
+            FireflyDanceLogger.LogWarning($"Impossible d'ajouter des points - ScoreManager pas initialisé", this);
             return;
         }
 
-        int oldScore = currentScore;
+        // ➖ Empêcher l'ajout de points après la fin du jeu
+        if (!isGameActive)
+        {
+            FireflyDanceLogger.LogWarning($"Tentative d'ajout de points après la fin du jeu - Ignoré");
+            return;
+        }
+
         currentScore += points;
-        
-        FireflyDanceLogger.LogScore($"Score +{points} = {currentScore}");
         
         // Vérifier si c'est un nouveau record
         if (currentScore > highScore)
@@ -129,7 +148,6 @@ namespace Gameplay.FireFlyDance.Scoring
     {
         currentScore = 0;
         firefliesCaptured = 0;
-        gameStartTime = 0f;
         
         FireflyDanceLogger.LogScore("Score réinitialisé");
         FireflyDanceEvents.OnScoreChanged?.Invoke(currentScore);
@@ -156,42 +174,20 @@ namespace Gameplay.FireFlyDance.Scoring
 
     #region Event Handlers
 
-    /// <summary>
-    /// Gère le début du jeu
-    /// </summary>
-    private void OnGameStarted()
-    {
-        isGameActive = true;
-        gameStartTime = Time.time;
-        ResetScore();
-        
-        FireflyDanceLogger.LogScore("Jeu démarré - Score actif");
-    }
+
 
     /// <summary>
-    /// Gère la fin du jeu
+    /// Gère la capture d'une luciole 
     /// </summary>
-    private void OnGameEnded()
+    private void OnFireflyCaptured(FireflyController firefly, int points)
     {
-        isGameActive = false;
         
-        FireflyDanceLogger.LogScore($"Jeu terminé - Score final: {currentScore}, Lucioles: {firefliesCaptured}, Durée: {GameDuration:F1}s");
-    }
-
-    /// <summary>
-    /// Gère la capture d'une luciole
-    /// </summary>
-    private void OnFireflyCaptured(FireflyController firefly)
-    {
-        if (!isGameActive) return;
+        if (!isGameActive) 
+        {
+            return;
+        }
         
         firefliesCaptured++;
-        
-        // Ajouter les points configurés
-        int points = config != null ? config.ScorePerFirefly : 10;
-        AddScore(points);
-        
-        FireflyDanceLogger.LogScore($"Luciole capturée #{firefliesCaptured} - +{points} points");
     }
 
     #endregion
@@ -228,38 +224,6 @@ namespace Gameplay.FireFlyDance.Scoring
     #region Public Methods
 
     /// <summary>
-    /// Calcule le score par seconde
-    /// </summary>
-    public float GetScorePerSecond()
-    {
-        float duration = GameDuration;
-        return duration > 0 ? currentScore / duration : 0f;
-    }
-
-    /// <summary>
-    /// Calcule le score par luciole
-    /// </summary>
-    public float GetScorePerFirefly()
-    {
-        return firefliesCaptured > 0 ? (float)currentScore / firefliesCaptured : 0f;
-    }
-
-    /// <summary>
-    /// Obtient les statistiques de jeu
-    /// </summary>
-    public GameStats GetGameStats()
-    {
-        return new GameStats
-        {
-            score = currentScore,
-            firefliesCaptured = firefliesCaptured,
-            gameDuration = GameDuration,
-            scorePerSecond = GetScorePerSecond(),
-            scorePerFirefly = GetScorePerFirefly()
-        };
-    }
-
-    /// <summary>
     /// Remet le record à zéro
     /// </summary>
     [ContextMenu("Reset High Score")]
@@ -287,54 +251,23 @@ namespace Gameplay.FireFlyDance.Scoring
         }
     }
 
-    #endregion
-
-    #region Debug Methods
-
     /// <summary>
-    /// Ajoute des points de debug
+    /// Gère le début du jeu
     /// </summary>
-    [ContextMenu("Add Debug Points")]
-    public void AddDebugPoints()
+    public void OnGameStarted()
     {
-        AddScore(config != null ? config.ScorePerFirefly : 10);
+        isGameActive = true;
+        ResetScore();
     }
 
     /// <summary>
-    /// Simule la capture d'une luciole
+    /// Gère la fin du jeu
     /// </summary>
-    [ContextMenu("Simulate Firefly Capture")]
-    public void SimulateFireflyCapture()
+    public void OnGameEnded()
     {
-        firefliesCaptured++;
-        AddScore(config != null ? config.ScorePerFirefly : 10);
-    }
-
-    /// <summary>
-    /// Affiche les statistiques actuelles
-    /// </summary>
-    [ContextMenu("Log Current Stats")]
-    public void LogCurrentStats()
-    {
-        GameStats stats = GetGameStats();
-        FireflyDanceLogger.LogScore($"Stats - Score: {stats.score}, Lucioles: {stats.firefliesCaptured}, Durée: {stats.gameDuration:F1}s, Score/s: {stats.scorePerSecond:F1}, Score/luciole: {stats.scorePerFirefly:F1}");
-    }
-
-    #endregion
-
-    #region Data Structures
-
-    /// <summary>
-    /// Structure des statistiques de jeu
-    /// </summary>
-    [System.Serializable]
-    public struct GameStats
-    {
-        public int score;
-        public int firefliesCaptured;
-        public float gameDuration;
-        public float scorePerSecond;
-        public float scorePerFirefly;
+        isGameActive = false;
+        
+        FireflyDanceLogger.LogScore($"Jeu terminé - Score final: {currentScore}, Lucioles capturées: {firefliesCaptured}");
     }
 
     #endregion

@@ -5,7 +5,6 @@ namespace Gameplay.FireFlyDance.Hand
 {
     /// <summary>
     /// Structure de données pour les informations de la main reçues via UDP
-    /// Version refactorisée pour l'architecture FireflyDance
     /// </summary>
     [Serializable]
     public struct HandData

@@ -1,4 +1,5 @@
 using UnityEngine;
+using Gameplay.FireFlyDance.Utils;
 
 namespace Gameplay.FireFlyDance.Core
 {
@@ -26,6 +27,7 @@ namespace Gameplay.FireFlyDance.Core
     [Header("Paramètres de gameplay")]
     [SerializeField] private float captureRadius = 1f;   // Rayon de capture d'une luciole
     [SerializeField] private int scorePerFirefly = 10;   // Points gagnés par luciole capturée
+    [SerializeField] private float gameDuration = 60f;   // Durée de la partie en secondes
     
     // Propriétés publiques pour l'accès en lecture seule
     public Vector2 TopLeft => topLeft;
@@ -38,6 +40,7 @@ namespace Gameplay.FireFlyDance.Core
     public float FireflyLifetime => fireflyLifetime;
     public float CaptureRadius => captureRadius;
     public int ScorePerFirefly => scorePerFirefly;
+    public float GameDuration => gameDuration;
     
     // Propriétés additionnelles pour FireflyController
     public float MinFireflyLifetime => fireflyLifetime * 0.8f;  // 80% de la durée de vie
@@ -103,6 +106,7 @@ namespace Gameplay.FireFlyDance.Core
         spawnInterval = Mathf.Max(0.1f, spawnInterval);
         fireflyLifetime = Mathf.Max(1f, fireflyLifetime);
         captureRadius = Mathf.Max(0.1f, captureRadius);
+        gameDuration = Mathf.Max(1f, gameDuration);
         depth = Mathf.Max(0.1f, depth);
         
         // S'assurer que la vitesse min n'est pas supérieure à la vitesse max
@@ -122,5 +126,45 @@ namespace Gameplay.FireFlyDance.Core
         
         return config;
     }
+
+    #region Configuration Helper Methods
+
+    private static FireflyDanceConfig _defaultConfig;
+    
+    /// <summary>
+    /// Obtient une configuration, en créant une par défaut si nécessaire
+    /// </summary>
+    public static FireflyDanceConfig GetOrCreateConfig()
+    {
+        // Chercher une config existante dans la scène
+        var existingConfig = FindFirstObjectByType<FireflyDanceGameManager>()?.config;
+        if (existingConfig != null)
+        {
+            return existingConfig;
+        }
+        
+        // Utiliser ou créer une config par défaut
+        if (_defaultConfig == null)
+        {
+            _defaultConfig = CreateDefault();
+            FireflyDanceLogger.Log("Configuration par défaut créée automatiquement");
+        }
+        
+        return _defaultConfig;
+    }
+    
+    /// <summary>
+    /// Assigne automatiquement une configuration à un composant si elle est manquante
+    /// </summary>
+    public static void EnsureConfig(ref FireflyDanceConfig config, string componentName = "Component")
+    {
+        if (config == null)
+        {
+            config = GetOrCreateConfig();
+            FireflyDanceLogger.LogVerbose($"{componentName} - Configuration assignée automatiquement");
+        }
+    }
+
+    #endregion
 }
 }

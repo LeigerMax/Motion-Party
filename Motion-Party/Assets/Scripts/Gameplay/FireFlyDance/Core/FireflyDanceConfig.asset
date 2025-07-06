@@ -20,5 +20,6 @@ MonoBehaviour:
   minSpeed: 0.1
   spawnInterval: 5
   fireflyLifetime: 50
-  captureRadius: 1
+  captureRadius: 0.5
   scorePerFirefly: 10
+  gameDuration: 10

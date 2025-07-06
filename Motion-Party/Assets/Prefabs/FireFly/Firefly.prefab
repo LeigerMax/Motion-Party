@@ -96,7 +96,6 @@ GameObject:
   m_Component:
   - component: {fileID: 3630925218993567980}
   - component: {fileID: 2224352241345187639}
-  - component: {fileID: 4570146763344362077}
   - component: {fileID: 3394048225496908517}
   - component: {fileID: 8782613288068728716}
   m_Layer: 0
@@ -115,7 +114,7 @@ Transform:
   m_GameObject: {fileID: 2011190886760989105}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.8945, y: 2.056, z: 0.06576979}
+  m_LocalPosition: {x: 4.39, y: 2.131, z: 1.001}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -149,33 +148,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.18023252, y: 0.10900426, z: 0.12719315}
   m_Center: {x: -0.04277283, y: -0.0018256903, z: -0.01028645}
---- !u!54 &4570146763344362077
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2011190886760989105}
-  serializedVersion: 4
-  m_Mass: 1
-  m_Drag: 0
-  m_AngularDrag: 0.05
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 0
-  m_IsKinematic: 1
-  m_Interpolate: 0
-  m_Constraints: 0
-  m_CollisionDetection: 0
 --- !u!33 &3394048225496908517
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -196,7 +168,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5cd50116226a0b64ba32e99b1a38b3ed, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  config: {fileID: 11400000, guid: bcdac94cfcb9463428b4e15da7b88498, type: 2}
+  config: {fileID: 0}
   movementType: 1
   enableMovement: 1
   directionChangeInterval: 2
@@ -204,9 +176,6 @@ MonoBehaviour:
   oscillationFrequency: 1
   enableBlinkEffect: 1
   blinkSpeed: 2
-  movementBounds:
-    m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 5, y: 5, z: 5}
 --- !u!1 &3242887359581163303
 GameObject:
   m_ObjectHideFlags: 0
