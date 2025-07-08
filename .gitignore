@@ -20,6 +20,7 @@ Motion-Party/Logs/
 Motion-Party/UserSettings/
 Motion-Party/MemoryCaptures/
 Motion-Party/Recordings/
+/Motion-Party/Assets/Models
 
 # Shader cache
 /[Ll]ibrary/ShaderCache/
@@ -80,7 +81,6 @@ crashlytics-build.properties
 /[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/*/*.bin*
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
-/Motion-Party/Assets
 
 # -------------------------
 # UNITY - Muse / PackageCache
