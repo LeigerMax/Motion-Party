@@ -80,6 +80,7 @@ crashlytics-build.properties
 /[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/*/*.bin*
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
+/Motion-Party/Assets
 
 # -------------------------
 # UNITY - Muse / PackageCache
@@ -112,4 +113,5 @@ python-tracker/reference_drawings/
 .DS_Store
 Thumbs.db
 desktop.ini
+
 

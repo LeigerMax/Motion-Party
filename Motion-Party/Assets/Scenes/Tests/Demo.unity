@@ -950,7 +950,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   VoskSpeechToText: {fileID: 1880598647}
-  ResultText: {fileID: 1973224739}
 --- !u!114 &1973224739
 MonoBehaviour:
   m_ObjectHideFlags: 0
