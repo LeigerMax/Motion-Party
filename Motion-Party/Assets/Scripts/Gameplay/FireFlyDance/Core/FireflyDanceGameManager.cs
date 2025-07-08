@@ -5,6 +5,7 @@ using Gameplay.FireFlyDance.Fireflies;
 using Gameplay.FireFlyDance.Scoring;
 using Gameplay.FireFlyDance.Capture;
 using Gameplay.FireFlyDance.Utils;
+using Gameplay.FireFlyDance.UI;
 using Core;
 
 namespace Gameplay.FireFlyDance.Core
@@ -35,7 +36,7 @@ namespace Gameplay.FireFlyDance.Core
         public Gameplay.FireFlyDance.Capture.FireflyCapture fireflyCapture;
 
         [Header("UI & Feedback")]
-        // Interface utilisateur et validation seront ajoutées ultérieurement si nécessaire
+        public FireflyDanceUIManager uiManager;
 
         [Header("Debug Settings")]
         public bool enableDebugMode = true;
@@ -67,8 +68,6 @@ namespace Gameplay.FireFlyDance.Core
                 }
             }
             
-            // La configuration des event listeners et la recherche des composants
-            // sont maintenant faites dans InitializeGameManager()
             ValidateConfiguration();
         }
 
@@ -166,6 +165,9 @@ namespace Gameplay.FireFlyDance.Core
 
             if (udpReceive == null)
                 udpReceive = FindFirstObjectByType<UDPReceive>();
+
+            if (uiManager == null)
+                uiManager = FindFirstObjectByType<FireflyDanceUIManager>();
         }
 
         /// <summary>
@@ -238,6 +240,14 @@ namespace Gameplay.FireFlyDance.Core
                 fireflyCapture.SetCaptureEnabled(false); // Désactivé jusqu'au début du jeu
                 if (enableDetailedLogs)
                     FireflyDanceLogger.Log("Système de capture initialisé (désactivé)");
+            }
+
+            // Initialisation de l'UI Manager
+            if (uiManager != null)
+            {
+                // L'UI Manager s'initialise automatiquement dans son Start()
+                if (enableDetailedLogs)
+                    FireflyDanceLogger.Log("UI Manager détecté et prêt");
             }
         }
 

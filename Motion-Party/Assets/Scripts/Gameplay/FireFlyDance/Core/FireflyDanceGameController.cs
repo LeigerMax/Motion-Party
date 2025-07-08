@@ -290,8 +290,7 @@ namespace Gameplay.FireFlyDance.Core
             FireflyDanceLogger.Log("Jeu remis à zéro");
         }
 
+
         #endregion
-
-
     }
 }

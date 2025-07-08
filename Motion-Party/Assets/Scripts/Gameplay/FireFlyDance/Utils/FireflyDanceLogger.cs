@@ -231,6 +231,17 @@ namespace Gameplay.FireFlyDance.Utils
         }
     }
 
+    /// <summary>
+    /// Log spécifique à l'interface utilisateur
+    /// </summary>
+    public static void LogUI(string message, Object context = null)
+    {
+        if (_enableDebugLogs && !string.IsNullOrEmpty(message))
+        {
+            Debug.Log($"[FireflyDance-UI] {message}", context);
+        }
+    }
+
     #endregion
 
     #region Toggle Methods

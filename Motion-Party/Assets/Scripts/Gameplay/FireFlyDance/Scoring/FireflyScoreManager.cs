@@ -170,24 +170,24 @@ namespace Gameplay.FireFlyDance.Scoring
         FireflyDanceEvents.OnNewHighScore?.Invoke(newHighScore);
     }
 
-    #endregion
+        #endregion
 
-    #region Event Handlers
+        #region Event Handlers
 
 
 
-    /// <summary>
-    /// Gère la capture d'une luciole 
-    /// </summary>
-    private void OnFireflyCaptured(FireflyController firefly, int points)
-    {
-        
-        if (!isGameActive) 
+        /// <summary>
+        /// Gère la capture d'une luciole 
+        /// </summary>
+        private void OnFireflyCaptured(FireflyController firefly, int points)
         {
-            return;
-        }
-        
-        firefliesCaptured++;
+
+            if (!isGameActive)
+            {
+                return;
+            }
+
+            firefliesCaptured++;    
     }
 
     #endregion

@@ -270,6 +270,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   miniGames:
+  - sceneName: MiniGame_FireFlyDance
   - sceneName: MiniGame_LogParade
   - sceneName: MiniGame_MusicNote
 --- !u!4 &810328515

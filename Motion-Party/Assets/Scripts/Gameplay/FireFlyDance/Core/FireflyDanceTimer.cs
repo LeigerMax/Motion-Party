@@ -317,6 +317,9 @@ namespace Gameplay.FireFlyDance.Core
             // Déclencher l'événement de démarrage
             OnTimerStarted?.Invoke();
             
+            // Déclencher aussi l'événement statique pour les composants qui l'écoutent
+            FireflyDanceEvents.OnTimerTick?.Invoke(timeRemaining);
+            
             // Démarrer la boucle de timer
             timerCoroutine = StartCoroutine(TimerLoop());
         }
@@ -338,8 +341,11 @@ namespace Gameplay.FireFlyDance.Core
                 // Décrémenter le temps
                 timeRemaining = Mathf.Max(0f, timeRemaining - 1f);
                 
-                // Déclencher l'événement de tick
+                // Déclencher l'événement de tick local
                 OnTimerTick?.Invoke(timeRemaining);
+                
+                // Déclencher aussi l'événement statique pour les composants qui l'écoutent
+                FireflyDanceEvents.OnTimerTick?.Invoke(timeRemaining);
             }
             
             // Temps écoulé

@@ -42,6 +42,11 @@ namespace Gameplay.FireFlyDance.Core
         /// </summary>
         public static Action OnTimerCompleted;
 
+        /// <summary>
+        /// Déclenché à chaque mise à jour du timer (temps restant)
+        /// </summary>
+        public static Action<float> OnTimerTick;
+
         #endregion
 
         #region Calibration Events
@@ -168,6 +173,7 @@ namespace Gameplay.FireFlyDance.Core
             OnGameStateChanged = null;
             OnGameError = null;
             OnTimerCompleted = null;
+            OnTimerTick = null;
 
             // Calibration Events
             OnCalibrationStarted = null;
