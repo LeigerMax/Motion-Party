@@ -150,22 +150,18 @@ namespace Gameplay.FireFlyDance.Core
             switch (newState)
             {
                 case GameState.Playing:
-                    FireflyDanceLogger.Log("🎯 GameController: Émission OnGameStarted");
                     FireflyDanceEvents.OnGameStarted?.Invoke();
                     break;
                     
                 case GameState.Finished:
-                    FireflyDanceLogger.Log("🏁 GameController: Émission OnGameEnded");
                     FireflyDanceEvents.OnGameEnded?.Invoke();
                     break;
                     
                 case GameState.Paused:
-                    FireflyDanceLogger.Log("⏸️ GameController: Émission OnGamePaused(true)");
                     FireflyDanceEvents.OnGamePaused?.Invoke(true);
                     break;
                     
                 case GameState.Error:
-                    FireflyDanceLogger.Log("❌ GameController: Émission OnGameError");
                     FireflyDanceEvents.OnGameError?.Invoke($"Erreur système - État: {newState}");
                     break;
             }
@@ -173,7 +169,6 @@ namespace Gameplay.FireFlyDance.Core
             // Si on sort de pause
             if (previousState == GameState.Paused && newState != GameState.Paused)
             {
-                FireflyDanceLogger.Log("▶️ GameController: Émission OnGamePaused(false)");
                 FireflyDanceEvents.OnGamePaused?.Invoke(false);
             }
 

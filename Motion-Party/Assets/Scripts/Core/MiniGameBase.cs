@@ -8,8 +8,11 @@ public abstract class MiniGameBase : MonoBehaviour
     // Appelé par le MiniGameManager
     public virtual void StartMiniGame(Action onFinishedCallback)
     {
+
         onGameFinished = onFinishedCallback;
+        
         gameObject.SetActive(true);
+
         Launch(); // chaque mini-jeu implémentera ça
     }
 

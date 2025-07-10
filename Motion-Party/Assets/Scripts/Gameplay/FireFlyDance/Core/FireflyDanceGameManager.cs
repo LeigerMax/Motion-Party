@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 using Gameplay.FireFlyDance.Core;
 using Gameplay.FireFlyDance.Hand;
 using Gameplay.FireFlyDance.Fireflies;
@@ -45,6 +46,7 @@ namespace Gameplay.FireFlyDance.Core
         // État interne
         private bool isInitialized = false;
         private bool isGameActive = false;
+        private bool isLaunchedViaMiniGameBase = false; // Nouveau flag pour contrôler l'initialisation
 
         #endregion
 
@@ -52,12 +54,15 @@ namespace Gameplay.FireFlyDance.Core
 
         protected override void Launch()
         {
+            FireflyDanceLogger.Log("🚀 Launch() appelé - Début du lancement du mini-jeu");
+            isLaunchedViaMiniGameBase = true; // Marquer que le lancement se fait via MiniGameBase
             InitializeGameManager();
         }
 
         void Start()
         {
-            // Vérifier s'il y a plusieurs GameManagers
+            // Ne rien faire ici - le lancement se fait uniquement via Launch()
+            // Seule la validation des GameManagers multiples est conservée
             var allGameManagers = FindObjectsByType<FireflyDanceGameManager>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             if (allGameManagers.Length > 1)
             {
@@ -68,7 +73,9 @@ namespace Gameplay.FireFlyDance.Core
                 }
             }
             
-            ValidateConfiguration();
+            // Vérifier si on doit s'initialiser automatiquement (pour les tests directs dans la scène)
+            // Attendre quelques frames pour laisser le temps au GameSessionManager de nous appeler
+            StartCoroutine(CheckForAutoInitialization());
         }
 
 
@@ -92,7 +99,10 @@ namespace Gameplay.FireFlyDance.Core
                 return;
             }
 
-            FireflyDanceLogger.Log("Initialisation du GameManager");
+            FireflyDanceLogger.Log($"Initialisation du GameManager - Via MiniGameBase: {isLaunchedViaMiniGameBase}");
+
+            // 0. Validation de la configuration
+            ValidateConfiguration();
 
             // 1. Trouver les composants requis
             FindRequiredComponents();
@@ -145,29 +155,49 @@ namespace Gameplay.FireFlyDance.Core
         /// </summary>
         private void FindRequiredComponents()
         {
+            
             if (gameController == null)
+            {
                 gameController = FindFirstObjectByType<FireflyDanceGameController>();
+            }
 
             if (spawner == null)
+            {
                 spawner = FindFirstObjectByType<FireflySpawner>();
+            }
 
             if (scoreManager == null)
+            {
                 scoreManager = FindFirstObjectByType<FireflyScoreManager>();
+            }
 
             if (handTracker == null)
+            {
                 handTracker = FindFirstObjectByType<HandTracker>();
+            }
 
             if (fireflyCapture == null)
-                fireflyCapture = FindFirstObjectByType<FireflyCapture>();
+            {
+                fireflyCapture = FindFirstObjectByType<Gameplay.FireFlyDance.Capture.FireflyCapture>();
+            }
 
             if (timer == null)
+            {
                 timer = FindFirstObjectByType<FireflyDanceTimer>();
+            }
 
             if (udpReceive == null)
+            {
                 udpReceive = FindFirstObjectByType<UDPReceive>();
+            }
 
             if (uiManager == null)
+            {
                 uiManager = FindFirstObjectByType<FireflyDanceUIManager>();
+
+            }
+            
+
         }
 
         /// <summary>
@@ -188,7 +218,6 @@ namespace Gameplay.FireFlyDance.Core
             // Événements du timer
             FireflyDanceEvents.OnTimerCompleted += OnTimerCompleted;
 
-            FireflyDanceLogger.Log("✅ Event listeners configurés dans GameManager");
         }
 
         /// <summary>
@@ -261,7 +290,6 @@ namespace Gameplay.FireFlyDance.Core
         private void OnGameStarted()
         {
             isGameActive = true;
-            FireflyDanceLogger.Log("🎯 Jeu démarré - Activation complète de tous les systèmes");
 
             // 1. Démarrer le spawning des lucioles
             if (spawner != null)
@@ -298,7 +326,7 @@ namespace Gameplay.FireFlyDance.Core
                 FireflyDanceLogger.Log(" Score manager activé");
             }
 
-            FireflyDanceLogger.Log("🚀 Démarrage complet - Tous les systèmes activés et prêts");
+
         }
 
         /// <summary>
@@ -307,7 +335,7 @@ namespace Gameplay.FireFlyDance.Core
         private void OnGameEnded()
         {
             isGameActive = false;
-            FireflyDanceLogger.Log("🎯 Jeu terminé - Désactivation complète de tous les systèmes");
+
 
             //  1. Arrêter le spawn des lucioles et nettoyer celles existantes
             if (spawner != null)
@@ -345,7 +373,6 @@ namespace Gameplay.FireFlyDance.Core
                 FireflyDanceLogger.Log("Timer arrêté");
             }
 
-            FireflyDanceLogger.Log("🏁 Fin de partie complète - Tous les systèmes désactivés");
             
             // Terminer le mini-jeu
             FinishMiniGame();
@@ -493,13 +520,22 @@ namespace Gameplay.FireFlyDance.Core
         {
             bool hasEssentials = gameController != null && config != null;
             
+            FireflyDanceLogger.Log($"🔍 Validation des composants essentiels:");
+            FireflyDanceLogger.Log($"  GameController: {(gameController != null ? "✅" : "❌")}");
+            FireflyDanceLogger.Log($"  Config: {(config != null ? "✅" : "❌")}");
+            
             if (!hasEssentials)
             {
                 string missing = "";
                 if (gameController == null) missing += "GameController ";
                 if (config == null) missing += "Config ";
                 
-                FireflyDanceLogger.LogError($"Composants essentiels manquants: {missing}");
+                FireflyDanceLogger.LogError($"❌ Composants essentiels manquants: {missing}");
+                FireflyDanceLogger.LogError("⚠️ Le jeu ne peut pas démarrer sans ces composants");
+            }
+            else
+            {
+                FireflyDanceLogger.Log("✅ Tous les composants essentiels sont présents");
             }
 
             return hasEssentials;
@@ -598,6 +634,27 @@ namespace Gameplay.FireFlyDance.Core
         public bool IsGameActive()
         {
             return isGameActive && gameController != null && gameController.IsPlaying;
+        }
+
+        #endregion
+
+        #region Test Coroutines
+
+        /// <summary>
+        /// Vérifie si on doit s'auto-initialiser (pour les tests directs dans la scène)
+        /// </summary>
+        private System.Collections.IEnumerator CheckForAutoInitialization()
+        {
+            // Attendre 0.5 secondes pour laisser le temps au GameSessionManager de nous appeler
+            yield return new WaitForSeconds(0.5f);
+            
+            // Si Launch() n'a pas été appelé via MiniGameBase, on s'initialise automatiquement
+            if (!isLaunchedViaMiniGameBase && !isInitialized)
+            {
+                FireflyDanceLogger.LogWarning("⚠️ Auto-initialisation détectée - Probablement un test direct dans la scène");
+                FireflyDanceLogger.LogWarning("⚠️ Pour un comportement normal, utilisez le GameSessionManager");
+                InitializeGameManager();
+            }
         }
 
         #endregion

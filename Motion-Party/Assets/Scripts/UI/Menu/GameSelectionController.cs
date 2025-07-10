@@ -50,8 +50,8 @@ namespace UI.Menu
 
         private void OnNewLocalGameClicked()
         {
-            // Lancer le mini-jeu FireflyDance via MiniGameBase
-            LaunchFireflyDance();
+            // Lancer un mini-jeu via MiniGameBase
+            LaunchMiniGame();
         }
 
         private void OnMultiplayerClicked()
@@ -68,21 +68,17 @@ namespace UI.Menu
 
         private void OnBackClicked()
         {
-            Debug.Log("GameSelectionController: Bouton Retour cliqué");
             
             // Retour au menu principal avec transition fluide
             if (mainMenuController != null)
             {
-                Debug.Log("GameSelectionController: Appel de ShowMainMenu() sur MainMenuController");
                 mainMenuController.ShowMainMenu();
             }
             else
             {
-                Debug.LogWarning("GameSelectionController: MainMenuController n'est pas assigné, utilisation du fallback");
                 // Fallback : utiliser directement le CameraTransitionManager si disponible
                 if (CameraTransitions.CameraTransitionManager.Instance != null)
                 {
-                    Debug.Log("GameSelectionController: Utilisation du CameraTransitionManager en fallback");
                     CameraTransitions.CameraTransitionManager.Instance.TransitionToMainMenu();
                 }
                 else
@@ -130,29 +126,36 @@ namespace UI.Menu
 
         #endregion
 
-        private void LaunchFireflyDance()
+        private void LaunchMiniGame()
         {
+            Debug.Log("🔍 LaunchMiniGame() appelé");
+            
             // Rechercher le GameSessionManager dans la scène
             var gameSessionManager = FindObjectOfType<GameSessionManager>();
             
             if (gameSessionManager != null)
             {
                 // Lancer la session de mini-jeux
-                Debug.Log("Lancement de la session de mini-jeux via GameSessionManager");
                 gameSessionManager.StartGameSession();
             }
             else
             {
-                // Fallback : rechercher un mini-jeu individuel dans la scène (pour les tests)
-                var fireflyGame = FindObjectOfType<MiniGameBase>();
                 
-                if (fireflyGame != null)
+                // Fallback : rechercher un mini-jeu individuel dans la scène (incluant les objets inactifs)
+                var miniGame = FindFirstObjectByType<MiniGameBase>(FindObjectsInactive.Include);
+                
+                if (miniGame != null)
                 {
-                    Debug.Log("Lancement d'un mini-jeu individuel");
+                    // S'assurer que le GameObject est actif avant de lancer
+                    if (!miniGame.gameObject.activeInHierarchy)
+                    {
+                        miniGame.gameObject.SetActive(true);
+                    }
+                    
                     // Lancer le mini-jeu avec un callback de fin
-                    fireflyGame.StartMiniGame(() => {
+                    miniGame.StartMiniGame(() => {
                         // Callback appelé quand le mini-jeu se termine
-                        Debug.Log("Mini-jeu FireflyDance terminé");
+                        Debug.Log($"🏁 Mini-jeu {miniGame.GetType().Name} terminé");
                         
                         // Retourner au menu principal
                         if (mainMenuController != null)
@@ -161,7 +164,17 @@ namespace UI.Menu
                 }
                 else
                 {
-                    Debug.LogWarning("Aucun GameSessionManager ou MiniGameBase trouvé dans la scène. Assurez-vous qu'un GameObject avec un de ces composants est présent.");
+                    Debug.LogError(" Aucun GameSessionManager ou MiniGameBase trouvé dans la scène. Assurez-vous qu'un GameObject avec un de ces composants est présent.");
+                    
+                    // Debug : lister tous les GameObjects dans la scène
+                    var allObjects = FindObjectsOfType<MonoBehaviour>();
+                    foreach (var obj in allObjects)
+                    {
+                        if (obj.GetType().Name.Contains("Firefly") || obj.GetType().Name.Contains("Game"))
+                        {
+                            Debug.Log($"  - {obj.GetType().Name} sur '{obj.gameObject.name}'");
+                        }
+                    }
                 }
             }
         }

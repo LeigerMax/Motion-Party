@@ -8,13 +8,12 @@ public enum GameState { Intro, Playing, Results }
 public class GameSessionManager : MonoBehaviour
 {
     [SerializeField] private List<MiniGameInfo> miniGames;
-    [SerializeField] private string mainMenuSceneName = "MainMenu"; // Nom de la scène du menu principal
+    [SerializeField] private string mainMenuSceneName = "MiniGameManager"; // Nom de la scène du menu principal
     private int currentGameIndex = 0;
 
     private void Start()
     {
         DontDestroyOnLoad(this.gameObject);
-        // Ne plus lancer automatiquement - attendre que le menu principal demande le lancement
     }
 
     /// <summary>
@@ -66,8 +65,6 @@ public class GameSessionManager : MonoBehaviour
     /// </summary>
     private void ReturnToMainMenu()
     {
-        // Charger la scène du menu principal
-        // Vous devrez ajuster le nom de la scène selon votre configuration
         StartCoroutine(LoadMainMenuScene());
     }
 
