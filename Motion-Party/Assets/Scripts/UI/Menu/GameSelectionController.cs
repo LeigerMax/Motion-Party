@@ -50,8 +50,8 @@ namespace UI.Menu
 
         private void OnNewLocalGameClicked()
         {
-            // Lancer un mini-jeu via MiniGameBase
-            LaunchMiniGame();
+            // Afficher l'interface de sélection des joueurs
+            ShowPlayerSelection();
         }
 
         private void OnMultiplayerClicked()
@@ -126,12 +126,56 @@ namespace UI.Menu
 
         #endregion
 
+        /// <summary>
+        /// Affiche l'interface de sélection des joueurs
+        /// </summary>
+        private void ShowPlayerSelection()
+        {
+            // Vérifier s'il y a des joueurs disponibles
+            if (Systems.PlayerProfileManager.Instance.GetPlayerCount() == 0)
+            {
+                Debug.LogWarning("Aucun joueur disponible. Créez d'abord des joueurs dans la section Équipe.");
+                return;
+            }
+
+            // Utiliser le MainMenuController pour afficher le panel de sélection
+            if (mainMenuController != null)
+            {
+                mainMenuController.ShowPlayerSelection();
+            }
+            else
+            {
+                Debug.LogError("MainMenuController n'est pas assigné dans GameSelectionController");
+            }
+        }
+
+        /// <summary>
+        /// Crée l'interface de sélection des joueurs
+        /// </summary>
+        private void CreatePlayerSelectionInterface()
+        {
+            // Cette méthode peut être implémentée pour créer dynamiquement l'interface
+            // ou simplement activer un panneau existant
+            Debug.Log("Interface de sélection des joueurs à implémenter");
+        }
+
         private void LaunchMiniGame()
         {
             Debug.Log("🔍 LaunchMiniGame() appelé");
             
+            // Vérifier si des joueurs sont sélectionnés
+            var gamePlayerSelector = Systems.GamePlayerSelector.Instance;
+            if (gamePlayerSelector.PlayerCount == 0)
+            {
+                Debug.LogWarning("Aucun joueur sélectionné pour la partie");
+                return;
+            }
+
+            // Démarrer la partie avec les joueurs sélectionnés
+            gamePlayerSelector.StartGame();
+            
             // Rechercher le GameSessionManager dans la scène
-            var gameSessionManager = FindObjectOfType<GameSessionManager>();
+            var gameSessionManager = FindFirstObjectByType<GameSessionManager>();
             
             if (gameSessionManager != null)
             {
@@ -157,6 +201,9 @@ namespace UI.Menu
                         // Callback appelé quand le mini-jeu se termine
                         Debug.Log($"🏁 Mini-jeu {miniGame.GetType().Name} terminé");
                         
+                        // Terminer la session de jeu
+                        gamePlayerSelector.EndGame();
+                        
                         // Retourner au menu principal
                         if (mainMenuController != null)
                             mainMenuController.ShowMainMenu();
@@ -167,7 +214,7 @@ namespace UI.Menu
                     Debug.LogError(" Aucun GameSessionManager ou MiniGameBase trouvé dans la scène. Assurez-vous qu'un GameObject avec un de ces composants est présent.");
                     
                     // Debug : lister tous les GameObjects dans la scène
-                    var allObjects = FindObjectsOfType<MonoBehaviour>();
+                    var allObjects = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None);
                     foreach (var obj in allObjects)
                     {
                         if (obj.GetType().Name.Contains("Firefly") || obj.GetType().Name.Contains("Game"))

@@ -65,7 +65,7 @@ namespace Gameplay.FireFlyDance.UI
             // Auto-détection de la config si pas assignée
             if (config == null)
             {
-                config = FindObjectOfType<FireflyDanceConfig>();
+                config = FindFirstObjectByType<FireflyDanceConfig>();
                 if (config == null)
                 {
                     FireflyDanceLogger.LogError("FireflyDanceConfig introuvable ! Certaines fonctionnalités UI pourraient ne pas fonctionner.");

@@ -24,7 +24,7 @@ namespace CameraTransitions
         [ContextMenu("Cleanup Audio Listeners")]
         public void CleanupAudioListeners()
         {
-            AudioListener[] allListeners = FindObjectsOfType<AudioListener>();
+            AudioListener[] allListeners = FindObjectsByType<AudioListener>(FindObjectsSortMode.None);
             
             if (allListeners.Length <= 1)
             {
@@ -78,7 +78,7 @@ namespace CameraTransitions
         /// </summary>
         public int GetActiveAudioListenerCount()
         {
-            AudioListener[] allListeners = FindObjectsOfType<AudioListener>();
+            AudioListener[] allListeners = FindObjectsByType<AudioListener>(FindObjectsSortMode.None);
             int activeCount = 0;
             
             foreach (AudioListener listener in allListeners)
@@ -96,7 +96,7 @@ namespace CameraTransitions
         [ContextMenu("Audio Listener Report")]
         public void ShowAudioListenerReport()
         {
-            AudioListener[] allListeners = FindObjectsOfType<AudioListener>();
+            AudioListener[] allListeners = FindObjectsByType<AudioListener>(FindObjectsSortMode.None);
             int activeCount = 0;
             int inactiveCount = 0;
             

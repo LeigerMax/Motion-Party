@@ -71,7 +71,7 @@ namespace Gameplay.FireFlyDance.UI
             // Auto-détection de la configuration
             if (config == null)
             {
-                config = FindObjectOfType<FireflyDanceConfig>();
+                config = FindFirstObjectByType<FireflyDanceConfig>();
             }
             
             if (config != null)

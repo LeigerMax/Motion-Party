@@ -11,6 +11,8 @@ namespace UI.Menu
         [Header("UI Panels")]
         [SerializeField] private GameObject mainMenuPanel;
         [SerializeField] private GameObject gameSelectionPanel;
+        [SerializeField] private GameObject playerSelectionPanel;
+        [SerializeField] private GameObject playerManagementPanel;
 
         [Header("Cameras")]
         [SerializeField] private UnityEngine.Camera mainMenuCamera;
@@ -24,6 +26,15 @@ namespace UI.Menu
 
         [Header("Game Selection Controller")]
         [SerializeField] private GameSelectionController gameSelectionController;
+
+        [Header("Player Management")]
+        [SerializeField] private UI.PlayerManagement.PlayerManagementUI playerManagementUI;
+
+        [Header("Team Management")]
+        [SerializeField] private UI.Team.TeamManagementUI teamManagementUI;
+
+        [Header("Player Selection")]
+        [SerializeField] private UI.PlayerSelection.PlayerSelectionUI playerSelectionUI;
 
         private void Start()
         {
@@ -40,6 +51,12 @@ namespace UI.Menu
             
             if (gameSelectionPanel == null)
                 Debug.LogWarning("GameSelectionPanel n'est pas assigné dans MainMenuController");
+                
+            if (playerSelectionPanel == null)
+                Debug.LogWarning("PlayerSelectionPanel n'est pas assigné dans MainMenuController");
+                
+            if (playerManagementPanel == null)
+                Debug.LogWarning("PlayerManagementPanel n'est pas assigné dans MainMenuController");
                 
             // S'assurer que les caméras existent (optionnel)
             if (mainMenuCamera == null)
@@ -70,14 +87,19 @@ namespace UI.Menu
         /// </summary>
         public void ShowMainMenu()
         {
-            Debug.Log("MainMenuController: ShowMainMenu() appelé");
-            
+
             // Gestion des panneaux UI
             if (mainMenuPanel != null)
                 mainMenuPanel.SetActive(true);
 
             if (gameSelectionPanel != null)
                 gameSelectionPanel.SetActive(false);
+
+            if (playerSelectionPanel != null)
+                playerSelectionPanel.SetActive(false);
+
+            if (playerManagementPanel != null)
+                playerManagementPanel.SetActive(false);
 
             // Transition de caméra fluide (nouveau système)
             if (CameraTransitions.CameraTransitionManager.Instance != null)
@@ -105,6 +127,7 @@ namespace UI.Menu
             // Désactiver le contrôleur de sélection de jeu
             if (gameSelectionController != null)
                 gameSelectionController.gameObject.SetActive(false);
+
         }
 
         /// <summary>
@@ -118,6 +141,12 @@ namespace UI.Menu
 
             if (gameSelectionPanel != null)
                 gameSelectionPanel.SetActive(true);
+
+            if (playerSelectionPanel != null)
+                playerSelectionPanel.SetActive(false);
+
+            if (playerManagementPanel != null)
+                playerManagementPanel.SetActive(false);
 
             // Transition de caméra fluide (nouveau système)
             if (CameraTransitions.CameraTransitionManager.Instance != null)
@@ -145,6 +174,56 @@ namespace UI.Menu
                 gameSelectionController.gameObject.SetActive(true);
         }
 
+        /// <summary>
+        /// Affiche la vue de sélection des joueurs (PlayerSelectionPanel actif)
+        /// </summary>
+        public void ShowPlayerSelection()
+        {
+            // Gestion des panneaux UI
+            if (mainMenuPanel != null)
+                mainMenuPanel.SetActive(false);
+
+            if (gameSelectionPanel != null)
+                gameSelectionPanel.SetActive(false);
+
+            if (playerSelectionPanel != null)
+                playerSelectionPanel.SetActive(true);
+
+            if (playerManagementPanel != null)
+                playerManagementPanel.SetActive(false);
+
+            // Activer l'interface de sélection des joueurs
+            if (playerSelectionUI != null)
+                playerSelectionUI.gameObject.SetActive(true);
+        }
+
+        /// <summary>
+        /// Affiche la vue de gestion des joueurs (PlayerManagementPanel actif)
+        /// </summary>
+        public void ShowPlayerManagement()
+        {
+            // Gestion des panneaux UI
+            if (mainMenuPanel != null)
+                mainMenuPanel.SetActive(false);
+
+            if (gameSelectionPanel != null)
+                gameSelectionPanel.SetActive(false);
+
+            if (playerSelectionPanel != null)
+                playerSelectionPanel.SetActive(false);
+
+            if (playerManagementPanel != null)
+                playerManagementPanel.SetActive(true);
+
+            // Activer l'interface de gestion de l'équipe
+            if (teamManagementUI != null)
+                teamManagementUI.gameObject.SetActive(true);
+                
+            // Activer l'interface de gestion des joueurs (pour compatibilité)
+            if (playerManagementUI != null)
+                playerManagementUI.gameObject.SetActive(true);
+        }
+
         #region Button Events
 
         private void OnPlayButtonClicked()
@@ -162,8 +241,8 @@ namespace UI.Menu
 
         private void OnTeamButtonClicked()
         {
-            // Navigation vers l'équipe (même vue que les options pour le moment)
-            Debug.Log("Équipe - À implémenter plus tard");
+            // Navigation vers l'interface de gestion de l'équipe
+            ShowPlayerManagement();
         }
 
         private void OnQuitButtonClicked()
