@@ -7,6 +7,7 @@ using Gameplay.FireFlyDance.Scoring;
 using Gameplay.FireFlyDance.Capture;
 using Gameplay.FireFlyDance.Utils;
 using Gameplay.FireFlyDance.UI;
+using Gameplay.FireFlyDance.Analytics;
 using Core;
 using Gameplay.Common.Badges;
 using Gameplay.Firefly.Badges;
@@ -55,6 +56,9 @@ namespace Gameplay.FireFlyDance.Core
         [Header("Player System")]
         public bool enablePlayerSystem = true;
         public float delayBetweenPlayers = 3f; // Délai entre les joueurs en secondes
+
+        [Header("Analytics System")]
+        public Gameplay.FireFlyDance.Analytics.GameStatsRecorder gameStatsRecorder;
 
         // État interne
         private bool isInitialized = false;
@@ -182,6 +186,8 @@ namespace Gameplay.FireFlyDance.Core
                 scoreIntegration = FindFirstObjectByType<FireflyScoreManagerPlayerIntegration>();
             if (playerDisplayUI == null)
                 playerDisplayUI = FindFirstObjectByType<Gameplay.FireFlyDance.UI.FireflyPlayerDisplayUI>();
+            if (gameStatsRecorder == null)
+                gameStatsRecorder = FindFirstObjectByType<Gameplay.FireFlyDance.Analytics.GameStatsRecorder>();
         }
 
         /// <summary>
@@ -373,6 +379,14 @@ namespace Gameplay.FireFlyDance.Core
             try
             {
                 FireflyDanceLogger.Log($"🎮 Démarrage du jeu - État: {gameController.CurrentState}");
+
+                // Démarrer l'enregistrement des statistiques si disponible
+                if (gameStatsRecorder != null)
+                {
+                    string playerName = currentPlayer?.Nickname ?? "Joueur Anonyme";
+                    gameStatsRecorder.StartRecording(playerName);
+                    FireflyDanceLogger.Log($"📊 Analyse démarrée pour {playerName}");
+                }
 
                 // Toujours remettre le GameController à Idle avant de démarrer
                 gameController.ResetGame();
@@ -686,6 +700,16 @@ namespace Gameplay.FireFlyDance.Core
             }
 
             FireflyDanceLogger.Log($"🏁 Fin de tour pour {currentPlayer?.Nickname ?? "Joueur inconnu"} - Score: {currentPlayerScore}");
+
+            // Terminer l'enregistrement des statistiques et sauvegarder
+            if (gameStatsRecorder != null)
+            {
+                gameStatsRecorder.EndRecording();
+                
+                // Afficher un résumé rapide des statistiques
+                string summary = gameStatsRecorder.GetCurrentSessionSummary();
+                FireflyDanceLogger.Log($"📊 Résumé statistiques:\n{summary}");
+            }
 
             // Finaliser le tracking des badges
             if (badgeAdapter != null && currentPlayer != null)

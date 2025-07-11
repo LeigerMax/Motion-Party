@@ -13,6 +13,7 @@ namespace Systems
         [SerializeField] private string nickname;
         [SerializeField] private string teamName;
         [SerializeField] private DateTime createdAt;
+        [SerializeField] private string birthDate; // Format: "YYYY-MM-DD"
         [SerializeField] private int gamesPlayed;
         [SerializeField] private int totalScore;
         [SerializeField] private bool isActive;
@@ -38,6 +39,15 @@ namespace Systems
         {
             get => teamName;
             set => teamName = value;
+        }
+
+        /// <summary>
+        /// Date de naissance au format "YYYY-MM-DD"
+        /// </summary>
+        public string BirthDate
+        {
+            get => birthDate;
+            set => birthDate = value;
         }
 
         /// <summary>
@@ -80,6 +90,7 @@ namespace Systems
             id = System.Guid.NewGuid().ToString();
             nickname = "";
             teamName = "";
+            birthDate = "";
             createdAt = DateTime.Now;
             gamesPlayed = 0;
             totalScore = 0;
@@ -89,11 +100,12 @@ namespace Systems
         /// <summary>
         /// Constructeur avec nickname
         /// </summary>
-        public PlayerData(string nickname, string teamName = "")
+        public PlayerData(string nickname, string teamName = "", string birthDate = "")
         {
             id = System.Guid.NewGuid().ToString();
             this.nickname = nickname;
             this.teamName = teamName;
+            this.birthDate = birthDate;
             createdAt = DateTime.Now;
             gamesPlayed = 0;
             totalScore = 0;
@@ -123,6 +135,32 @@ namespace Systems
         {
             if (gamesPlayed == 0) return 0f;
             return (float)totalScore / gamesPlayed;
+        }
+
+        /// <summary>
+        /// Calcule l'âge du joueur basé sur sa date de naissance
+        /// </summary>
+        public int CalculateAge()
+        {
+            if (string.IsNullOrEmpty(birthDate))
+                return 0;
+
+            try
+            {
+                DateTime birth = DateTime.ParseExact(birthDate, "yyyy-MM-dd", null);
+                DateTime today = DateTime.Today;
+                int age = today.Year - birth.Year;
+                
+                // Si l'anniversaire n'est pas encore passé cette année, soustraire 1
+                if (birth.Date > today.AddYears(-age))
+                    age--;
+                    
+                return age;
+            }
+            catch
+            {
+                return 0;
+            }
         }
 
         /// <summary>
