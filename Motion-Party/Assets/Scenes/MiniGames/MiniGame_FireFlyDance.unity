@@ -1168,10 +1168,11 @@ MonoBehaviour:
   handTracker: {fileID: 1488304617}
   fireflyCapture: {fileID: 683691416}
   uiManager: {fileID: 805148122}
-  scoreIntegration: {fileID: 0}
-  playerDisplayUI: {fileID: 0}
+  scoreIntegration: {fileID: 1035241305}
+  playerDisplayUI: {fileID: 1581984774}
+  badgeAdapter: {fileID: 1090546254}
   enableDebugMode: 1
-  enableDetailedLogs: 1
+  enableDetailedLogs: 0
   enablePlayerSystem: 1
   delayBetweenPlayers: 3
 --- !u!4 &848758760
@@ -1618,6 +1619,52 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 1234.715, y: 490.9719, z: -1.2792141}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1090546253
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1090546255}
+  - component: {fileID: 1090546254}
+  m_Layer: 0
+  m_Name: BadgeAdapter
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1090546254
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1090546253}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f0addc4263764b4fb5ac954bb790e2c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enableAutoTracking: 1
+  enableDebugLogs: 1
+--- !u!4 &1090546255
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1090546253}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1046.6968, y: 639.71344, z: 5.118421}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2315,3 +2362,4 @@ SceneRoots:
   - {fileID: 376473635}
   - {fileID: 865668815}
   - {fileID: 1035241306}
+  - {fileID: 1090546255}

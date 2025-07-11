@@ -1,0 +1,193 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31797405c69065b408463d7beda89b9a, type: 3}
+  m_Name: GlobalBadgeDatabase
+  m_EditorClassIdentifier: 
+  allBadges:
+  - badgeId: first_firefly
+    badgeName: "Premi\xE8re Luciole"
+    description: "Capturer sa premi\xE8re luciole"
+    icon: {fileID: 0}
+    miniGameId: firefly
+    rarity: 0
+    category: 0
+    badgeType: captures
+    targetValue: 1
+    timeLimit: -1
+    isRepeatable: 0
+  - badgeId: lightning_hunter
+    badgeName: "Chasseur \xC9clair"
+    description: Capturer 10 lucioles en une partie
+    icon: {fileID: 0}
+    miniGameId: firefly
+    rarity: 1
+    category: 0
+    badgeType: captures
+    targetValue: 10
+    timeLimit: -1
+    isRepeatable: 0
+  - badgeId: firefly_master
+    badgeName: "Ma\xEEtre des Lucioles"
+    description: Capturer 25 lucioles en une partie
+    icon: {fileID: 0}
+    miniGameId: firefly
+    rarity: 2
+    category: 0
+    badgeType: captures
+    targetValue: 25
+    timeLimit: -1
+    isRepeatable: 0
+  - badgeId: zero_error
+    badgeName: "Z\xE9ro Faute"
+    description: "Aucune fausse d\xE9tection pendant 60 secondes"
+    icon: {fileID: 0}
+    miniGameId: firefly
+    rarity: 1
+    category: 1
+    badgeType: no_errors
+    targetValue: 60
+    timeLimit: -1
+    isRepeatable: 0
+  - badgeId: perfect_streak
+    badgeName: "S\xE9rie Parfaite"
+    description: "Capturer 5 lucioles cons\xE9cutives sans erreur"
+    icon: {fileID: 0}
+    miniGameId: firefly
+    rarity: 2
+    category: 1
+    badgeType: streak
+    targetValue: 5
+    timeLimit: -1
+    isRepeatable: 0
+  - badgeId: precision_master
+    badgeName: "Ma\xEEtre de Pr\xE9cision"
+    description: "Atteindre 90% de pr\xE9cision"
+    icon: {fileID: 0}
+    miniGameId: firefly
+    rarity: 3
+    category: 1
+    badgeType: accuracy
+    targetValue: 90
+    timeLimit: -1
+    isRepeatable: 0
+  - badgeId: explorer
+    badgeName: Explorateur
+    description: Capturer une luciole dans chaque coin de la zone
+    icon: {fileID: 0}
+    miniGameId: firefly
+    rarity: 1
+    category: 2
+    badgeType: zones
+    targetValue: 4
+    timeLimit: -1
+    isRepeatable: 0
+  - badgeId: speed_demon
+    badgeName: "D\xE9mon de Vitesse"
+    description: Capturer une luciole en moins de 0.5 seconde
+    icon: {fileID: 0}
+    miniGameId: firefly
+    rarity: 3
+    category: 0
+    badgeType: speed
+    targetValue: 1
+    timeLimit: -1
+    isRepeatable: 0
+  - badgeId: first_pop
+    badgeName: "Premier \xC9clat"
+    description: "Faire \xE9clater son premier ballon"
+    icon: {fileID: 0}
+    miniGameId: balloon
+    rarity: 0
+    category: 0
+    badgeType: pops
+    targetValue: 1
+    timeLimit: -1
+    isRepeatable: 0
+  - badgeId: balloon_burst
+    badgeName: Rafale de Ballons
+    description: "Faire \xE9clater 15 ballons en une partie"
+    icon: {fileID: 0}
+    miniGameId: balloon
+    rarity: 1
+    category: 0
+    badgeType: pops
+    targetValue: 15
+    timeLimit: -1
+    isRepeatable: 0
+  - badgeId: precision_popper
+    badgeName: "Pr\xE9cision Parfaite"
+    description: "90% de pr\xE9cision sur les ballons"
+    icon: {fileID: 0}
+    miniGameId: balloon
+    rarity: 3
+    category: 1
+    badgeType: accuracy
+    targetValue: 90
+    timeLimit: -1
+    isRepeatable: 0
+  - badgeId: speed_popper
+    badgeName: "\xC9clatement Rapide"
+    description: "\xC9clater un ballon en moins de 1 seconde"
+    icon: {fileID: 0}
+    miniGameId: balloon
+    rarity: 2
+    category: 0
+    badgeType: speed
+    targetValue: 1
+    timeLimit: -1
+    isRepeatable: 0
+  - badgeId: first_note
+    badgeName: "Premi\xE8re Note"
+    description: "Jouer sa premi\xE8re note correctement"
+    icon: {fileID: 0}
+    miniGameId: music
+    rarity: 0
+    category: 0
+    badgeType: notes
+    targetValue: 1
+    timeLimit: -1
+    isRepeatable: 0
+  - badgeId: melody_master
+    badgeName: "Ma\xEEtre de M\xE9lodie"
+    description: Jouer 20 notes correctes en une partie
+    icon: {fileID: 0}
+    miniGameId: music
+    rarity: 1
+    category: 0
+    badgeType: notes
+    targetValue: 20
+    timeLimit: -1
+    isRepeatable: 0
+  - badgeId: perfect_rhythm
+    badgeName: Rythme Parfait
+    description: Maintenir le rythme pendant 30 secondes
+    icon: {fileID: 0}
+    miniGameId: music
+    rarity: 2
+    category: 1
+    badgeType: rhythm
+    targetValue: 30
+    timeLimit: -1
+    isRepeatable: 0
+  - badgeId: finger_virtuoso
+    badgeName: Virtuose des Doigts
+    description: "Utiliser tous les doigts dans une s\xE9quence"
+    icon: {fileID: 0}
+    miniGameId: music
+    rarity: 3
+    category: 2
+    badgeType: fingers
+    targetValue: 5
+    timeLimit: -1
+    isRepeatable: 0
+  databaseVersion: 1.0
+  lastModified: 2025-07-11 16:32:43

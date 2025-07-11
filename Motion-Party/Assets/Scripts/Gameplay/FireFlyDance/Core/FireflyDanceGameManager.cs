@@ -8,6 +8,8 @@ using Gameplay.FireFlyDance.Capture;
 using Gameplay.FireFlyDance.Utils;
 using Gameplay.FireFlyDance.UI;
 using Core;
+using Gameplay.Common.Badges;
+using Gameplay.Firefly.Badges;
 
 namespace Gameplay.FireFlyDance.Core
 {
@@ -42,6 +44,9 @@ namespace Gameplay.FireFlyDance.Core
         [Header("Player Integration")]
         public FireflyScoreManagerPlayerIntegration scoreIntegration;
         public Gameplay.FireFlyDance.UI.FireflyPlayerDisplayUI playerDisplayUI;
+
+        [Header("Badge System")]
+        public FireflyBadgeAdapter badgeAdapter;
 
         [Header("Debug Settings")]
         public bool enableDebugMode = true;
@@ -147,7 +152,10 @@ namespace Gameplay.FireFlyDance.Core
             // 5. Configurer les événements
             ConfigureEventListeners();
 
-            // 6. Démarrer le jeu
+            // 6. Initialiser le système de badges
+            InitializeBadgeSystem();
+
+            // 7. Démarrer le jeu
             StartGameFromScratch();
         }
 
@@ -679,6 +687,12 @@ namespace Gameplay.FireFlyDance.Core
 
             FireflyDanceLogger.Log($"🏁 Fin de tour pour {currentPlayer?.Nickname ?? "Joueur inconnu"} - Score: {currentPlayerScore}");
 
+            // Finaliser le tracking des badges
+            if (badgeAdapter != null && currentPlayer != null)
+            {
+                FinalizeBadgeTracking();
+            }
+
             // Arrêter tous les systèmes
             StopAllSystems();
 
@@ -772,6 +786,25 @@ namespace Gameplay.FireFlyDance.Core
         {
             // Mettre à jour le score local du joueur actuel
             currentPlayerScore += points;
+            
+            // Tracking pour les badges
+            if (badgeAdapter != null && currentPlayer != null)
+            {
+                try
+                {
+                    badgeAdapter.IncrementFirefliesCollected(currentPlayer.Nickname);
+                    badgeAdapter.UpdatePlayerScore(currentPlayer.Nickname, currentPlayerScore);
+                    
+                    if (enableDetailedLogs)
+                    {
+                        FireflyDanceLogger.LogVerbose($"🏆 Badge tracking: +1 luciole, score={currentPlayerScore}");
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    FireflyDanceLogger.LogError($"❌ Erreur badge tracking: {ex.Message}");
+                }
+            }
             
             FireflyDanceLogger.Log($"Luciole capturée par {currentPlayer?.Nickname ?? "Joueur"} - Points: {points} (Total: {currentPlayerScore})");
         }
@@ -940,6 +973,68 @@ namespace Gameplay.FireFlyDance.Core
         public bool IsGameActive()
         {
             return isGameActive && gameController != null && gameController.IsPlaying;
+        }
+
+        /// <summary>
+        /// Obtient l'adaptateur de badges (pour accès externe)
+        /// </summary>
+        /// <returns>FireflyBadgeAdapter ou null si non configuré</returns>
+        public FireflyBadgeAdapter GetBadgeAdapter()
+        {
+            return badgeAdapter;
+        }
+
+        /// <summary>
+        /// Force la validation des badges pour le joueur actuel (pour debug/test)
+        /// </summary>
+        [ContextMenu("Force Badge Validation")]
+        public void ForceBadgeValidation()
+        {
+            if (badgeAdapter != null && currentPlayer != null)
+            {
+                try
+                {
+                    int badges = badgeAdapter.ValidatePlayerBadges(currentPlayer.Nickname);
+                    FireflyDanceLogger.Log($"🏆 Validation forcée: {badges} badges attribués à {currentPlayer.Nickname}");
+                }
+                catch (System.Exception ex)
+                {
+                    FireflyDanceLogger.LogError($"❌ Erreur validation forcée: {ex.Message}");
+                }
+            }
+            else
+            {
+                FireflyDanceLogger.LogWarning("⚠️ Badge adapter ou joueur non configuré");
+            }
+        }
+
+        /// <summary>
+        /// Affiche les statistiques de badges du joueur actuel (pour debug)
+        /// </summary>
+        [ContextMenu("Debug Player Badges")]
+        public void DebugPlayerBadges()
+        {
+            if (currentPlayer != null)
+            {
+                var storage = FindFirstObjectByType<GlobalPlayerBadgeStorage>();
+                if (storage != null)
+                {
+                    var badges = storage.GetPlayerBadges(currentPlayer.Nickname);
+                    FireflyDanceLogger.Log($"🏆 {currentPlayer.Nickname} possède {badges.Count} badges:");
+                    foreach (var badge in badges)
+                    {
+                        FireflyDanceLogger.Log($"  - {badge.GetFullBadgeId()} (obtenu le {badge.EarnedDate})");
+                    }
+                }
+                else
+                {
+                    FireflyDanceLogger.LogWarning("⚠️ GlobalPlayerBadgeStorage non trouvé");
+                }
+            }
+            else
+            {
+                FireflyDanceLogger.LogWarning("⚠️ Aucun joueur actuel");
+            }
         }
 
         /// <summary>
@@ -1170,6 +1265,238 @@ namespace Gameplay.FireFlyDance.Core
                 // Cette méthode peut être étendue pour marquer explicitement
                 // qu'un joueur a joué ce mini-jeu spécifique
                 FireflyDanceLogger.Log($"🎯 {currentPlayer.Nickname} a terminé son tour");
+            }
+        }
+
+        #endregion
+
+        #region Badge System
+
+        /// <summary>
+        /// Initialise le système de badges pour le joueur actuel
+        /// </summary>
+        private void InitializeBadgeSystem()
+        {
+            try
+            {
+                // Trouver l'adaptateur si pas assigné
+                if (badgeAdapter == null)
+                {
+                    badgeAdapter = FindFirstObjectByType<FireflyBadgeAdapter>();
+                    if (badgeAdapter == null)
+                    {
+                        FireflyDanceLogger.LogWarning("⚠️ FireflyBadgeAdapter non trouvé - système de badges désactivé");
+                        return;
+                    }
+                }
+
+                // Configurer le joueur actuel
+                if (currentPlayer != null)
+                {
+                    badgeAdapter.SetCurrentPlayer(currentPlayer.Nickname);
+                    FireflyDanceLogger.Log($"🏆 Système de badges initialisé pour {currentPlayer.Nickname}");
+                }
+                else
+                {
+                    FireflyDanceLogger.LogWarning("⚠️ Aucun joueur actuel - système de badges non configuré");
+                }
+            }
+            catch (System.Exception ex)
+            {
+                FireflyDanceLogger.LogError($"❌ Erreur lors de l'initialisation du système de badges: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Finalise le tracking des badges en fin de partie
+        /// </summary>
+        private void FinalizeBadgeTracking()
+        {
+            try
+            {
+                var playerName = currentPlayer.Nickname;
+                
+                // Mise à jour finale du score
+                badgeAdapter.UpdatePlayerScore(playerName, currentPlayerScore);
+                
+                // Calculer et mettre à jour la durée de jeu
+                float gameDuration = 0f;
+                if (timer != null)
+                {
+                    gameDuration = timer.TimeElapsed;
+                    badgeAdapter.UpdateGameDuration(playerName, gameDuration);
+                }
+                
+                // Calculer et mettre à jour la précision si disponible
+                float accuracy = CalculateAccuracy();
+                if (accuracy > 0f)
+                {
+                    badgeAdapter.UpdatePlayerAccuracy(playerName, accuracy);
+                }
+                
+                // Validation finale et attribution des badges
+                int badgesEarned = badgeAdapter.ValidatePlayerBadges(playerName);
+                
+                FireflyDanceLogger.Log($"🏆 Badges - Joueur: {playerName}, Score: {currentPlayerScore}, Durée: {gameDuration:F1}s, Précision: {accuracy:F1}%, Badges gagnés: {badgesEarned}");
+            }
+            catch (System.Exception ex)
+            {
+                FireflyDanceLogger.LogError($"❌ Erreur lors de la finalisation des badges: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Calcule la précision du joueur basée sur les statistiques disponibles
+        /// </summary>
+        /// <returns>Précision en pourcentage (0-100)</returns>
+        private float CalculateAccuracy()
+        {
+            try
+            {
+                // Méthode 1: Utiliser les données du ScoreManager
+                if (scoreManager != null)
+                {
+                    int firefliesCaptured = scoreManager.FirefliesCaptured;
+                    int currentScore = scoreManager.CurrentScore;
+                    
+                    // Calculer un score de base estimé (selon la config ou valeur par défaut)
+                    int expectedScorePerFirefly = 100; // Valeur par défaut
+                    if (config != null)
+                    {
+                        // Tenter de récupérer depuis la config si disponible
+                        expectedScorePerFirefly = 100; // À adapter selon FireflyDanceConfig
+                    }
+                    
+                    if (firefliesCaptured > 0)
+                    {
+                        // Calculer la précision basée sur le score moyen par luciole
+                        float averageScorePerFirefly = (float)currentScore / firefliesCaptured;
+                        float accuracy = Mathf.Clamp01(averageScorePerFirefly / expectedScorePerFirefly) * 100f;
+                        return accuracy;
+                    }
+                }
+                
+                // Méthode 2: Estimation basée sur le temps et le score
+                if (timer != null && currentPlayerScore > 0)
+                {
+                    float gameTime = timer.TimeElapsed;
+                    float totalGameTime = timer.TotalDuration;
+                    
+                    if (totalGameTime > 0 && gameTime > 0)
+                    {
+                        // Score par seconde comme indicateur de performance
+                        float scorePerSecond = currentPlayerScore / gameTime;
+                        
+                        // Estimation: un bon joueur fait ~50-150 points par seconde
+                        float estimatedMaxScorePerSecond = 150f;
+                        float accuracy = Mathf.Clamp01(scorePerSecond / estimatedMaxScorePerSecond) * 100f;
+                        
+                        return Mathf.Clamp(accuracy, 0f, 100f);
+                    }
+                }
+                
+                // Méthode 3: Fallback simple basé sur le score
+                if (currentPlayerScore > 0)
+                {
+                    // Estimation basique: plus le score est élevé, meilleure est la précision supposée
+                    float estimatedMaxScore = 2000f; // Score maximal raisonnable
+                    float accuracy = Mathf.Clamp01(currentPlayerScore / estimatedMaxScore) * 80f + 20f; // Entre 20% et 100%
+                    return accuracy;
+                }
+                
+                return 0f; // Aucune donnée disponible
+            }
+            catch (System.Exception ex)
+            {
+                FireflyDanceLogger.LogError($"❌ Erreur calcul précision: {ex.Message}");
+                return 0f;
+            }
+        }
+
+        /// <summary>
+        /// Test complet du système de badges (pour debug)
+        /// </summary>
+        [ContextMenu("Test Badge System Complete")]
+        public void TestBadgeSystemComplete()
+        {
+            if (currentPlayer == null)
+            {
+                FireflyDanceLogger.LogWarning("⚠️ Aucun joueur actuel pour le test");
+                return;
+            }
+
+            var playerName = currentPlayer.Nickname;
+            FireflyDanceLogger.Log($"🧪 TEST SYSTÈME BADGES COMPLET - {playerName}");
+
+            // 1. Diagnostic de l'adaptateur
+            if (badgeAdapter != null)
+            {
+                // Utiliser la méthode de diagnostic si elle existe
+                badgeAdapter.DiagnosticAdapter();
+            }
+            else
+            {
+                FireflyDanceLogger.LogError("❌ Badge Adapter non configuré !");
+            }
+
+            // 2. Test d'attribution manuelle
+            if (badgeAdapter != null)
+            {
+                FireflyDanceLogger.Log("🎯 Test attribution manuelle...");
+                badgeAdapter.IncrementFirefliesCollected(playerName, 1);
+                int badges = badgeAdapter.ValidatePlayerBadges(playerName);
+                FireflyDanceLogger.Log($"✅ {badges} badges attribués après validation");
+            }
+
+            // 3. Afficher les badges obtenus
+            var storage = FindFirstObjectByType<GlobalPlayerBadgeStorage>();
+            if (storage != null)
+            {
+                storage.ShowPlayerBadges(playerName);
+            }
+            else
+            {
+                FireflyDanceLogger.LogError("❌ GlobalPlayerBadgeStorage non trouvé !");
+            }
+
+            // 4. Test via BadgeUIHelper
+            BadgeUIHelper.DebugShowPlayerBadges(playerName);
+        }
+
+        /// <summary>
+        /// Diagnostic rapide du système de badges
+        /// </summary>
+        [ContextMenu("Quick Badge Diagnostic")]
+        public void QuickBadgeDiagnostic()
+        {
+            FireflyDanceLogger.Log("🔍 DIAGNOSTIC RAPIDE SYSTÈME BADGES");
+            
+            // Vérifier les composants essentiels
+            var badgeSystem = FindFirstObjectByType<GlobalBadgeSystem>();
+            var badgeTracker = FindFirstObjectByType<GlobalBadgeTracker>();
+            var badgeStorage = FindFirstObjectByType<GlobalPlayerBadgeStorage>();
+            
+            FireflyDanceLogger.Log($"   GlobalBadgeSystem: {(badgeSystem != null ? "✓" : "❌")}");
+            FireflyDanceLogger.Log($"   GlobalBadgeTracker: {(badgeTracker != null ? "✓" : "❌")}");
+            FireflyDanceLogger.Log($"   GlobalPlayerBadgeStorage: {(badgeStorage != null ? "✓" : "❌")}");
+            FireflyDanceLogger.Log($"   FireflyBadgeAdapter: {(badgeAdapter != null ? "✓" : "❌")}");
+            
+            if (badgeSystem != null)
+            {
+                var database = badgeSystem.GetDatabase();
+                FireflyDanceLogger.Log($"   Badge Database: {(database != null ? "✓" : "❌")}");
+                
+                if (database != null)
+                {
+                    var fireflyBadges = database.GetBadgesForGame("firefly");
+                    FireflyDanceLogger.Log($"   Badges Firefly: {fireflyBadges.Count}");
+                }
+            }
+            
+            if (currentPlayer != null)
+            {
+                FireflyDanceLogger.Log($"   Joueur actuel: {currentPlayer.Nickname}");
+                BadgeUIHelper.DebugShowPlayerBadges(currentPlayer.Nickname);
             }
         }
 

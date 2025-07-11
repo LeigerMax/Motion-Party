@@ -2,11 +2,13 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections;
+using Gameplay.Common.Badges; // Ajout pour les badges
 
 namespace UI.Team
 {
     /// <summary>
     /// Popup détaillé pour afficher/éditer les informations d'un joueur
+    /// ÉTENDU : Maintenant inclut le profil joueur avec badges et statistiques
     /// </summary>
     public class PlayerDetailsPopup : MonoBehaviour
     {
@@ -18,6 +20,13 @@ namespace UI.Team
         [SerializeField] private TextMeshProUGUI totalScoreText;
         [SerializeField] private TextMeshProUGUI createdDateText;
 
+        [Header("NOUVEAU : Profil Joueur")]
+        [SerializeField] private PlayerBadgeGrid badgeGrid;
+        [SerializeField] private PlayerProfileStats profileStats;
+        [SerializeField] private GameObject profileSection;
+        [SerializeField] private Button profileToggleButton;
+        [SerializeField] private TextMeshProUGUI profileToggleText;
+
         [Header("Action Buttons")]
         [SerializeField] private Button editButton;
         [SerializeField] private Button deleteButton;
@@ -27,10 +36,14 @@ namespace UI.Team
         [SerializeField] private CanvasGroup popupCanvasGroup;
         [SerializeField] private float animationDuration = 0.3f;
 
+        // Variables existantes
         private Systems.PlayerData currentPlayer;
         private System.Action<Systems.PlayerData> onEditPlayer;
         private System.Action<Systems.PlayerData> onDeletePlayer;
         private bool debugMode = true;
+
+        // NOUVEAU : Variables pour le profil
+        private bool profileSectionVisible = false;
 
         private void Awake()
         {
@@ -38,6 +51,26 @@ namespace UI.Team
             
             if (popupPanel != null)
                 popupPanel.SetActive(false);
+
+            // NOUVEAU : Setup pour le profil
+            SetupProfileSection();
+        }
+
+        /// <summary>
+        /// NOUVEAU : Configuration de la section profil
+        /// </summary>
+        private void SetupProfileSection()
+        {
+            // Configurer le bouton toggle du profil
+            if (profileToggleButton != null)
+                profileToggleButton.onClick.AddListener(OnProfileToggleClicked);
+
+            // Cacher la section profil par défaut
+            if (profileSection != null)
+                profileSection.SetActive(false);
+
+            // Texte initial du bouton
+            UpdateProfileToggleText();
         }
 
         private void SetupButtons()
@@ -80,8 +113,71 @@ namespace UI.Team
             UpdateDisplay();
             ShowPopup();
 
+            // NOUVEAU : Mise à jour du profil joueur
+            UpdatePlayerProfile();
+
             if (debugMode)
                 Debug.Log($"PlayerDetailsPopup: Affichage des détails pour {player.Nickname}");
+        }
+
+        /// <summary>
+        /// NOUVEAU : Met à jour l'affichage du profil joueur
+        /// </summary>
+        private void UpdatePlayerProfile()
+        {
+            if (currentPlayer == null) return;
+
+            // Mettre à jour les statistiques du profil
+            if (profileStats != null)
+            {
+                profileStats.UpdatePlayerStats(currentPlayer);
+            }
+
+            // Préparer les badges (mais ne pas les afficher tout de suite)
+            if (badgeGrid != null)
+            {
+                // Les badges seront affichés quand la section sera visible
+                if (profileSectionVisible)
+                {
+                    badgeGrid.DisplayPlayerBadges(currentPlayer.Nickname);
+                }
+            }
+
+            if (debugMode)
+                Debug.Log($"🏆 Profil mis à jour pour {currentPlayer.Nickname}");
+        }
+
+        /// <summary>
+        /// NOUVEAU : Gère le clic sur le bouton toggle du profil
+        /// </summary>
+        private void OnProfileToggleClicked()
+        {
+            profileSectionVisible = !profileSectionVisible;
+
+            if (profileSection != null)
+                profileSection.SetActive(profileSectionVisible);
+
+            // Afficher les badges si on ouvre la section
+            if (profileSectionVisible && badgeGrid != null && currentPlayer != null)
+            {
+                badgeGrid.DisplayPlayerBadges(currentPlayer.Nickname);
+            }
+
+            UpdateProfileToggleText();
+
+            if (debugMode)
+                Debug.Log($"Profil {(profileSectionVisible ? "affiché" : "masqué")} pour {currentPlayer?.Nickname}");
+        }
+
+        /// <summary>
+        /// NOUVEAU : Met à jour le texte du bouton toggle
+        /// </summary>
+        private void UpdateProfileToggleText()
+        {
+            if (profileToggleText != null)
+            {
+                profileToggleText.text = profileSectionVisible ? "🔽 Masquer le profil" : "🔼 Voir le profil";
+            }
         }
 
         private void UpdateDisplay()
