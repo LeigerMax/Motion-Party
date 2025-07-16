@@ -29,7 +29,9 @@ public class LogParadeCalibrationStateManager
 
     #region Events
     public event Action OnCalibrationCompleted;
+    #pragma warning disable CS0067
     public event Action OnCalibrationFailed;
+    #pragma warning restore CS0067
     public event Action<int> OnLaneReached;
     public event Action OnCalibrationTimeout;
     public event Action OnLane1Reached;

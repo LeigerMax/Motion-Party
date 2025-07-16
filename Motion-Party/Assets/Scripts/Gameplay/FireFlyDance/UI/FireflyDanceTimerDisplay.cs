@@ -32,7 +32,9 @@ namespace Gameplay.FireFlyDance.UI
         private FireflyDanceConfig config;
         private float totalGameTime = 60f;
         private float currentTime = 0f;
+        #pragma warning disable CS0414
         private bool isInitialized = false;
+        #pragma warning restore CS0414
         private bool isGameActive = false;
         private Coroutine pulseCoroutine;
 

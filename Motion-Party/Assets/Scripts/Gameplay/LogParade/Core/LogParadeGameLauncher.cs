@@ -397,7 +397,9 @@ public class LogParadeGameLauncher : MonoBehaviour
     public void DebugForceLaunchGame()
     {
         LogParadeLogger.LogWarning(" DEBUG: Forçage du lancement du jeu (bypass calibration)");
+        #pragma warning disable CS0618
         LogParadeGameStateController.ForceEnableGameplay();
+        #pragma warning restore CS0618
         LaunchFullGame();
     }
 

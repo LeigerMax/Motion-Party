@@ -30,16 +30,47 @@ public class GameSessionManager : MonoBehaviour
         if (currentGameIndex >= miniGames.Count)
         {
             Debug.Log("Tous les mini-jeux sont terminés !");
-            // Retourner au menu principal quand la session est terminée
-            ReturnToMainMenu();
+            // Utiliser l'écran de chargement pour le retour au menu
+            if (LoadingScreenManager.Instance != null)
+            {
+                LoadingScreenManager.Instance.ShowAndLoadScene(mainMenuSceneName, "session_complete", null);
+            }
+            else
+            {
+                ReturnToMainMenu();
+            }
             yield break;
         }
 
-        string sceneName = miniGames[currentGameIndex].sceneName;
+        var currentMiniGame = miniGames[currentGameIndex];
+        string sceneName = currentMiniGame.sceneName;
+        string tipId = !string.IsNullOrEmpty(currentMiniGame.loadingTipId) 
+            ? currentMiniGame.loadingTipId 
+            : "default";
 
         Debug.Log($"Chargement de la scène du mini-jeu : {sceneName}");
-        var loadOp = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Single);
-        yield return loadOp;
+        
+        // Utiliser l'écran de chargement si disponible
+        if (LoadingScreenManager.Instance != null)
+        {
+            bool sceneLoaded = false;
+            
+            // Afficher l'écran de chargement et charger la scène
+            LoadingScreenManager.Instance.ShowAndLoadScene(sceneName, tipId, () =>
+            {
+                sceneLoaded = true;
+            });
+            
+            // Attendre que la scène soit chargée
+            yield return new WaitUntil(() => sceneLoaded);
+        }
+        else
+        {
+            // Fallback : chargement classique sans écran de chargement
+            Debug.LogWarning("LoadingScreenManager non disponible, chargement classique");
+            var loadOp = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Single);
+            yield return loadOp;
+        }
 
         yield return null; // attendre une frame que tout soit bien initialisé
 
@@ -71,7 +102,24 @@ public class GameSessionManager : MonoBehaviour
     private IEnumerator LoadMainMenuScene()
     {
         Debug.Log($"Retour au menu principal : {mainMenuSceneName}");
-        var loadOp = SceneManager.LoadSceneAsync(mainMenuSceneName, LoadSceneMode.Single);
-        yield return loadOp;
+        
+        // Utiliser l'écran de chargement pour le retour au menu aussi
+        if (LoadingScreenManager.Instance != null)
+        {
+            bool sceneLoaded = false;
+            
+            LoadingScreenManager.Instance.ShowAndLoadScene(mainMenuSceneName, "menu_return", () =>
+            {
+                sceneLoaded = true;
+            });
+            
+            yield return new WaitUntil(() => sceneLoaded);
+        }
+        else
+        {
+            // Fallback : chargement classique
+            var loadOp = SceneManager.LoadSceneAsync(mainMenuSceneName, LoadSceneMode.Single);
+            yield return loadOp;
+        }
     }
 }

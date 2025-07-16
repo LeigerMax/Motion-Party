@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEditor;
 using Systems;
+using System;
 
 namespace Gameplay.FireFlyDance.Analytics.Editor
 {
@@ -194,9 +195,17 @@ namespace Gameplay.FireFlyDance.Analytics.Editor
         {
             var session = new SessionData();
             session.playerName = name;
-            session.playerBirthDate = birthDate;
-            session.playerAge = session.CalculatePlayerAge();
-            session.ageGroup = session.DetermineAgeGroup(session.playerAge);
+            
+            // Parser la date de naissance string en DateTime
+            if (DateTime.TryParseExact(birthDate, "yyyy-MM-dd", null, 
+                System.Globalization.DateTimeStyles.None, out DateTime parsedBirthDate))
+            {
+                session.playerBirthDate = parsedBirthDate;
+            }
+            
+            // Calculer l'âge et le groupe d'âge
+            session.CalculatePlayerAge();
+            
             session.totalDuration = 120f;
             session.totalFireflies = total;
             session.capturedFireflies = captured;

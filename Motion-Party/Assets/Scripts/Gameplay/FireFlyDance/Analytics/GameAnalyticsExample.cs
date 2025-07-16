@@ -1,6 +1,7 @@
 using UnityEngine;
 using Gameplay.FireFlyDance.Analytics;
 using System.Collections.Generic;
+using System;
 
 namespace Gameplay.FireFlyDance.Examples
 {
@@ -263,9 +264,14 @@ namespace Gameplay.FireFlyDance.Examples
         {
             var session = new SessionData();
             session.playerName = playerName;
-            session.playerBirthDate = birthDate;
-            session.playerAge = session.CalculatePlayerAge();
-            session.ageGroup = session.DetermineAgeGroup(session.playerAge);
+            
+            // Parser la date de naissance
+            if (DateTime.TryParse(birthDate, out DateTime parsedBirthDate))
+            {
+                session.playerBirthDate = parsedBirthDate;
+            }
+            
+            session.CalculatePlayerAge();
             
             // Données de base
             session.totalDuration = 120f;

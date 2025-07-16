@@ -83,7 +83,7 @@ namespace Gameplay.FireFlyDance.Analytics
         /// <summary>
         /// Détermine le groupe d'âge basé sur l'âge
         /// </summary>
-        private string DetermineAgeGroup(int age)
+        public string DetermineAgeGroup(int age)
         {
             if (age < 18) return "Mineur";
             if (age < 25) return "Jeune Adulte";

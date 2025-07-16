@@ -25,7 +25,9 @@ namespace Gameplay.FireFlyDance.UI
         
         // État interne
         private int currentScore = 0;
+        #pragma warning disable CS0414
         private bool isInitialized = false;
+        #pragma warning restore CS0414
 
         #endregion
 

@@ -322,14 +322,19 @@ namespace Gameplay.FireFlyDance.Analytics
             {
                 var currentPlayer = gamePlayerSelector.CurrentPlayer;
                 currentSession.playerName = currentPlayer.Nickname;
-                currentSession.playerBirthDate = currentPlayer.BirthDate;
                 
-                // Calculer l'âge si la date de naissance est disponible
+                // Parser la date de naissance string en DateTime
                 if (!string.IsNullOrEmpty(currentPlayer.BirthDate))
                 {
-                    currentSession.playerAge = currentPlayer.CalculateAge();
-                    currentSession.ageGroup = currentSession.DetermineAgeGroup(currentSession.playerAge);
+                    if (DateTime.TryParseExact(currentPlayer.BirthDate, "yyyy-MM-dd", null, 
+                        System.Globalization.DateTimeStyles.None, out DateTime parsedBirthDate))
+                    {
+                        currentSession.playerBirthDate = parsedBirthDate;
+                    }
                 }
+                
+                // Calculer l'âge et le groupe d'âge
+                currentSession.CalculatePlayerAge();
                 
                 FireflyDanceLogger.Log($"Informations joueur récupérées: {currentPlayer.Nickname}, âge: {currentSession.playerAge}");
             }

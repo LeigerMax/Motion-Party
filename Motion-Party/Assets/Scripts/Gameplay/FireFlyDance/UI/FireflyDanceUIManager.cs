@@ -26,7 +26,9 @@ namespace Gameplay.FireFlyDance.UI
         
         [Header("Configuration")]
         [SerializeField] private FireflyDanceConfig config;
+        #pragma warning disable CS0414
         [SerializeField] private bool hideUIOnStart = false;
+        #pragma warning restore CS0414
         
         [Header("UI Panels Control")]
         [SerializeField] private bool showScorePanel = true;

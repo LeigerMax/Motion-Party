@@ -120,9 +120,9 @@ namespace Gameplay.FireFlyDance.Analytics
             if (session.playerAge > 0)
             {
                 report += $"Âge: {session.playerAge} ans ({session.ageGroup})\n";
-                if (!string.IsNullOrEmpty(session.playerBirthDate))
+                if (session.playerBirthDate != default(DateTime))
                 {
-                    report += $"Date naissance: {session.playerBirthDate}\n";
+                    report += $"Date naissance: {session.playerBirthDate:yyyy-MM-dd}\n";
                 }
             }
             

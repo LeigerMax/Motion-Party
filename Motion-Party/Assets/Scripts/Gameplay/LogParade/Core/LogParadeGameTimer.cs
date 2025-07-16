@@ -31,7 +31,9 @@ public class LogParadeGameTimer : MiniGameBase
     public UnityEvent<float> OnTimerTick = new UnityEvent<float>();
     [Header("Debug")]
     [Tooltip("Afficher les logs de debug dans la console")]
+    #pragma warning disable CS0414
     [SerializeField] private bool enableDebugLogs = true;
+    #pragma warning restore CS0414
     // État du jeu
     private bool gameStarted = false;
     private bool gameEnded = false;

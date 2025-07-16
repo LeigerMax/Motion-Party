@@ -61,7 +61,9 @@ namespace Gameplay.FireFlyDance.Core
         public Gameplay.FireFlyDance.Analytics.GameStatsRecorder gameStatsRecorder;
 
         // État interne
+        #pragma warning disable CS0414
         private bool isInitialized = false;
+        #pragma warning restore CS0414
         private bool isGameActive = false;
         private bool isLaunchedViaMiniGameBase = false; // Nouveau flag pour contrôler l'initialisation
         

@@ -17,7 +17,9 @@ public class DebugPanel_Calibration : BaseDebugPanel
     // Données en cache
     private bool isCalibrated = false;
     private bool isCalibrating = false;
+    #pragma warning disable CS0414
     private int calibrationProgress = 0;
+    #pragma warning restore CS0414
     private bool calibrationRequired = true;
     private float calibrationTime = 0f;
 #endregion
