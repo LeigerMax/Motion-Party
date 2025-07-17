@@ -42,11 +42,6 @@ namespace UI.PlayerManagement
         [SerializeField] private Button addPlayerButton;
         [SerializeField] private Button backButton;
 
-        [Header("Search & Filter")]
-        [SerializeField] private TMP_InputField searchInput;
-        [SerializeField] private TMP_Dropdown teamFilterDropdown;
-        [SerializeField] private Button clearFiltersButton;
-
         [Header("Configuration")]
         [SerializeField] private bool debugMode = false;
 
@@ -54,8 +49,6 @@ namespace UI.PlayerManagement
         private List<PlayerData> displayedPlayers = new List<PlayerData>();
         private List<PlayerManagementItem> playerItems = new List<PlayerManagementItem>();
         private PlayerData currentEditingPlayer = null;
-        private string searchTerm = "";
-        private string selectedTeamFilter = "";
 
         private void Start()
         {
@@ -89,16 +82,6 @@ namespace UI.PlayerManagement
             
             if (deletePlayerButton != null)
                 deletePlayerButton.onClick.AddListener(OnDeletePlayer);
-
-            // Recherche et filtres
-            if (searchInput != null)
-                searchInput.onValueChanged.AddListener(OnSearchChanged);
-            
-            if (teamFilterDropdown != null)
-                teamFilterDropdown.onValueChanged.AddListener(OnTeamFilterChanged);
-            
-            if (clearFiltersButton != null)
-                clearFiltersButton.onClick.AddListener(OnClearFilters);
 
             // Validation en temps réel
             if (createNicknameInput != null)
@@ -369,40 +352,9 @@ namespace UI.PlayerManagement
         {
             // Récupérer tous les joueurs
             var allPlayers = PlayerProfileManager.Instance.GetAllPlayers();
-
-            // Appliquer les filtres
-            displayedPlayers = FilterPlayers(allPlayers);
-
-            // Créer les éléments UI
+            displayedPlayers = new List<PlayerData>(allPlayers);
             CreatePlayerItems();
-
-            // Mettre à jour le compteur
             UpdatePlayerCount();
-        }
-
-        /// <summary>
-        /// Filtre les joueurs selon les critères
-        /// </summary>
-        private List<PlayerData> FilterPlayers(List<PlayerData> players)
-        {
-            var filtered = new List<PlayerData>(players);
-
-            // Filtre par recherche
-            if (!string.IsNullOrEmpty(searchTerm))
-            {
-                filtered = filtered.FindAll(p => 
-                    p.Nickname.ToLower().Contains(searchTerm.ToLower()) ||
-                    p.TeamName.ToLower().Contains(searchTerm.ToLower())
-                );
-            }
-
-            // Filtre par équipe
-            if (!string.IsNullOrEmpty(selectedTeamFilter))
-            {
-                filtered = filtered.FindAll(p => p.TeamName == selectedTeamFilter);
-            }
-
-            return filtered;
         }
 
         /// <summary>
@@ -466,48 +418,6 @@ namespace UI.PlayerManagement
 
         #endregion
 
-        #region Search & Filter
-
-        /// <summary>
-        /// Callback de changement de recherche
-        /// </summary>
-        private void OnSearchChanged(string newSearchTerm)
-        {
-            searchTerm = newSearchTerm;
-            RefreshPlayerList();
-        }
-
-        /// <summary>
-        /// Callback de changement de filtre d'équipe
-        /// </summary>
-        private void OnTeamFilterChanged(int index)
-        {
-            if (teamFilterDropdown != null && index >= 0 && index < teamFilterDropdown.options.Count)
-            {
-                selectedTeamFilter = index == 0 ? "" : teamFilterDropdown.options[index].text;
-                RefreshPlayerList();
-            }
-        }
-
-        /// <summary>
-        /// Efface tous les filtres
-        /// </summary>
-        private void OnClearFilters()
-        {
-            searchTerm = "";
-            selectedTeamFilter = "";
-
-            if (searchInput != null)
-                searchInput.text = "";
-            
-            if (teamFilterDropdown != null)
-                teamFilterDropdown.value = 0;
-
-            RefreshPlayerList();
-        }
-
-        #endregion
-
         #region Team Dropdown Management
 
         /// <summary>
@@ -516,10 +426,8 @@ namespace UI.PlayerManagement
         private void RefreshTeamDropdowns()
         {
             var teamNames = PlayerProfileManager.Instance.GetTeamNames();
-            
             RefreshTeamDropdown(createTeamDropdown, teamNames);
             RefreshTeamDropdown(editTeamDropdown, teamNames);
-            RefreshTeamFilterDropdown(teamNames);
         }
 
         /// <summary>
@@ -542,28 +450,6 @@ namespace UI.PlayerManagement
             }
 
             dropdown.AddOptions(options);
-        }
-
-        /// <summary>
-        /// Rafraîchit le dropdown de filtre d'équipe
-        /// </summary>
-        private void RefreshTeamFilterDropdown(List<string> teamNames)
-        {
-            if (teamFilterDropdown == null) return;
-
-            teamFilterDropdown.ClearOptions();
-            var options = new List<TMP_Dropdown.OptionData>();
-            
-            // Option "Toutes les équipes"
-            options.Add(new TMP_Dropdown.OptionData("Toutes les équipes"));
-            
-            // Ajouter les équipes existantes
-            foreach (string teamName in teamNames)
-            {
-                options.Add(new TMP_Dropdown.OptionData(teamName));
-            }
-
-            teamFilterDropdown.AddOptions(options);
         }
 
         #endregion

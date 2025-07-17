@@ -12,10 +12,7 @@ namespace UI.PlayerSelection
     {
         [Header("UI References")]
         [SerializeField] private TextMeshProUGUI nicknameText;
-        [SerializeField] private TextMeshProUGUI teamText;
-        [SerializeField] private TextMeshProUGUI statsText;
         [SerializeField] private Toggle selectionToggle;
-        [SerializeField] private Image avatarImage;
         [SerializeField] private Image backgroundImage;
 
         [Header("Visual Configuration")]
@@ -93,18 +90,6 @@ namespace UI.PlayerSelection
             if (nicknameText != null)
             {
                 nicknameText.text = playerData.Nickname;
-            }
-
-            // Équipe
-            if (teamText != null)
-            {
-                teamText.text = string.IsNullOrEmpty(playerData.TeamName) ? "Aucune équipe" : playerData.TeamName;
-            }
-
-            // Statistiques
-            if (statsText != null)
-            {
-                statsText.text = $"Parties: {playerData.GamesPlayed} | Score: {playerData.TotalScore}";
             }
 
             // Couleur de fond
