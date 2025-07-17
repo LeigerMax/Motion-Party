@@ -10,7 +10,7 @@ public class LoadingScreenManager : MonoBehaviour
     [SerializeField] private LoadingScreenUI loadingUI;
     
     [Header("Durée minimale d'affichage")]
-    [SerializeField] private float minDisplayTime = 1.5f;
+    [SerializeField] private float minDisplayTime = 5f;
     
     // Singleton
     private static LoadingScreenManager _instance;
@@ -95,7 +95,7 @@ public class LoadingScreenManager : MonoBehaviour
     /// <param name="sceneName">Nom de la scène à charger</param>
     /// <param name="tipId">ID de l'astuce à afficher</param>
     /// <param name="onSceneLoaded">Callback appelé quand la scène est chargée</param>
-    public void ShowAndLoadScene(string sceneName, string tipId = "", Action onSceneLoaded = null)
+    public void ShowAndLoadScene(string sceneName, string tipId = "", Action onSceneLoaded = null, string title = null, string description = null)
     {
         if (string.IsNullOrEmpty(sceneName))
         {
@@ -103,14 +103,15 @@ public class LoadingScreenManager : MonoBehaviour
             return;
         }
         
-        StartCoroutine(LoadSceneWithLoadingScreen(sceneName, tipId, onSceneLoaded));
+        // Ajout des paramètres optionnels title et description
+        StartCoroutine(LoadSceneWithLoadingScreen(sceneName, tipId, onSceneLoaded, title, description));
     }
     
     /// <summary>
     /// Affiche simplement l'écran de chargement
     /// </summary>
     /// <param name="tipId">ID de l'astuce à afficher</param>
-    public void Show(string tipId = "")
+    public void Show(string tipId = "", string title = null, string description = null)
     {
         if (loadingUI == null || loadingData == null)
         {
@@ -119,7 +120,7 @@ public class LoadingScreenManager : MonoBehaviour
         }
         
         var tipData = loadingData.GetTip(tipId);
-        loadingUI.Show(tipData);
+        loadingUI.Show(tipData, title, description);
     }
     
     /// <summary>
@@ -143,12 +144,12 @@ public class LoadingScreenManager : MonoBehaviour
     /// <summary>
     /// Coroutine principale pour charger une scène avec écran de chargement
     /// </summary>
-    private IEnumerator LoadSceneWithLoadingScreen(string sceneName, string tipId, Action onSceneLoaded)
+    private IEnumerator LoadSceneWithLoadingScreen(string sceneName, string tipId, Action onSceneLoaded, string title = null, string description = null)
     {
         float startTime = Time.unscaledTime;
         
-        // Afficher l'écran de chargement
-        Show(tipId);
+        // Afficher l'écran de chargement avec titre et description
+        Show(tipId, title, description);
         
         // Attendre une frame pour que l'UI s'affiche
         yield return null;

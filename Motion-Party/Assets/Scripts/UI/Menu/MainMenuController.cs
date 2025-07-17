@@ -36,6 +36,9 @@ namespace UI.Menu
         [Header("Player Selection")]
         [SerializeField] private UI.PlayerSelection.PlayerSelectionUI playerSelectionUI;
 
+        [Header("Loading Screen")]
+        [SerializeField] private LoadingScreenUI loadingScreenUI;
+
         private void Start()
         {
             InitializeButtons();
@@ -85,9 +88,12 @@ namespace UI.Menu
         /// <summary>
         /// Affiche le menu principal (MainMenuPanel actif + MainMenuCamera si configurée)
         /// </summary>
-        public void ShowMainMenu()
+        public void ShowMainMenu() 
         {
-
+            // Désactiver le loading screen
+            if (loadingScreenUI != null)
+                loadingScreenUI.DisableLoadingScreen();
+    
             // Gestion des panneaux UI
             if (mainMenuPanel != null)
                 mainMenuPanel.SetActive(true);
@@ -135,6 +141,10 @@ namespace UI.Menu
         /// </summary>
         public void ShowGameSelection()
         {
+            // Activer le loading screen
+            if (loadingScreenUI != null)
+                loadingScreenUI.EnableLoadingScreen();
+  
             // Gestion des panneaux UI
             if (mainMenuPanel != null)
                 mainMenuPanel.SetActive(false);

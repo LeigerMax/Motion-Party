@@ -5,6 +5,7 @@ using TMPro;
 
 public class LoadingScreenUI : MonoBehaviour
 {
+
     [Header("Composants UI")]
     [SerializeField] private Canvas loadingCanvas;
     [SerializeField] private CanvasGroup canvasGroup;
@@ -38,22 +39,26 @@ public class LoadingScreenUI : MonoBehaviour
     /// <summary>
     /// Affiche l'écran de chargement avec les données spécifiées
     /// </summary>
-    public void Show(LoadingScreenData.LoadingTip tipData)
+    public void Show(LoadingScreenData.LoadingTip tipData, string title = null, string description = null)
     {
+    
+        // Permettre les interactions uniquement pendant l'affichage
+        if (canvasGroup != null)
+            canvasGroup.blocksRaycasts = true;
         if (isShowing) return;
-        
+
         isShowing = true;
-        
+
         // Configurer l'interface
-        SetupUI(tipData);
-        
+        SetupUI(tipData, title, description);
+
         // Activer le canvas
         if (loadingCanvas != null)
             loadingCanvas.enabled = true;
-        
+
         // Démarrer l'animation d'apparition
         StartCoroutine(FadeIn());
-        
+
         // Démarrer l'animation de chargement
         StartLoadingAnimation();
     }
@@ -63,10 +68,14 @@ public class LoadingScreenUI : MonoBehaviour
     /// </summary>
     public void Hide()
     {
+        // Désactiver les interactions UI quand le loading screen est caché
+        if (canvasGroup != null)
+            canvasGroup.blocksRaycasts = false;
         if (!isShowing) return;
-        
+
         StartCoroutine(FadeOut());
     }
+    
     
     /// <summary>
     /// Met à jour la progression du chargement
@@ -83,12 +92,18 @@ public class LoadingScreenUI : MonoBehaviour
     /// <summary>
     /// Configure l'interface utilisateur avec les données d'astuce
     /// </summary>
-    private void SetupUI(LoadingScreenData.LoadingTip tipData)
+    private void SetupUI(LoadingScreenData.LoadingTip tipData, string title = null, string description = null)
     {
         // Configurer le texte d'astuce
         if (tipText != null)
+        {
             tipText.text = tipData.tipText;
-        
+            // Ajout du titre et de la description si fournis
+            if (!string.IsNullOrEmpty(title))
+                tipText.text = $"<b>{title}</b>\n" + tipText.text;
+            if (!string.IsNullOrEmpty(description))
+                tipText.text += $"\n<size=80%>{description}</size>";
+        }
         // Configurer l'image de prévisualisation
         if (gamePreviewImage != null)
         {
@@ -102,11 +117,9 @@ public class LoadingScreenUI : MonoBehaviour
                 gamePreviewImage.gameObject.SetActive(false);
             }
         }
-        
         // Configurer l'arrière-plan
         if (backgroundImage != null)
             backgroundImage.color = tipData.backgroundColor;
-        
         // Réinitialiser la barre de progression
         if (progressBar != null)
             progressBar.value = 0f;
@@ -205,5 +218,21 @@ public class LoadingScreenUI : MonoBehaviour
             iconTransform.Rotate(0f, 0f, -loadingIconRotationSpeed * Time.unscaledDeltaTime);
             yield return null;
         }
+    }
+
+    /// <summary>
+    /// Active l'objet LoadingScreenUI
+    /// </summary>
+    public void EnableLoadingScreen()
+    {
+        gameObject.SetActive(true);
+    }
+
+    /// <summary>
+    /// Désactive l'objet LoadingScreenUI
+    /// </summary>
+    public void DisableLoadingScreen()
+    {
+        gameObject.SetActive(false);
     }
 }

@@ -53,14 +53,19 @@ public class GameSessionManager : MonoBehaviour
         // Utiliser l'écran de chargement si disponible
         if (LoadingScreenManager.Instance != null)
         {
+            Debug.Log("Utilisation de LoadingScreenManager pour charger la scène");
+
             bool sceneLoaded = false;
-            
-            // Afficher l'écran de chargement et charger la scène
-            LoadingScreenManager.Instance.ShowAndLoadScene(sceneName, tipId, () =>
-            {
-                sceneLoaded = true;
-            });
-            
+
+            // Afficher l'écran de chargement et charger la scène avec titre et description
+            LoadingScreenManager.Instance.ShowAndLoadScene(
+                sceneName,
+                tipId,
+                () => { sceneLoaded = true; },
+                currentMiniGame.displayName,
+                currentMiniGame.description
+            );
+
             // Attendre que la scène soit chargée
             yield return new WaitUntil(() => sceneLoaded);
         }
