@@ -119,56 +119,6 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &25214156
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 25214157}
-  - component: {fileID: 25214158}
-  m_Layer: 0
-  m_Name: LogParadeGameManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &25214157
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 25214156}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 359846799}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &25214158
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 25214156}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e6d0ae82bc2fc3c40873e7c3e8abfa76, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  gameController: {fileID: 1390725573}
-  gameLauncher: {fileID: 2032317001}
-  roundEndScreenManager: {fileID: 1803186969}
-  enableDebugMode: 1
-  enablePlayerSystem: 1
-  delayBetweenPlayers: 3
 --- !u!1 &33160119
 GameObject:
   m_ObjectHideFlags: 0
@@ -561,6 +511,11 @@ MonoBehaviour:
   height: 350
   refreshRate: 0.1
   useBoxStyle: 1
+  gameController: {fileID: 0}
+  gameTimer: {fileID: 0}
+  PlayerLogCollisionChecker: {fileID: 0}
+  lateralTracker: {fileID: 0}
+  autoFindComponents: 1
 --- !u!1001 &279380835
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -895,7 +850,6 @@ Transform:
   - {fileID: 1390725574}
   - {fileID: 257551261}
   - {fileID: 1920978845}
-  - {fileID: 25214157}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &392985772
@@ -2867,18 +2821,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0022012b19c24cc4790c291977389ce6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameManager: {fileID: 25214158}
+  udpReceive: {fileID: 1390725572}
+  uiManager: {fileID: 1908275072}
+  lateralTracker: {fileID: 1591830348}
+  playerAvatar: {fileID: 1543242584}
   scoreManager: {fileID: 257551260}
-  timer: {fileID: 1390725575}
-  logGenerator: {fileID: 1689009126}
-  player: {fileID: 1543242584}
+  startDelay: 1
   enableDebugMode: 1
-  OnGameStarted:
-    m_PersistentCalls:
-      m_Calls: []
-  OnGameOver:
-    m_PersistentCalls:
-      m_Calls: []
+  laneMarkers:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  laneMaterials:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
 --- !u!4 &1390725574
 Transform:
   m_ObjectHideFlags: 0
@@ -2907,13 +2866,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8996c4b7330288e44a865b0e2d559c88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameDuration: 60
-  startOnAwake: 0
-  countDown: 1
-  timerText: {fileID: 0}
-  OnTimeUp:
+  gameDurationInSeconds: 60
+  startDelay: 2
+  scoreManager: {fileID: 0}
+  logGenerator: {fileID: 0}
+  gameController: {fileID: 0}
+  OnGameStart:
     m_PersistentCalls:
       m_Calls: []
+  OnGameEnd:
+    m_PersistentCalls:
+      m_Calls: []
+  OnTimerTick:
+    m_PersistentCalls:
+      m_Calls: []
+  enableDebugLogs: 1
 --- !u!114 &1390725576
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3292,10 +3259,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26f619cf91544f343bb6722c416df167, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  startPosition: {x: 0, y: 1, z: 0}
-  laneWidth: 2
-  defaultLane: 2
   moveSpeed: 5
+  laneWidth: 2
+  basePosition: {x: 0, y: 0, z: 0}
+  enableSmoothMovement: 1
   movementCurve:
     serializedVersion: 2
     m_Curve:
@@ -3320,8 +3287,10 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  enableSmoothMovement: 1
-  enableDebugLogs: 1
+  avatarModel: {fileID: 1131963552}
+  rotateTowardsMovement: 1
+  rotationSpeed: 10
+  laneChangeEffects: []
 --- !u!4 &1543242585
 Transform:
   m_ObjectHideFlags: 0
@@ -4061,17 +4030,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 736562e8f914acf4fb275b6d32d0e0f0, type: 3}
---- !u!114 &1803186969 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 8931713910370359031, guid: 736562e8f914acf4fb275b6d32d0e0f0, type: 3}
-  m_PrefabInstance: {fileID: 1803186968}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 43cebfa2150c1164cbf5b1d2be6ac57d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1880647018
 GameObject:
   m_ObjectHideFlags: 0
@@ -4410,15 +4368,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6e0e837755421e342a2ff1ff27ed5c62, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  scoreText: {fileID: 0}
-  timerText: {fileID: 0}
-  statusText: {fileID: 0}
-  gameOverPanel: {fileID: 0}
-  pausePanel: {fileID: 0}
+  currentLaneText: {fileID: 0}
+  positionText: {fileID: 0}
+  gameStatusText: {fileID: 0}
+  debugInfoText: {fileID: 0}
   calibrationPanel: {fileID: 0}
   calibrationProgressSlider: {fileID: 0}
   calibrationText: {fileID: 705855966}
-  enableDebugLogs: 0
+  debugPanel: {fileID: 0}
+  debugToggle: {fileID: 0}
 --- !u!114 &1908275073
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4589,7 +4547,6 @@ MonoBehaviour:
   logGenerator: {fileID: 1689009126}
   scoreManager: {fileID: 257551260}
   uiManager: {fileID: 1908275072}
-  gameManager: {fileID: 25214158}
   delayAfterCalibration: 1.5
   autoFindComponents: 1
   enableDetailedLogs: 1
