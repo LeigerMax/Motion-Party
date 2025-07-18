@@ -132,11 +132,22 @@ public class NoteInputManager : MonoBehaviour
         Debug.Log("Entrées utilisateur réinitialisées.");
     }
 
+
     public void PrepareExpectedSequence(List<int> sequence)
     {
         userInputs.Clear();
         currentNoteIndex = 0;
         generatedListNotes = new List<int>(sequence);
+    }
+
+    /// <summary>
+    /// Retourne le score du joueur pour la manche en cours (nombre de notes validées)
+    /// </summary>
+    public int GetScore()
+    {
+        // Ici, on considère le score comme le nombre de notes correctement validées
+        // (peut être adapté selon la logique de scoring souhaitée)
+        return userInputs.Count;
     }
 
     

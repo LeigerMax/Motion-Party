@@ -9,6 +9,7 @@ TagManager:
   - TargetCube
   - Log
   - Lane
+  - MiniGame
   layers:
   - Default
   - TransparentFX

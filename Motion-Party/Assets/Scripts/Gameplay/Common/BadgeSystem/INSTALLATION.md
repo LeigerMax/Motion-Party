@@ -416,3 +416,16 @@ GlobalPlayerBadgeStorage.Instance.ClearAllBadgeData();
 Le système de badges global est maintenant prêt à être utilisé dans tous vos mini-jeux Motion-Party.
 
 Pour utiliser le système, consultez le fichier `README.md` principal pour les exemples d'utilisation détaillés.
+
+## Peut-on obtenir plusieurs fois le même badge ?
+
+Par conception, **un utilisateur ne peut obtenir qu'une seule fois chaque badge**.  
+Lorsque la méthode `TryEarnBadge` est appelée, le système vérifie si le badge a déjà été attribué au joueur :  
+- Si le badge est déjà présent dans le stockage du joueur, il ne sera pas réattribué.
+- Les méthodes comme `ForceEarnBadge` permettent d’attribuer le badge même si les conditions ne sont pas réunies, mais toujours une seule fois par badge et par joueur.
+
+Le système stocke les badges de chaque joueur de façon unique :  
+- Un badge donné (par son ID et son jeu) ne peut pas être cumulé ou obtenu plusieurs fois.
+- Les événements de tracking (score, actions, etc.) servent à valider l’obtention, mais pas à cumuler le badge.
+
+**Exception :** Si vous souhaitez gérer des badges cumulables (ex : niveaux, rangs), il faut créer des badges distincts avec des IDs différents pour chaque niveau.

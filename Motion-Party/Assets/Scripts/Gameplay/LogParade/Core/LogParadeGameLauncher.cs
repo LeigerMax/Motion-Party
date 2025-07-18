@@ -1,407 +1,430 @@
 using UnityEngine;
 using System.Collections;
+using Gameplay.LogParade.Core;
+using Gameplay.LogParade.Utils;
+using Gameplay.LogParade.Calibration;
+using Gameplay.LogParade.UI;
+using Gameplay.LogParade.Systems;
+using Gameplay.LogParade.Score;
+using Gameplay.LogParade.Logs;
 
-#region Description
-/// <summary>
-/// Gestionnaire centralisé pour coordonner le démarrage de tous les systèmes LogParade
-/// après la calibration. Assure le bon ordre d'initialisation et le démarrage synchronisé.
-/// Utilise LogParadeGameStateController pour la gestion d'état centralisée.
-/// </summary>
-#endregion
-public class LogParadeGameLauncher : MonoBehaviour
+namespace Gameplay.LogParade.Core
 {
-    #region Champs & Références
-    [Header("Références des Systèmes")]
-    [SerializeField] private LogParadeGameController gameController;
-    [SerializeField] private LogParadeGameTimer gameTimer;
-    [SerializeField] private LogParadeLogGenerator logGenerator;
-    [SerializeField] private LogParadeScoreManager scoreManager;
-    [SerializeField] private LogParadeUIManager uiManager;
-    [Header("Paramètres")]
-    [SerializeField] private float delayAfterCalibration = 1.5f;
-    [SerializeField] private bool autoFindComponents = true;
-    [SerializeField] private bool enableDetailedLogs = true;
-    [SerializeField] private bool autoStartCalibrationOnStart = true;
-    // État
-    private bool isLaunching = false;
-    // Événements
-    public System.Action OnGameLaunchStarted;
-    public System.Action OnGameLaunchCompleted;
-    public System.Action OnGameLaunchFailed;
+    #region Description
+    /// <summary>
+    /// Gestionnaire centralisé pour coordonner le démarrage de tous les systèmes LogParade
+    /// après la calibration. Assure le bon ordre d'initialisation et le démarrage synchronisé.
+    /// Utilise LogParadeGameStateController pour la gestion d'état centralisée.
+    /// </summary>
     #endregion
+    public class LogParadeGameLauncher : MonoBehaviour
+    {
+        #region Champs & Références
+        [Header("Références des Systèmes")]
+        [SerializeField] private LogParadeGameController gameController;
+        [SerializeField] private LogParadeGameTimer gameTimer;
+        [SerializeField] private LogParadeLogGenerator logGenerator;
+        [SerializeField] private LogParadeScoreManager scoreManager;
+        [SerializeField] private LogParadeUIManager uiManager;
+        [SerializeField] private LogParadeGameManager gameManager;
+        [Header("Paramètres")]
+        [SerializeField] private float delayAfterCalibration = 1.5f;
+        [SerializeField] private bool autoFindComponents = true;
+        [SerializeField] private bool enableDetailedLogs = true;
+        [SerializeField] private bool autoStartCalibrationOnStart = true;
+        // État
+        private bool isLaunching = false;
+        // Événements
+        public System.Action OnGameLaunchStarted;
+        public System.Action OnGameLaunchCompleted;
+        public System.Action OnGameLaunchFailed;
+        #endregion
 
-    #region Initialisation
-    void Awake()
-    {
-        if (autoFindComponents)
+        #region Initialisation
+        void Awake()
         {
-            AutoFindComponents();
-        }
-    }
-    void Start()
-    {
-        if (autoStartCalibrationOnStart)
-        {
-            StartCoroutine(AutoStartCalibrationCoroutine());
-        }
-    }
-    #endregion
-
-    #region Lancement Calibration & Jeu
-    private IEnumerator AutoStartCalibrationCoroutine()
-    {
-        yield return new WaitForSeconds(2f);
-        if (!LogParadeGameStateController.IsGameStarted && !LogParadeGameStateController.IsCalibrationInProgress)
-        {
-            LogStatus("Lancement automatique de la calibration via StartCalibrationProcess()");
-            StartCalibrationProcess();
-        }
-        else
-        {
-            LogStatus($"Démarrage automatique annulé - État: {LogParadeGameStateController.GetCurrentStatusText()}");
-        }
-    }
-    public void ForceStartCalibrationNow()
-    {
-        StopAllCoroutines();
-        if (LogParadeGameStateController.IsGameStarted)
-        {
-            LogStatus("Reset du jeu en cours...");
-            LogParadeGameStateController.ResetGameState();
-            isLaunching = false;
-        }
-        StartCalibrationProcess();
-    }
-    public void StartCalibrationProcess()
-    {
-        if (LogParadeGameStateController.IsGameStarted)
-        {
-            LogWarning("Jeu déjà démarré - redémarrage nécessaire pour recalibrer");
-            RestartGame();
-            return;
-        }
-        var calibrationManager = FindFirstObjectByType<LogParadeCalibrationManager>();
-        if (calibrationManager != null)
-        {
-            LogStatus(" CalibrationManager trouvé, démarrage de la calibration");
-            calibrationManager.StartCalibrationProcess();
-        }
-        else
-        {
-            LogError(" CalibrationManager introuvable - impossible de démarrer la calibration");
-        }
-    }
-    public void LaunchFullGame()
-    {
-        if (!LogParadeGameStateController.CanStartGameplay())
-        {
-            LogWarning($"Impossible de démarrer - État: {LogParadeGameStateController.GetCurrentStatusText()}");
-            return;
-        }
-        if (isLaunching)
-        {
-            LogWarning("Lancement déjà en cours");
-            return;
-        }
-        if (LogParadeGameStateController.IsGameStarted)
-        {
-            LogWarning("Jeu déjà démarré");
-            return;
-        }
-        StartCoroutine(LaunchGameSequence());
-    }
-    private IEnumerator LaunchGameSequence()
-    {
-        isLaunching = true;
-        OnGameLaunchStarted?.Invoke();
-        LogParadeEventCoordinator.TriggerGameLaunchStarted();
-        LogParadeGameStateController.StartGame();
-        if (!ValidateAllComponents())
-        {
-            LogError("Validation des composants échouée");
-            HandleLaunchFailure();
-            yield break;
-        }
-        yield return new WaitForSeconds(delayAfterCalibration);
-        yield return StartCoroutine(StartAllSystems());
-        yield return StartCoroutine(FinalizeGameStart());
-        isLaunching = false;
-        OnGameLaunchCompleted?.Invoke();
-        LogParadeEventCoordinator.TriggerGameLaunchCompleted();
-    }
-    private void HandleLaunchFailure()
-    {
-        isLaunching = false;
-        OnGameLaunchFailed?.Invoke();
-        LogParadeEventCoordinator.TriggerGameLaunchFailed();
-    }
-    #endregion
-
-    #region Démarrage des Systèmes
-    private IEnumerator StartAllSystems()
-    {
-        if (gameController != null)
-        {
-            TryStartGameController();
-            yield return new WaitForSeconds(0.2f);
-        }
-        if (logGenerator != null)
-        {
-            TryStartLogGenerator();
-            yield return new WaitForSeconds(0.2f);
-        }
-        if (gameTimer != null)
-        {
-            TryStartGameTimer();
-            yield return new WaitForSeconds(0.2f);
-        }
-        if (scoreManager != null)
-        {
-            TryStartScoring();
-            yield return new WaitForSeconds(0.2f);
-        }
-
-    }
-    private IEnumerator FinalizeGameStart()
-    {
-        if (uiManager != null)
-        {
-            var initUIMethod = uiManager.GetType().GetMethod("InitializeGameUI");
-            if (initUIMethod != null)
+            if (autoFindComponents)
             {
-                try
-                {
-                    initUIMethod.Invoke(uiManager, null);
-                }
-                catch (System.Exception ex)
-                {
-                    LogWarning($"Erreur init UI: {ex.Message}");
-                }
+                AutoFindComponents();
             }
         }
-        yield return new WaitForSeconds(0.1f);
-    }
-    #endregion
+        void Start()
+        {
+            if (autoStartCalibrationOnStart)
+            {
+                StartCoroutine(AutoStartCalibrationCoroutine());
+            }
+        }
+        #endregion
 
-    #region Méthodes TryStart (Démarrage Composants)
-    private void TryStartGameController()
-    {
-        try
+        #region Lancement Calibration & Jeu
+        public IEnumerator AutoStartCalibrationCoroutine()
         {
-            var forceStartMethod = gameController.GetType().GetMethod("ForceStartGame");
-            if (forceStartMethod != null)
+            yield return new WaitForSeconds(2f);
+            if (!LogParadeGameStateController.IsGameStarted && !LogParadeGameStateController.IsCalibrationInProgress)
             {
-                forceStartMethod.Invoke(gameController, null);
-
-                return;
-            }
-            gameController.gameObject.SetActive(true);
-        }
-        catch (System.Exception ex)
-        {
-            LogError($" Erreur GameController: {ex.Message}");
-        }
-    }
-    private void TryStartLogGenerator()
-    {
-        try
-        {
-            var enableField = logGenerator.GetType().GetField("enableGeneration", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            if (enableField != null)
-            {
-                enableField.SetValue(logGenerator, true);
-            }
-            var startMethod = logGenerator.GetType().GetMethod("StartGeneration", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            if (startMethod != null)
-            {
-                startMethod.Invoke(logGenerator, null);
-                return;
-            }
-            var launchMethod = logGenerator.GetType().GetMethod("Launch");
-            if (launchMethod != null)
-            {
-                launchMethod.Invoke(logGenerator, null);
-                return;
-            }
-            logGenerator.gameObject.SetActive(true);
-        }
-        catch (System.Exception ex)
-        {
-            LogError($" Erreur LogGenerator: {ex.Message}");
-        }
-    }
-    private void TryStartGameTimer()
-    {
-        try
-        {
-            var launchLevelMethod = gameTimer.GetType().GetMethod("LaunchLevel");
-            if (launchLevelMethod != null)
-            {
-                launchLevelMethod.Invoke(gameTimer, null);
-                return;
-            }
-            var launchMethod = gameTimer.GetType().GetMethod("Launch");
-            if (launchMethod != null)
-            {
-                launchMethod.Invoke(gameTimer, null);
-                return;
-            }
-            gameTimer.gameObject.SetActive(true);
-        }
-        catch (System.Exception ex)
-        {
-            LogError($"  Erreur GameTimer: {ex.Message}");
-        }
-    }
-
-    private void TryStartScoring()
-    {
-        try
-        {
-            var startScoringMethod = scoreManager.GetType().GetMethod("StartScoring");
-            if (startScoringMethod != null)
-            {
-                startScoringMethod.Invoke(scoreManager, null);
+                LogStatus("Lancement automatique de la calibration via StartCalibrationProcess()");
+                StartCalibrationProcess();
             }
             else
             {
-                scoreManager.gameObject.SetActive(true);
+                LogStatus($"Démarrage automatique annulé - État: {LogParadeGameStateController.GetCurrentStatusText()}");
             }
         }
-        catch (System.Exception ex)
+        public void ForceStartCalibrationNow()
         {
-            LogError($" Erreur ScoreManager: {ex.Message}");
+            StopAllCoroutines();
+            if (LogParadeGameStateController.IsGameStarted)
+            {
+                LogStatus("Reset du jeu en cours...");
+                LogParadeGameStateController.ResetGameState();
+                isLaunching = false;
+            }
+            StartCalibrationProcess();
         }
-    }
-    #endregion
+        public void StartCalibrationProcess()
+        {
+            if (LogParadeGameStateController.IsGameStarted)
+            {
+                LogWarning("Jeu déjà démarré - redémarrage nécessaire pour recalibrer");
+                RestartGame();
+                return;
+            }
+            var calibrationManager = FindFirstObjectByType<LogParadeCalibrationManager>();
+            if (calibrationManager != null)
+            {
+                LogStatus(" CalibrationManager trouvé, démarrage de la calibration");
+                calibrationManager.StartCalibrationProcess();
+            }
+            else
+            {
+                LogError(" CalibrationManager introuvable - impossible de démarrer la calibration");
+            }
+        }
+        public void LaunchFullGame()
+        {
+            if (!LogParadeGameStateController.CanStartGameplay())
+            {
+                LogWarning($"Impossible de démarrer - État: {LogParadeGameStateController.GetCurrentStatusText()}");
+                return;
+            }
+            if (isLaunching)
+            {
+                LogWarning("Lancement déjà en cours");
+                return;
+            }
+            if (LogParadeGameStateController.IsGameStarted)
+            {
+                LogWarning("Jeu déjà démarré");
+                return;
+            }
+            StartCoroutine(LaunchGameSequence());
+        }
+        private IEnumerator LaunchGameSequence()
+        {
+            isLaunching = true;
+            OnGameLaunchStarted?.Invoke();
+            LogParadeEventCoordinator.TriggerGameLaunchStarted();
+            LogParadeGameStateController.StartGame();
+            if (!ValidateAllComponents())
+            {
+                LogError("Validation des composants échouée");
+                HandleLaunchFailure();
+                yield break;
+            }
+            yield return new WaitForSeconds(delayAfterCalibration);
+            yield return StartCoroutine(StartAllSystems());
+            yield return StartCoroutine(FinalizeGameStart());
+            isLaunching = false;
+            OnGameLaunchCompleted?.Invoke();
+            LogParadeEventCoordinator.TriggerGameLaunchCompleted();
+        }
+        private void HandleLaunchFailure()
+        {
+            isLaunching = false;
+            OnGameLaunchFailed?.Invoke();
+            LogParadeEventCoordinator.TriggerGameLaunchFailed();
+        }
+        #endregion
 
-    #region Validation & AutoFind
-    private bool ValidateAllComponents()
-    {
-        bool isValid = true;
-        if (gameController == null)
+        #region Démarrage des Systèmes
+        private IEnumerator StartAllSystems()
         {
-            LogError("GameController manquant");
-            isValid = false;
+            if (gameController != null)
+            {
+                TryStartGameController();
+                yield return new WaitForSeconds(0.2f);
+            }
+            if (logGenerator != null)
+            {
+                TryStartLogGenerator();
+                yield return new WaitForSeconds(0.2f);
+            }
+            if (gameTimer != null)
+            {
+                TryStartGameTimer();
+                yield return new WaitForSeconds(0.2f);
+            }
+            if (scoreManager != null)
+            {
+                TryStartScoring();
+                yield return new WaitForSeconds(0.2f);
+            }
+
         }
-        if (gameTimer == null)
+        private IEnumerator FinalizeGameStart()
         {
-            LogError("GameTimer manquant");
-            isValid = false;
+            if (uiManager != null)
+            {
+                var initUIMethod = uiManager.GetType().GetMethod("InitializeGameUI");
+                if (initUIMethod != null)
+                {
+                    try
+                    {
+                        initUIMethod.Invoke(uiManager, null);
+                    }
+                    catch (System.Exception ex)
+                    {
+                        LogWarning($"Erreur init UI: {ex.Message}");
+                    }
+                }
+            }
+            // Démarrage effectif du jeu via GameManager
+            if (gameManager == null)
+                gameManager = FindFirstObjectByType<LogParadeGameManager>();
+            if (gameManager != null)
+            {
+                gameManager.LaunchGameManager();
+                LogStatus("Lancement du jeu via LogParadeGameManager");
+            }
+            else
+            {
+                LogWarning("Aucun LogParadeGameManager trouvé pour lancer le jeu !");
+            }
+            yield return new WaitForSeconds(0.1f);
         }
-        if (logGenerator == null)
+        #endregion
+
+        #region Méthodes TryStart (Démarrage Composants)
+        private void TryStartGameController()
         {
-            LogError("LogGenerator manquant");
-            isValid = false;
+            try
+            {
+                var forceStartMethod = gameController.GetType().GetMethod("ForceStartGame");
+                if (forceStartMethod != null)
+                {
+                    forceStartMethod.Invoke(gameController, null);
+
+                    return;
+                }
+                gameController.gameObject.SetActive(true);
+            }
+            catch (System.Exception ex)
+            {
+                LogError($" Erreur GameController: {ex.Message}");
+            }
         }
-        if (scoreManager == null)
+        private void TryStartLogGenerator()
         {
-            LogError("ScoreManager manquant");
-            isValid = false;
+            try
+            {
+                var enableField = logGenerator.GetType().GetField("enableGeneration", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (enableField != null)
+                {
+                    enableField.SetValue(logGenerator, true);
+                }
+                var startMethod = logGenerator.GetType().GetMethod("StartGeneration", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (startMethod != null)
+                {
+                    startMethod.Invoke(logGenerator, null);
+                    return;
+                }
+                var launchMethod = logGenerator.GetType().GetMethod("Launch");
+                if (launchMethod != null)
+                {
+                    launchMethod.Invoke(logGenerator, null);
+                    return;
+                }
+                logGenerator.gameObject.SetActive(true);
+            }
+            catch (System.Exception ex)
+            {
+                LogError($" Erreur LogGenerator: {ex.Message}");
+            }
         }
-        if (isValid)
+        private void TryStartGameTimer()
         {
-            LogStatus("Tous les composants requis sont présents");
+            try
+            {
+                var launchLevelMethod = gameTimer.GetType().GetMethod("LaunchLevel");
+                if (launchLevelMethod != null)
+                {
+                    launchLevelMethod.Invoke(gameTimer, null);
+                    return;
+                }
+                var launchMethod = gameTimer.GetType().GetMethod("Launch");
+                if (launchMethod != null)
+                {
+                    launchMethod.Invoke(gameTimer, null);
+                    return;
+                }
+                gameTimer.gameObject.SetActive(true);
+            }
+            catch (System.Exception ex)
+            {
+                LogError($"  Erreur GameTimer: {ex.Message}");
+            }
         }
-        return isValid;
-    }
-    private void AutoFindComponents()
-    {
-        var validator = LogParadeSystemValidator.Instance;
-        if (validator != null)
+
+        private void TryStartScoring()
         {
+            try
+            {
+                var startScoringMethod = scoreManager.GetType().GetMethod("StartScoring");
+                if (startScoringMethod != null)
+                {
+                    startScoringMethod.Invoke(scoreManager, null);
+                }
+                else
+                {
+                    scoreManager.gameObject.SetActive(true);
+                }
+            }
+            catch (System.Exception ex)
+            {
+                LogError($" Erreur ScoreManager: {ex.Message}");
+            }
+        }
+        #endregion
+
+        #region Validation & AutoFind
+        private bool ValidateAllComponents()
+        {
+            bool isValid = true;
             if (gameController == null)
-                gameController = validator.GetValidatedComponent<LogParadeGameController>();
+            {
+                LogError("GameController manquant");
+                isValid = false;
+            }
             if (gameTimer == null)
-                gameTimer = validator.GetValidatedComponent<LogParadeGameTimer>();
+            {
+                LogError("GameTimer manquant");
+                isValid = false;
+            }
             if (logGenerator == null)
-                logGenerator = validator.GetValidatedComponent<LogParadeLogGenerator>();
+            {
+                LogError("LogGenerator manquant");
+                isValid = false;
+            }
             if (scoreManager == null)
-                scoreManager = validator.GetValidatedComponent<LogParadeScoreManager>();
-            if (uiManager == null)
-                uiManager = validator.GetValidatedComponent<LogParadeUIManager>();
+            {
+                LogError("ScoreManager manquant");
+                isValid = false;
+            }
+            if (isValid)
+            {
+                LogStatus("Tous les composants requis sont présents");
+            }
+            return isValid;
         }
-        else
+        private void AutoFindComponents()
         {
-            LogWarning("SystemValidator non disponible, utilisation de FindObjectOfType en fallback");
-            if (gameController == null)
-                gameController = FindFirstObjectByType<LogParadeGameController>();
-            if (gameTimer == null)
-                gameTimer = FindFirstObjectByType<LogParadeGameTimer>();
-            if (logGenerator == null)
-                logGenerator = FindFirstObjectByType<LogParadeLogGenerator>();
-            if (scoreManager == null)
-                scoreManager = FindFirstObjectByType<LogParadeScoreManager>();
-            if (uiManager == null)
-                uiManager = FindFirstObjectByType<LogParadeUIManager>();
+            var validator = LogParadeSystemValidator.Instance;
+            if (validator != null)
+            {
+                if (gameController == null)
+                    gameController = validator.GetValidatedComponent<LogParadeGameController>();
+                if (gameTimer == null)
+                    gameTimer = validator.GetValidatedComponent<LogParadeGameTimer>();
+                if (logGenerator == null)
+                    logGenerator = validator.GetValidatedComponent<LogParadeLogGenerator>();
+                if (scoreManager == null)
+                    scoreManager = validator.GetValidatedComponent<LogParadeScoreManager>();
+                if (uiManager == null)
+                    uiManager = validator.GetValidatedComponent<LogParadeUIManager>();
+            }
+            else
+            {
+                LogWarning("SystemValidator non disponible, utilisation de FindObjectOfType en fallback");
+                if (gameController == null)
+                    gameController = FindFirstObjectByType<LogParadeGameController>();
+                if (gameTimer == null)
+                    gameTimer = FindFirstObjectByType<LogParadeGameTimer>();
+                if (logGenerator == null)
+                    logGenerator = FindFirstObjectByType<LogParadeLogGenerator>();
+                if (scoreManager == null)
+                    scoreManager = FindFirstObjectByType<LogParadeScoreManager>();
+                if (uiManager == null)
+                    uiManager = FindFirstObjectByType<LogParadeUIManager>();
+            }
+
+        }
+        #endregion
+
+        #region Restart & Processus Complet
+        public void RestartGame()
+        {
+            LogStatus("Redémarrage du jeu...");
+            LogParadeGameStateController.RestartGame();
+            StartCoroutine(RestartGameCoroutine());
         }
 
-    }
-    #endregion
-
-    #region Restart & Processus Complet
-    public void RestartGame()
-    {
-        LogStatus("Redémarrage du jeu...");
-        LogParadeGameStateController.RestartGame();
-        StartCoroutine(RestartGameCoroutine());
-    }
-
-    private IEnumerator RestartGameCoroutine()
-    {
-        yield return new WaitForSeconds(0.5f);
-        LaunchFullGame();
-    }
-
-    public void StartCompleteGameProcess()
-    {
-        if (LogParadeGameStateController.IsGameStarted)
+        private IEnumerator RestartGameCoroutine()
         {
-            RestartGame();
-            return;
-        }
-        if (LogParadeGameStateController.IsCalibrationInProgress)
-        {
-            return;
-        }
-        if (LogParadeGameStateController.CanStartGameplay())
-        {
+            yield return new WaitForSeconds(0.5f);
             LaunchFullGame();
-            return;
         }
-        StartCalibrationProcess();
+
+        public void StartCompleteGameProcess()
+        {
+            if (LogParadeGameStateController.IsGameStarted)
+            {
+                RestartGame();
+                return;
+            }
+            if (LogParadeGameStateController.IsCalibrationInProgress)
+            {
+                return;
+            }
+            if (LogParadeGameStateController.CanStartGameplay())
+            {
+                LaunchFullGame();
+                return;
+            }
+            StartCalibrationProcess();
+        }
+        #endregion
+
+        #region Logging
+        private void LogStatus(string message)
+        {
+            if (enableDetailedLogs)
+                LogParadeLogger.Log($"[GameLauncher] {message}");
+        }
+
+        private void LogWarning(string message)
+        {
+            LogParadeLogger.LogWarning($"[GameLauncher] {message}");
+        }
+
+        private void LogError(string message)
+        {
+            LogParadeLogger.LogError($"[GameLauncher] {message}");
+        }
+        #endregion
+
+        #region Debug Methods
+
+        [ContextMenu("Debug - Force Launch Game")]
+        public void DebugForceLaunchGame()
+        {
+            LogParadeLogger.LogWarning(" DEBUG: Forçage du lancement du jeu (bypass calibration)");
+#pragma warning disable CS0618
+            LogParadeGameStateController.ForceEnableGameplay();
+#pragma warning restore CS0618
+            LaunchFullGame();
+        }
+
+        #endregion
     }
-    #endregion
-
-    #region Logging
-    private void LogStatus(string message)
-    {
-        if (enableDetailedLogs)
-            LogParadeLogger.Log($"[GameLauncher] {message}");
-    }
-
-    private void LogWarning(string message)
-    {
-        LogParadeLogger.LogWarning($"[GameLauncher] {message}");
-    }
-
-    private void LogError(string message)
-    {
-        LogParadeLogger.LogError($"[GameLauncher] {message}");
-    }
-    #endregion
-
-    #region Debug Methods
-
-    [ContextMenu("Debug - Force Launch Game")]
-    public void DebugForceLaunchGame()
-    {
-        LogParadeLogger.LogWarning(" DEBUG: Forçage du lancement du jeu (bypass calibration)");
-        #pragma warning disable CS0618
-        LogParadeGameStateController.ForceEnableGameplay();
-        #pragma warning restore CS0618
-        LaunchFullGame();
-    }
-
-    #endregion
 }

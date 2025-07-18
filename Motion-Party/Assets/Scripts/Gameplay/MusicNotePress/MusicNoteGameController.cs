@@ -2,10 +2,16 @@ using UnityEngine;
 using Core;
 using Newtonsoft.Json.Linq;
 using System.Collections;
+using System;
 
-public class MusicNoteGameController : MiniGameBase
+namespace Gameplay.MusicNotePress
 {
-
+    /// <summary>
+    /// Contrôleur principal du mini-jeu MusicNote
+    /// Gère la logique du jeu et les états
+    /// </summary>
+    public class MusicNoteGameController : MonoBehaviour
+{
     [Header("Managers")]
     public UDPReceive udpReceive;
     public UIManager uiManager;
@@ -16,7 +22,6 @@ public class MusicNoteGameController : MiniGameBase
     public float startDelay = 1f;
     public int maxLevel = 3;
     public float validationTime = 3f;
-    private int openFingers = 0;
     public float delayBetweenLevels = 3f;
 
     [Header("Game State")]
@@ -25,32 +30,74 @@ public class MusicNoteGameController : MiniGameBase
     private bool isPlayingSequence = true;
     private int currentLevel = 1;
     private int noteCountThisLevel = 2;
+        private int currentScore = 0;
+        private int openFingers = 0;
 
     private Coroutine playingSequence;
 
-    protected override void Launch()
-    {
-        InitGame();
-    }
+        // Événements
+        public event Action<int> OnGameFinished;
+        public event Action OnGameStarted;
 
     void Start()
     {
+            ValidateComponents();
+            
         if (noteInputManager != null && noteInputManager.spinner != null)
         {
             noteInputManager.spinner.ValidationTime = validationTime;
         }
 
         noteInputManager.OnSequenceCompleted += HandleSequenceResult;
-        //InitGame();
     }
 
     private void OnDestroy()
+        {
+            if (noteInputManager != null)
     {
         noteInputManager.OnSequenceCompleted -= HandleSequenceResult;
     }
+        }
 
+        private void ValidateComponents()
+        {
+            if (noteInputManager == null)
+            {
+                noteInputManager = FindFirstObjectByType<NoteInputManager>();
+                if (noteInputManager == null)
+                {
+                    Debug.LogError("[MusicNoteGameController] NoteInputManager non trouvé !");
+                }
+            }
 
-    // Update is called once per frame
+            if (noteSequenceManager == null)
+            {
+                noteSequenceManager = FindFirstObjectByType<NoteSequenceManager>();
+                if (noteSequenceManager == null)
+                {
+                    Debug.LogError("[MusicNoteGameController] NoteSequenceManager non trouvé !");
+                }
+            }
+
+            if (uiManager == null)
+            {
+                uiManager = FindFirstObjectByType<UIManager>();
+                if (uiManager == null)
+                {
+                    Debug.LogError("[MusicNoteGameController] UIManager non trouvé !");
+                }
+            }
+
+            if (udpReceive == null)
+            {
+                udpReceive = FindFirstObjectByType<UDPReceive>();
+                if (udpReceive == null)
+                {
+                    Debug.LogError("[MusicNoteGameController] UDPReceive non trouvé !");
+                }
+            }
+        }
+
     void Update()
     {
         if (!gameStarted || gameEnded) return;
@@ -94,10 +141,27 @@ public class MusicNoteGameController : MiniGameBase
         }
     }
 
+        /// <summary>
+        /// Démarre une nouvelle partie
+        /// </summary>
+        public void StartGame()
+        {
+            Debug.Log("[MusicNoteGameController] StartGame appelé");
+            
+            // Réinitialiser l'état
+            gameStarted = false;
+            gameEnded = false;
+            currentLevel = 1;
+            noteCountThisLevel = 2;
+            currentScore = 0;
 
+            // Initialiser le jeu
+            InitGame();
+        }
 
     private void InitGame()
     {
+        Debug.Log($"[MusicNoteGameController] InitGame() appelé sur {gameObject.name}, actif: {gameObject.activeInHierarchy}");
         SpeechSystemSingleton.Vosk.StartVoskStt();
         
         Debug.Log("Initialisation du mini-jeu...");
@@ -108,13 +172,11 @@ public class MusicNoteGameController : MiniGameBase
             return;
         }
 
-        gameStarted = false;
-        gameEnded = false;
-        currentLevel = 1;
-        noteCountThisLevel = currentLevel + 1;
-
         noteInputManager.ResetInput();
         LaunchLevel();
+
+            // Notifier que le jeu a démarré
+            OnGameStarted?.Invoke();
     }
 
     private void LaunchLevel()
@@ -142,11 +204,9 @@ public class MusicNoteGameController : MiniGameBase
         isPlayingSequence = false;
         noteInputManager.isPlayingSequence = isPlayingSequence;
 
-
         noteInputManager.PrepareExpectedSequence(noteSequenceManager.GetGeneratedNotes());
         Debug.Log("Tour du joueur, prêt à recevoir les inputs.");
     }
-
 
     private void HandleSequenceResult(bool success)
     {
@@ -154,13 +214,14 @@ public class MusicNoteGameController : MiniGameBase
         {
             Debug.Log("Séquence réussie, passage au niveau suivant.");
             currentLevel++;
+                currentScore += 100 * currentLevel; // Score basé sur le niveau
 
             if (currentLevel > maxLevel)
             {
                 Debug.Log("Jeu terminé ! Tous les niveaux ont été complétés.");
                 uiManager.DisplayEndGameScreen(true);
                 gameEnded = true;
-                FinishMiniGame();
+                    OnGameFinished?.Invoke(currentScore);
                 return;
             }
 
@@ -179,6 +240,7 @@ public class MusicNoteGameController : MiniGameBase
                 Debug.Log("Séquence incorrecte au dernier niveau. Fin du jeu.");
                 uiManager.DisplayEndGameScreen(false);
                 gameEnded = true;
+                    OnGameFinished?.Invoke(currentScore);
             }
         }
     }
@@ -189,4 +251,21 @@ public class MusicNoteGameController : MiniGameBase
         LaunchLevel();
     }
     
+        /// <summary>
+        /// Réinitialise le jeu à son état initial
+        /// </summary>
+        public void ResetGame()
+        {
+            gameStarted = false;
+            gameEnded = false;
+            currentLevel = 1;
+            noteCountThisLevel = 2;
+            currentScore = 0;
+            
+            if (noteInputManager != null)
+            {
+                noteInputManager.ResetInput();
+            }
+        }
+    }
 }

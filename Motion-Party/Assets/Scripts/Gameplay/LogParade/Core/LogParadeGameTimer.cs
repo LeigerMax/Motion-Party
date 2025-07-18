@@ -1,380 +1,122 @@
 using UnityEngine;
 using UnityEngine.Events;
-using System.Collections;
+using TMPro;
+using Gameplay.LogParade.Utils;
 
-/// <summary>
-/// Gère le cycle de vie d'une partie de LogParade (démarrage, minuterie, arrêt).
-/// Contrôle le score et le mouvement des rondins avec un timer configurable.
-/// Intégration avec MiniGameBase pour un démarrage propre.
-/// </summary>
-public class LogParadeGameTimer : MiniGameBase
+namespace Gameplay.LogParade.Core
 {
-#region Champs
-    [Header("Timer Settings")]
-    [Tooltip("Durée de la partie en secondes")]
-    [SerializeField] private float gameDurationInSeconds = 60f;
-    [Tooltip("Délai avant le démarrage du timer (en secondes)")]
-    [SerializeField] private float startDelay = 2f;
-    [Header("Managers References")]
-    [Tooltip("Référence au LogParadeScoreManager pour gérer le score")]
-    [SerializeField] private LogParadeScoreManager scoreManager;
-    [Tooltip("Référence au LogParadeLogGenerator pour gérer les rondins")]
-    [SerializeField] private LogParadeLogGenerator logGenerator;
-    [Tooltip("Référence au LogParadeGameController principal")]
-    [SerializeField] private LogParadeGameController gameController;
-    [Header("Events")]
-    [Tooltip("Événement déclenché au début de la partie")]
-    public UnityEvent OnGameStart = new UnityEvent();
-    [Tooltip("Événement déclenché à la fin de la partie")]
-    public UnityEvent OnGameEnd = new UnityEvent();
-    [Tooltip("Événement déclenché à chaque seconde (avec temps restant)")]
-    public UnityEvent<float> OnTimerTick = new UnityEvent<float>();
-    [Header("Debug")]
-    [Tooltip("Afficher les logs de debug dans la console")]
-    #pragma warning disable CS0414
-    [SerializeField] private bool enableDebugLogs = true;
-    #pragma warning restore CS0414
-    // État du jeu
-    private bool gameStarted = false;
-    private bool gameEnded = false;
-    private float timeRemaining = 0f;
-    private Coroutine gameTimerCoroutine;
-#endregion
+    /// <summary>
+    /// Gère le timer du jeu LogParade
+    /// </summary>
+    public class LogParadeGameTimer : MonoBehaviour
+    {
+        [Header("Configuration")]
+        [SerializeField] private float gameDuration = 60f;
+        [SerializeField] private bool startOnAwake = false;
+        [SerializeField] private bool countDown = true;
 
-#region Propriétés publiques
-    /// <summary>
-    /// Indique si la partie est actuellement en cours
-    /// </summary>
-    public bool IsGameActive => gameStarted && !gameEnded;
-    
-    /// <summary>
-    /// Temps restant en secondes
-    /// </summary>
-    public float TimeRemaining => timeRemaining;
-    
-    /// <summary>
-    /// Durée totale de la partie
-    /// </summary>
-    public float GameDuration => gameDurationInSeconds;
-#endregion
+        [Header("UI")]
+        [SerializeField] private TextMeshProUGUI timerText;
 
-#region Unity Lifecycle
-    protected override void Launch()
-    {
-        InitializeTimer();
-        LaunchLevel();
-    }
-    
-    void Start()
-    {
-        // Si on n'est pas lancé par MiniGameBase, on peut démarrer automatiquement
-        if (!gameObject.activeInHierarchy)
-        {
-            return;
-        }
-        
-        // Validation des composants au démarrage
-        ValidateComponents();
-    }
-    
-    void OnDestroy()
-    {
-        // Nettoyer les coroutines
-        if (gameTimerCoroutine != null)
-        {
-            StopCoroutine(gameTimerCoroutine);
-        }
-    }
-#endregion
+        [Header("Events")]
+        public UnityEvent OnTimeUp;
 
-#region Initialisation & Validation
-    /// <summary>
-    /// Initialise le système de timer
-    /// </summary>
-    private void InitializeTimer()
-    {
-        // Reset de l'état
-        gameStarted = false;
-        gameEnded = false;
-        timeRemaining = gameDurationInSeconds;
-        
-        // Arrêter toute coroutine en cours
-        if (gameTimerCoroutine != null)
+        private float currentTime;
+        private bool isRunning = false;
+
+        private void Start()
         {
-            StopCoroutine(gameTimerCoroutine);
-            gameTimerCoroutine = null;
-        }
-        
-        // Nettoyer les rondins existants
-        if (logGenerator != null)
-        {
-            logGenerator.StopGeneration();
-            logGenerator.ClearAllLogs();
-        }
-    }
-    
-    /// <summary>
-    /// Valide que tous les composants nécessaires sont présents
-    /// </summary>
-    private bool ValidateComponents()
-    {
-        bool allValid = true;
-        
-        // Validation du ScoreManager via SystemValidator
-        if (scoreManager == null)
-        {
-            var validator = LogParadeSystemValidator.Instance;
-            if (validator != null)
+            if (startOnAwake)
             {
-                scoreManager = validator.GetValidatedComponent<LogParadeScoreManager>();
-            }
-            
-            // Fallback si SystemValidator pas disponible
-            if (scoreManager == null)
-            {
-                scoreManager = FindFirstObjectByType<LogParadeScoreManager>();
-            }
-            
-            if (scoreManager == null)
-            {
-                LogParadeLogger.LogError("LogParadeScoreManager non trouvé !");
-                allValid = false;
+                StartTimer();
             }
         }
-        
-        // Validation du LogGenerator
-        if (logGenerator == null)
+
+        private void Update()
         {
-            logGenerator = FindFirstObjectByType<LogParadeLogGenerator>();
-            if (logGenerator == null)
+            if (!isRunning) return;
+
+            if (countDown)
             {
-                LogParadeLogger.LogError("LogParadeLogGenerator non trouvé !");
-                allValid = false;
-            }
-        }        // Validation du GameController (optionnel)
-        if (gameController == null)
-        {
-            gameController = FindFirstObjectByType<LogParadeGameController>();
-            if (gameController == null)
-            {
-                LogParadeLogger.LogVerbose("LogParadeGameController non trouvé (optionnel)");
-            }
-        }
-        
-        return allValid;
-    }
-#endregion
-
-#region Démarrage & Arrêt du Jeu
-    /// <summary>
-    /// Lance le niveau - démarrage manuel propre
-    /// </summary>
-    public void LaunchLevel()
-    {
-        if (gameStarted)
-        {
-            return;
-        }
-        
-        if (!LogParadeGameStateController.CanStartGameplay())
-        {
-            LogParadeLogger.LogWarning("Impossible de lancer le niveau : calibration en cours!");
-            return;
-        }  
-        if (!ValidateComponents())
-        {
-            LogParadeLogger.LogError("Impossible de lancer le niveau - composants manquants !");
-            return;
-        }
-        
-        StartCoroutine(StartGameAfterDelay());
-    }
-    
-    /// <summary>
-    /// Démarre le jeu après le délai configuré
-    /// </summary>
-    private IEnumerator StartGameAfterDelay()
-    {
-        yield return new WaitForSeconds(startDelay);
-        
-        StartGame();
-    }
-    
-    /// <summary>
-    /// Démarre effectivement la partie
-    /// </summary>
-    private void StartGame()
-    {
-        if (gameStarted) return;
-        if (!LogParadeGameStateController.CanStartGameplay())
-        {
-            LogParadeLogger.LogWarning("Impossible de démarrer la partie : calibration en cours!");
-            return;
-        }
-
-        gameStarted = true;
-        gameEnded = false;
-        timeRemaining = gameDurationInSeconds;
-        
-        if (scoreManager != null)
-        {
-            scoreManager.StartScoring();
-        }
-        if (logGenerator != null)
-        {
-            logGenerator.StartLogGeneration();
-        }
-        
-        // Déclencher l'événement de début
-        OnGameStart?.Invoke();
-        
-        // Démarrer le timer principal
-        gameTimerCoroutine = StartCoroutine(GameTimerLoop());
-    }
-    
-    /// <summary>
-    /// Boucle principale du timer de jeu
-    /// </summary>
-    private IEnumerator GameTimerLoop()
-    {
-        while (timeRemaining > 0f && !gameEnded)
-        {
-            // Attendre une seconde
-            yield return new WaitForSeconds(1f);
-            
-            // Décrémenter le temps
-            timeRemaining = Mathf.Max(0f, timeRemaining - 1f);
-            
-            // Déclencher l'événement de tick
-            OnTimerTick?.Invoke(timeRemaining);
-        }
-        
-        // Temps écoulé - fin de partie
-        EndGame();
-    }
-    
-    /// <summary>
-    /// Termine la partie
-    /// </summary>
-    private void EndGame()
-    {
-        if (gameEnded) return;
-        
-        gameEnded = true;
-        gameStarted = false;
-        timeRemaining = 0f;
-        
-        // Arrêter le score
-        if (scoreManager != null)
-        {
-            scoreManager.StopScoring();
-        }
-        
-        // Arrêter la génération des rondins
-        if (logGenerator != null)
-        {
-            logGenerator.StopGeneration();
-        }
-        
-        // Arrêter le mouvement de tous les rondins existants
-        StopAllLogMovement();
-        
-        // Arrêter le timer
-        if (gameTimerCoroutine != null)
-        {
-            StopCoroutine(gameTimerCoroutine);
-            gameTimerCoroutine = null;
-        }
-        
-        // Déclencher les événements de fin
-        OnGameEnd?.Invoke();
-        LogParadeEventCoordinator.TriggerGameEnded();
-        
-        // Calculer et notifier le score final
-        if (scoreManager != null)
-        {
-            int finalScore = scoreManager.GetCurrentScore();
-            LogParadeEventCoordinator.TriggerFinalScoreCalculated(finalScore);
-        }
-        
-        // Appeler FinishMiniGame de MiniGameBase
-        FinishMiniGame();
-    }
-    
-    /// <summary>
-    /// Arrête manuellement la partie (pour tests ou UI)
-    /// </summary>
-    public void StopGame()
-    {
-        if (!gameStarted || gameEnded)
-        {
-            return;
-        }
-        
-        EndGame();
-    }
-    
-    /// <summary>
-    /// Redémarre une nouvelle partie
-    /// </summary>
-    public void RestartGame()
-    {
-        // Arrêter la partie en cours si nécessaire
-        if (gameStarted && !gameEnded)
-        {
-            StopGame();
-        }
-        
-        // Réinitialiser et relancer
-        InitializeTimer();
-        LaunchLevel();
-    }
-#endregion
-
-#region Utilitaires & Score
-    /// <summary>
-    /// Arrête le mouvement de tous les rondins actifs
-    /// </summary>
-    private void StopAllLogMovement()
-    {
-        LogParadeLog[] activeLogs = FindObjectsByType<LogParadeLog>(FindObjectsSortMode.None);
-
-        if (activeLogs.Length > 0)
-        {
-            foreach (LogParadeLog log in activeLogs)
-            {
-                if (log != null)
+                currentTime -= Time.deltaTime;
+                if (currentTime <= 0)
                 {
-                    log.StopMovement();
+                    currentTime = 0;
+                    StopTimer();
+                    OnTimeUp?.Invoke();
                 }
             }
+            else
+            {
+                currentTime += Time.deltaTime;
+                if (currentTime >= gameDuration)
+                {
+                    currentTime = gameDuration;
+                    StopTimer();
+                    OnTimeUp?.Invoke();
+                }
+            }
+
+            UpdateTimerDisplay();
         }
-    }
-    
-    /// <summary>
-    /// Change la durée de la partie (seulement si pas en cours)
-    /// </summary>
-    public void SetGameDuration(float newDuration)
-    {
-        if (gameStarted && !gameEnded)
+
+        public void StartTimer()
         {
-            LogParadeLogger.LogWarning("Impossible de changer la durée pendant une partie en cours");
-            return;
+            currentTime = countDown ? gameDuration : 0f;
+            isRunning = true;
+            UpdateTimerDisplay();
         }
-        
-        gameDurationInSeconds = Mathf.Max(1f, newDuration);
-    }
-    
-    /// <summary>
-    /// Obtient le score actuel (si disponible)
-    /// </summary>
-    public int GetCurrentScore()
-    {
-        if (scoreManager != null)
+
+        public void StopTimer()
         {
-            return scoreManager.GetCurrentScore();
+            isRunning = false;
+            UpdateTimerDisplay();
         }
-        return 0;
+
+        public void PauseTimer()
+        {
+            isRunning = false;
+        }
+
+        public void ResumeTimer()
+        {
+            isRunning = true;
+        }
+
+        public void SetDuration(float duration)
+        {
+            gameDuration = duration;
+            if (!isRunning)
+            {
+                currentTime = countDown ? duration : 0f;
+                UpdateTimerDisplay();
+            }
+        }
+
+        private void UpdateTimerDisplay()
+        {
+            if (timerText != null)
+            {
+                float timeToDisplay = countDown ? currentTime : (gameDuration - currentTime);
+                int minutes = Mathf.FloorToInt(timeToDisplay / 60);
+                int seconds = Mathf.FloorToInt(timeToDisplay % 60);
+                timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
+            }
+        }
+
+        public float GetRemainingTime()
+        {
+            return countDown ? currentTime : (gameDuration - currentTime);
+        }
+
+        public float GetElapsedTime()
+        {
+            return countDown ? (gameDuration - currentTime) : currentTime;
+        }
+
+        public bool IsRunning()
+        {
+            return isRunning;
+        }
     }
-#endregion
 }

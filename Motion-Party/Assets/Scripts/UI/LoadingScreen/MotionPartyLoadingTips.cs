@@ -38,6 +38,12 @@ public class MotionPartyLoadingTips : ScriptableObject
             tipId = "session_complete",
             tipText = "Bravo ! Retour au menu principal...",
             backgroundColor = new Color(0.2f, 0.2f, 0.2f)
+        },
+        new LoadingScreenData.LoadingTip
+        {
+            tipId = "music_note",
+            tipText = "Retiens les notes pour réussir la séquence !",
+            backgroundColor = new Color(0.2f, 0.2f, 0.2f)
         }
     };
     

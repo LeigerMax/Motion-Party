@@ -27,10 +27,10 @@ namespace UI.Team
             currentBadge = badge;
 
             // Emoji du badge (unicode 🏅 U+1F3C5)
-          // if (badgeEmojiText != null)
-          // {
-          //     badgeEmojiText.text = "\U0001F3C5";
-          // }
+            // if (badgeEmojiText != null)
+            // {
+            //     badgeEmojiText.text = "\U0001F3C5";
+            // }
 
             // Nom du badge
             if (badgeNameText != null)

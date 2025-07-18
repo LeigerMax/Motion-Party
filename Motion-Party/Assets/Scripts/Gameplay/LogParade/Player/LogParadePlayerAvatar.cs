@@ -1,231 +1,125 @@
 using UnityEngine;
 using System;
+using Gameplay.LogParade.Utils;
 
-/// <summary>
-/// Gère l'avatar du joueur qui se déplace sur les 4 voies
-/// Réagit aux changements de voie détectés par LogParadeLateralTracker
-/// S'inspire des patterns de mouvement des scripts existants
-/// </summary>
-public class LogParadePlayerAvatar : MonoBehaviour
+namespace Gameplay.LogParade.Player
 {
-    #region Fields
-
-    [Header("Movement Settings")]
-    public float moveSpeed = 5f;
-    public float laneWidth = 2f;
-    public Vector3 basePosition = Vector3.zero;
-
-    [Header("Animation")]
-    public bool enableSmoothMovement = true;
-    public AnimationCurve movementCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
-
-    [Header("Visual Settings")]
-    public GameObject avatarModel;
-    public bool rotateTowardsMovement = true;
-    public float rotationSpeed = 10f;
-
-    [Header("Effects")]
-    public ParticleSystem[] laneChangeEffects;
-    private int targetLane = 2;
-    private Vector3 targetPosition;
-    private bool isMoving = false;
-    private float movementProgress = 0f;
-    private Vector3 startMovePosition;
-    private Vector3 lastPosition;
-    private AudioSource audioSource;
-
-
-    #endregion
-
-    #region Unity Lifecycle
-    void Start()
-    {
-        InitializeAvatar();
-    }
-
-    void Update()
-    {
-        UpdateMovement();
-        UpdateRotation();
-    }
-    #endregion
-
-    #region Initialization
     /// <summary>
-    /// Initialise l'avatar
+    /// Représentation visuelle du joueur dans LogParade
     /// </summary>
-    private void InitializeAvatar()
+    public class LogParadePlayerAvatar : MonoBehaviour
     {
-        // S'assurer qu'on a un modèle d'avatar
-        if (avatarModel == null)
+        [Header("Position Settings")]
+        [SerializeField] private Vector3 startPosition = new Vector3(0, 1, 0);
+        public float laneWidth = 2f;
+        [SerializeField] private int defaultLane = 2;
+
+        [Header("Movement Settings")]
+        public float moveSpeed = 5f;
+        public AnimationCurve movementCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+        public bool enableSmoothMovement = true;
+
+        [Header("Debug")]
+        [SerializeField] private bool enableDebugLogs = false;
+
+        private int currentLane;
+        private bool isMoving = false;
+        private float movementProgress = 0f;
+        private Vector3 startMovePosition;
+        private Vector3 targetPosition;
+
+        private void Start()
         {
-            avatarModel = gameObject;
+            ResetPosition();
         }
-        
-        // Configurer l'AudioSource
-        audioSource = GetComponent<AudioSource>();
-        if (audioSource == null)
+
+        private void Update()
         {
-            audioSource = gameObject.AddComponent<AudioSource>();
+            if (isMoving)
+            {
+                UpdateMovement();
+            }
         }
-        
-        // Positionner l'avatar au centre initialement
-        SetLaneInstant(2);
-    }
-    #endregion
 
-    #region Lane Management
-    /// <summary>
-    /// Change la voie cible de l'avatar
-    /// </summary>
-    public void SetTargetLane(int lane)
-    {
-        lane = Mathf.Clamp(lane, 1, 4);
-        
-        if (lane != targetLane)
+        public void ResetPosition()
         {
-            targetLane = lane;
-            StartMovementToLane();
-            PlayLaneChangeEffects();
+            currentLane = defaultLane;
+            transform.position = startPosition + Vector3.right * (currentLane - 2) * laneWidth;
+            isMoving = false;
+            movementProgress = 0f;
+
+            if (enableDebugLogs)
+            {
+                LogParadeLogger.LogVerbose($"Position réinitialisée - Lane: {currentLane}");
+            }
         }
-    }
 
-    /// <summary>
-    /// Positionne l'avatar instantanément sur une voie
-    /// </summary>
-    public void SetLaneInstant(int lane)
-    {
-        lane = Mathf.Clamp(lane, 1, 4);
-        targetLane = lane;
-        
-        Vector3 lanePosition = CalculateLanePosition(lane);
-        transform.position = lanePosition;
-        targetPosition = lanePosition;
-        
-        isMoving = false;
-        movementProgress = 1f;
-        
-    }
+        public void MoveTo(int lane)
+        {
+            if (lane < 1 || lane > 4)
+            {
+                LogParadeLogger.LogWarning($"Lane invalide: {lane}");
+                return;
+            }
 
-    /// <summary>
-    /// Démarre le mouvement vers une nouvelle voie
-    /// </summary>
-    private void StartMovementToLane()
-    {
-        if (enableSmoothMovement)
+            currentLane = lane;
+            if (enableSmoothMovement)
+            {
+                StartMovement(lane);
+            }
+            else
+            {
+                SetLaneInstant(lane);
+            }
+
+            if (enableDebugLogs)
+            {
+                LogParadeLogger.LogVerbose($"Déplacement vers lane {lane}");
+            }
+        }
+
+        public void SetLaneInstant(int lane)
+        {
+            currentLane = lane;
+            Vector3 newPosition = startPosition + Vector3.right * (lane - 2) * laneWidth;
+            transform.position = newPosition;
+            isMoving = false;
+            movementProgress = 0f;
+        }
+
+        private void StartMovement(int targetLane)
         {
             startMovePosition = transform.position;
-            targetPosition = CalculateLanePosition(targetLane);
+            targetPosition = startPosition + Vector3.right * (targetLane - 2) * laneWidth;
             isMoving = true;
             movementProgress = 0f;
         }
-        else
+
+        private void UpdateMovement()
         {
-            SetLaneInstant(targetLane);
-        }
-    }
-
-    /// <summary>
-    /// Calcule la position world d'une voie donnée
-    /// </summary>
-    private Vector3 CalculateLanePosition(int lane)
-    {
-        // Convertir le numéro de voie (1-4) en offset X
-        // Voie 1 = le plus à gauche, Voie 4 = le plus à droite
-        float xOffset = (lane - 2.5f) * laneWidth;
-        return basePosition + Vector3.right * xOffset;
-    }
-    #endregion
-
-    #region Movement & Rotation
-    /// <summary>
-    /// Met à jour le mouvement de l'avatar
-    /// </summary>
-    private void UpdateMovement()
-    {
-        if (!isMoving) return;
-
-        // Avancer le progrès du mouvement
-        movementProgress += Time.deltaTime * moveSpeed;
-        
-        if (movementProgress >= 1f)
-        {
-            // Mouvement terminé
-            movementProgress = 1f;
-            isMoving = false;
-            transform.position = targetPosition;
-        }
-        else
-        {
-            // Interpoler la position avec la courbe d'animation
-            float curveValue = movementCurve.Evaluate(movementProgress);
-            transform.position = Vector3.Lerp(startMovePosition, targetPosition, curveValue);
-        }
-    }
-
-    /// <summary>
-    /// Met à jour la rotation de l'avatar pour qu'il regarde dans la direction du mouvement
-    /// </summary>
-    private void UpdateRotation()
-    {
-        if (!rotateTowardsMovement) return;
-
-        Vector3 currentPosition = transform.position;
-        Vector3 movementDirection = currentPosition - lastPosition;
-        
-        if (movementDirection.magnitude > 0.01f)
-        {
-            Quaternion targetRotation = Quaternion.LookRotation(Vector3.forward, Vector3.up);
+            movementProgress += Time.deltaTime * moveSpeed;
             
-            // Incliner légèrement dans la direction du mouvement
-            if (movementDirection.x != 0)
+            if (movementProgress >= 1f)
             {
-                float tiltAngle = Mathf.Sign(movementDirection.x) * 15f;
-                targetRotation *= Quaternion.Euler(0, 0, -tiltAngle);
+                movementProgress = 1f;
+                isMoving = false;
+                transform.position = targetPosition;
             }
-            
-            transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, Time.deltaTime * rotationSpeed);
-        }
-        
-        lastPosition = currentPosition;
-    }
-    #endregion
-
-    #region Effects
-    /// <summary>
-    /// Joue les effets de changement de voie
-    /// </summary>
-    private void PlayLaneChangeEffects()
-    {
-        // Jouer les effets de particules
-        if (laneChangeEffects != null && laneChangeEffects.Length > 0)
-        {
-            foreach (var effect in laneChangeEffects)
+            else
             {
-                if (effect != null)
-                {
-                    effect.Play();
-                }
+                float curveValue = movementCurve.Evaluate(movementProgress);
+                transform.position = Vector3.Lerp(startMovePosition, targetPosition, curveValue);
             }
         }
-    }
-    #endregion
 
-    #region Public API
-    /// <summary>
-    /// Obtient la voie actuelle de l'avatar
-    /// </summary>
-    public int GetCurrentLane()
-    {
-        return targetLane;
-    }
+        public int GetCurrentLane()
+        {
+            return currentLane;
+        }
 
-    /// <summary>
-    /// Vérifie si l'avatar est en mouvement
-    /// </summary>
-    public bool IsMoving()
-    {
-        return isMoving;
+        public bool IsMoving()
+        {
+            return isMoving;
+        }
     }
-    #endregion
 }

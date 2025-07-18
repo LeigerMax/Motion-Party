@@ -82,6 +82,7 @@ public class GameSessionManager : MonoBehaviour
         MiniGameBase loadedMiniGame = FindFirstObjectByType<MiniGameBase>();
         if (loadedMiniGame != null)
         {
+            Debug.Log($"[GameSessionManager] MiniGameBase trouvé: {loadedMiniGame.GetType().Name} sur {loadedMiniGame.gameObject.name}, actif: {loadedMiniGame.gameObject.activeInHierarchy}");
             loadedMiniGame.StartMiniGame(OnMiniGameFinished);
         }
         else

@@ -12,15 +12,12 @@ namespace Gameplay.FireFlyDance.UI
         [Header("UI References")]
         [SerializeField] private TextMeshProUGUI playerNameText;
         [SerializeField] private TextMeshProUGUI playerIndexText;
-        [SerializeField] private TextMeshProUGUI playerScoreText;
-        [SerializeField] private TextMeshProUGUI teamNameText;
         [SerializeField] private Image playerBackground;
 
         [Header("Configuration")]
         [SerializeField] private bool autoFindComponents = true;
-        [SerializeField] private bool showTeamName = true;
         [SerializeField] private bool showPlayerIndex = true;
-        [SerializeField] private bool showCurrentScore = false; // Score du tour actuel
+
 
         [Header("Visual Configuration")]
         [SerializeField] private Color[] playerColors = new Color[]
@@ -99,32 +96,6 @@ namespace Gameplay.FireFlyDance.UI
                 }
             }
 
-            if (playerScoreText == null)
-            {
-                var allTexts = GetComponentsInChildren<TextMeshProUGUI>();
-                foreach (var text in allTexts)
-                {
-                    if (text.gameObject.name.ToLower().Contains("score"))
-                    {
-                        playerScoreText = text;
-                        break;
-                    }
-                }
-            }
-
-            if (teamNameText == null)
-            {
-                var allTexts = GetComponentsInChildren<TextMeshProUGUI>();
-                foreach (var text in allTexts)
-                {
-                    if (text.gameObject.name.ToLower().Contains("team"))
-                    {
-                        teamNameText = text;
-                        break;
-                    }
-                }
-            }
-
             if (playerBackground == null)
             {
                 playerBackground = GetComponent<Image>();
@@ -166,18 +137,6 @@ namespace Gameplay.FireFlyDance.UI
                 playerIndexText.text = $"Joueur {currentIndex}/{totalPlayers}";
             }
 
-            // Équipe
-            if (teamNameText != null && showTeamName && !string.IsNullOrEmpty(currentPlayer.TeamName))
-            {
-                teamNameText.text = currentPlayer.TeamName;
-            }
-
-            // Score (si activé)
-            if (playerScoreText != null && showCurrentScore)
-            {
-                playerScoreText.text = $"Score: {currentPlayer.TotalScore}";
-            }
-
             // Couleur de fond
             if (playerBackground != null)
             {
@@ -202,16 +161,6 @@ namespace Gameplay.FireFlyDance.UI
             gameObject.SetActive(false);
         }
 
-        /// <summary>
-        /// Met à jour uniquement le score affiché (si activé)
-        /// </summary>
-        public void UpdateScore(int newScore)
-        {
-            if (playerScoreText != null && showCurrentScore)
-            {
-                playerScoreText.text = $"Score: {newScore}";
-            }
-        }
 
         /// <summary>
         /// Affiche un message de transition entre joueurs
@@ -238,13 +187,10 @@ namespace Gameplay.FireFlyDance.UI
         /// Configure manuellement les références UI
         /// </summary>
         public void SetUIReferences(TextMeshProUGUI nameText, TextMeshProUGUI indexText = null, 
-                                   TextMeshProUGUI scoreText = null, TextMeshProUGUI teamText = null, 
                                    Image background = null)
         {
             playerNameText = nameText;
             playerIndexText = indexText;
-            playerScoreText = scoreText;
-            teamNameText = teamText;
             playerBackground = background;
         }
 
@@ -256,33 +202,6 @@ namespace Gameplay.FireFlyDance.UI
             }
         }
 
-        #region Debug Methods
 
-        [ContextMenu("Test Update Display")]
-        public void TestUpdateDisplay()
-        {
-            if (!isInitialized) Initialize();
-            UpdateDisplay();
-        }
-
-        [ContextMenu("Test Transition Message")]
-        public void TestTransitionMessage()
-        {
-            ShowTransitionMessage("Au tour de Alice !", 2f);
-        }
-
-        [ContextMenu("Debug UI References")]
-        public void DebugUIReferences()
-        {
-            Debug.Log($"=== DEBUG UI REFERENCES ===");
-            Debug.Log($"PlayerNameText: {(playerNameText != null ? playerNameText.gameObject.name : "NULL")}");
-            Debug.Log($"PlayerIndexText: {(playerIndexText != null ? playerIndexText.gameObject.name : "NULL")}");
-            Debug.Log($"PlayerScoreText: {(playerScoreText != null ? playerScoreText.gameObject.name : "NULL")}");
-            Debug.Log($"TeamNameText: {(teamNameText != null ? teamNameText.gameObject.name : "NULL")}");
-            Debug.Log($"PlayerBackground: {(playerBackground != null ? playerBackground.gameObject.name : "NULL")}");
-            Debug.Log($"GamePlayerSelector: {(gamePlayerSelector != null ? "FOUND" : "NULL")}");
-        }
-
-        #endregion
     }
 }
