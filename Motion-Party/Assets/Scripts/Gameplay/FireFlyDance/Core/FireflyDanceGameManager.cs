@@ -20,8 +20,10 @@ namespace Gameplay.FireFlyDance.Core
     /// Coordonne tous les modules du jeu une fois qu'il est lancé
     /// Gère les lucioles, le score, les interactions et les feedbacks
     /// </summary>
-    public class FireflyDanceGameManager : MiniGameBase
+public class FireflyDanceGameManager : MiniGameBase
+
     {
+
         #region Fields & References
 
         [Header("Core References")]
@@ -511,9 +513,9 @@ namespace Gameplay.FireFlyDance.Core
         {
             if (!isMultiPlayerSession || gamePlayerSelector == null)
             {
-                // Pas de multi-joueurs, terminer le mini-jeu
+                // Pas de multi-joueurs, afficher l'écran de transition avant de finir le mini-jeu
                 FireflyDanceLogger.Log("🏁 Fin du mini-jeu - Mode solo ou plus de joueurs");
-                FinishMiniGame();
+                ShowNextMiniGameTransition();
                 return;
             }
 
@@ -523,10 +525,10 @@ namespace Gameplay.FireFlyDance.Core
             // Vérifier s'il reste des joueurs qui n'ont pas encore joué
             if (!HasNextPlayerToPlay())
             {
-                // Tous les joueurs ont joué une fois, terminer le mini-jeu
+                // Tous les joueurs ont joué une fois, afficher l'écran de transition avant de finir le mini-jeu
                 FireflyDanceLogger.Log("🏁 Tous les joueurs ont joué une fois - Fin du mini-jeu");
                 ShowFinalRanking();
-                FinishMiniGame();
+                ShowNextMiniGameTransition();
                 return;
             }
 
@@ -1326,6 +1328,51 @@ namespace Gameplay.FireFlyDance.Core
                 FireflyDanceLogger.Log($"🎯 {currentPlayer.Nickname} a terminé son tour");
             }
         }
+
+        /// <summary>
+        /// Callback appelé pour démarrer la transition vers le mini-jeu suivant (fallback si GameSessionManager absent)
+        /// </summary>
+        private void OnTransitionToNextMiniGame()
+        {
+            // Ici, on suppose que la logique normale appelle FinishMiniGame() si GameSessionManager est présent
+            var gsm = FindFirstObjectByType<GameSessionManager>();
+            if (gsm != null)
+            {
+                FinishMiniGame();
+                return;
+            }
+            // Fallback : GameSessionManager absent, on redirige vers la scène principale et on relance la session au bon index
+            Debug.LogWarning("[FireflyDanceGameManager] GameSessionManager non disponible - Redirection automatique vers le menu principal pour reprise de session.");
+            int currentMiniGameIndex = -1;
+            string currentScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+            Debug.Log($"[FireflyDanceGameManager] Fallback: currentMiniGameIndex={{currentMiniGameIndex}}, scene={{currentScene}}");
+            GameSessionRedirector.ShouldResumeSession = true;
+            GameSessionRedirector.ResumeMiniGameIndex = currentMiniGameIndex;
+            GameSessionRedirector.ResumeMiniGameSceneName = currentScene;
+            UnityEngine.SceneManagement.SceneManager.LoadScene("MiniGameManager", UnityEngine.SceneManagement.LoadSceneMode.Single);
+        }
+
+
+        
+        /// <summary>
+        /// Affiche l'écran de transition vers le mini-jeu suivant (ou fallback si GameSessionManager absent)
+        /// </summary>
+        private void ShowNextMiniGameTransition()
+        {
+            if (roundEndScreenManager != null && currentPlayer != null)
+            {
+                roundEndScreenManager.OnNextMiniGameCallback = OnTransitionToNextMiniGame;
+                roundEndScreenManager.gameObject.SetActive(true);
+                roundEndScreenManager.ShowNextMiniGameTransition(currentPlayer, currentPlayerScore);
+            }
+            else
+            {
+                // Fallback : transition directe
+                OnTransitionToNextMiniGame();
+            }
+        }
+
+    
 
         #endregion
 

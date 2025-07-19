@@ -2826,8 +2826,10 @@ MonoBehaviour:
   lateralTracker: {fileID: 1591830348}
   playerAvatar: {fileID: 1543242584}
   scoreManager: {fileID: 257551260}
+  roundEndScreenManager: {fileID: 1803186969}
   startDelay: 1
   enableDebugMode: 1
+  delayBetweenPlayers: 2
   laneMarkers:
   - {fileID: 0}
   - {fileID: 0}
@@ -2868,9 +2870,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gameDurationInSeconds: 60
   startDelay: 2
-  scoreManager: {fileID: 0}
-  logGenerator: {fileID: 0}
-  gameController: {fileID: 0}
+  scoreManager: {fileID: 257551260}
+  logGenerator: {fileID: 1689009126}
+  gameController: {fileID: 1390725573}
   OnGameStart:
     m_PersistentCalls:
       m_Calls: []
@@ -4030,6 +4032,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 736562e8f914acf4fb275b6d32d0e0f0, type: 3}
+--- !u!114 &1803186969 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8931713910370359031, guid: 736562e8f914acf4fb275b6d32d0e0f0, type: 3}
+  m_PrefabInstance: {fileID: 1803186968}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 43cebfa2150c1164cbf5b1d2be6ac57d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1880647018
 GameObject:
   m_ObjectHideFlags: 0

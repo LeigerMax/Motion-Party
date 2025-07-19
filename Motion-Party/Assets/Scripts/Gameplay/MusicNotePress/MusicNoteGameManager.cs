@@ -29,6 +29,10 @@ namespace Gameplay.MusicNotePress
         public bool enablePlayerSystem = true;
         public float delayBetweenPlayers = 3f;
 
+        [Header("Session Management")]
+        public bool enableGameSessionTransition = true; // Nouvelle option
+        public float nextGameTransitionDelay = 4f; // Délai avant transition
+
         [Header("Debug")]
         public bool enableDebugLogs = true;
 
@@ -37,6 +41,9 @@ namespace Gameplay.MusicNotePress
         private Systems.PlayerData currentPlayer;
         private bool isMultiPlayerSession = false;
         private Dictionary<string, int> roundScores = new Dictionary<string, int>();
+
+        // Référence au GameSessionManager
+        private GameSessionManager gameSessionManager;
 
         protected override void Launch()
         {
@@ -58,6 +65,9 @@ namespace Gameplay.MusicNotePress
             // Valider les composants au démarrage
             ValidateComponents();
 
+            // Trouver le GameSessionManager
+            FindGameSessionManager();
+
             // S'abonner aux événements du GameController
             if (gameController != null)
             {
@@ -65,6 +75,19 @@ namespace Gameplay.MusicNotePress
             }
 
             Launch();
+        }
+
+        private void FindGameSessionManager()
+        {
+            gameSessionManager = FindFirstObjectByType<GameSessionManager>();
+            if (gameSessionManager == null && enableGameSessionTransition)
+            {
+                Debug.LogWarning("[MusicNoteGameManager] GameSessionManager non trouvé - Transition automatique désactivée");
+            }
+            else if (enableDebugLogs)
+            {
+                Debug.Log("[MusicNoteGameManager] GameSessionManager trouvé");
+            }
         }
 
         private void ValidateComponents()
@@ -199,16 +222,19 @@ namespace Gameplay.MusicNotePress
             // Vérifier s'il y a d'autres joueurs
             if (isMultiPlayerSession && HasNextPlayerToPlay())
             {
+                // Il y a encore des joueurs à faire jouer
                 ShowRoundEndScreen(score);
             }
             else
             {
-                // Fin du mini-jeu
+                // Plus de joueurs à faire jouer :
+                // - Si GameSessionManager existe et il reste des mini-jeux, passage au suivant
+                // - Sinon, retour au menu principal (géré par GameSessionManager)
                 if (enableDebugLogs)
-                    Debug.Log("[MusicNoteGameManager] Tous les joueurs ont joué - Fin du mini-jeu");
-                
+                    Debug.Log("[MusicNoteGameManager] Tous les joueurs ont joué - Transition vers mini-jeu suivant ou retour menu principal");
+
                 ShowFinalRanking();
-                FinishMiniGame();
+                ShowNextMiniGameTransition(score); // Cette méthode déclenche FinishMiniGame() qui appelle le GameSessionManager
             }
         }
 
@@ -226,6 +252,74 @@ namespace Gameplay.MusicNotePress
                 // Fallback si pas de RoundEndScreen
                 StartCoroutine(StartNextPlayerWithDelay());
             }
+        }
+
+        /// <summary>
+        /// Nouvelle méthode : Affiche l'écran de transition vers le mini-jeu suivant
+        /// </summary>
+        private void ShowNextMiniGameTransition(int finalScore)
+        {
+            if (roundEndScreenManager != null && currentPlayer != null)
+            {
+                // Configurer les callbacks pour la transition
+                roundEndScreenManager.OnNextMiniGameCallback = OnTransitionToNextMiniGame;
+                
+                roundEndScreenManager.gameObject.SetActive(true);
+                roundEndScreenManager.ShowNextMiniGameTransition(currentPlayer, finalScore);
+            }
+            else
+            {
+                // Fallback : transition directe après délai
+                StartCoroutine(DelayedNextMiniGameTransition());
+            }
+        }
+
+        /// <summary>
+        /// Callback appelé pour démarrer la transition vers le mini-jeu suivant
+        /// </summary>
+        private void OnTransitionToNextMiniGame()
+        {
+            if (enableDebugLogs)
+                Debug.Log("[MusicNoteGameManager] Transition vers mini-jeu suivant déclenchée");
+
+            // Désactiver l'écran de fin
+            if (roundEndScreenManager != null)
+            {
+                roundEndScreenManager.gameObject.SetActive(false);
+                roundEndScreenManager.OnNextMiniGameCallback = null;
+            }
+
+            // Déclencher la transition via GameSessionManager
+            if (enableGameSessionTransition && gameSessionManager != null)
+            {
+                // Le GameSessionManager va automatiquement charger le mini-jeu suivant
+                FinishMiniGame(); // Ceci va déclencher OnMiniGameFinished dans GameSessionManager
+            }
+            else
+            {
+                // Fallback : GameSessionManager absent, on redirige vers la scène principale et on relance la session au bon index
+                Debug.LogWarning("[MusicNoteGameManager] GameSessionManager non disponible - Redirection automatique vers le menu principal pour reprise de session.");
+                // On tente de retrouver l'index du mini-jeu courant dans la liste du GameSessionManager (en utilisant le nom de la scène active)
+                int currentMiniGameIndex = -1;
+                string currentScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+                Debug.Log($"[MusicNoteGameManager] Fallback: currentMiniGameIndex={currentMiniGameIndex}, scene={currentScene}");
+                GameSessionRedirector.ShouldResumeSession = true;
+                GameSessionRedirector.ResumeMiniGameIndex = currentMiniGameIndex;
+                GameSessionRedirector.ResumeMiniGameSceneName = currentScene;
+                UnityEngine.SceneManagement.SceneManager.LoadScene("MiniGameManager", UnityEngine.SceneManagement.LoadSceneMode.Single);
+            }
+        }
+
+        /// <summary>
+        /// Coroutine de fallback pour transition automatique
+        /// </summary>
+        private IEnumerator DelayedNextMiniGameTransition()
+        {
+            if (enableDebugLogs)
+                Debug.Log($"[MusicNoteGameManager] Transition automatique dans {nextGameTransitionDelay}s");
+
+            yield return new WaitForSeconds(nextGameTransitionDelay);
+            OnTransitionToNextMiniGame();
         }
 
         private void OnRoundEndNextPlayer()
@@ -246,7 +340,7 @@ namespace Gameplay.MusicNotePress
             if (currentPlayer == null)
             {
                 Debug.LogError("[MusicNoteGameManager] Erreur lors du passage au joueur suivant");
-                FinishMiniGame();
+                ShowNextMiniGameTransition(0); // Score par défaut
                 return;
             }
 
@@ -389,6 +483,12 @@ namespace Gameplay.MusicNotePress
             }
         }
 
+        [ContextMenu("Force Next MiniGame Transition")]
+        private void ForceNextMiniGameTransition()
+        {
+            ShowNextMiniGameTransition(999); // Score de test
+        }
+
         #endregion
     }
-} 
+}

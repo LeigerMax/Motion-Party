@@ -874,7 +874,7 @@ MonoBehaviour:
   noteSequenceManager: {fileID: 1785851944}
   noteInputManager: {fileID: 1588285901}
   startDelay: 1
-  maxLevel: 3
+  maxLevel: 1
   validationTime: 2
   delayBetweenLevels: 3
 --- !u!1 &188156779
@@ -3256,6 +3256,8 @@ MonoBehaviour:
   badgeAdapter: {fileID: 1400642299}
   enablePlayerSystem: 1
   delayBetweenPlayers: 3
+  enableGameSessionTransition: 1
+  nextGameTransitionDelay: 4
   enableDebugLogs: 1
 --- !u!1 &675324377
 GameObject:

@@ -5,16 +5,49 @@ using System.Collections;
 
 public enum GameState { Intro, Playing, Results }
 
+
 public class GameSessionManager : MonoBehaviour
 {
+
     [SerializeField] private List<MiniGameInfo> miniGames;
     [SerializeField] private string mainMenuSceneName = "MiniGameManager"; // Nom de la scène du menu principal
     private int currentGameIndex = 0;
 
-    private void Start()
+    // Singleton
+    public static GameSessionManager Instance { get; private set; }
+
+    private void Awake()
     {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(this.gameObject);
+            return;
+        }
+        Instance = this;
         DontDestroyOnLoad(this.gameObject);
     }
+
+    private void Start()
+    {
+        // Rien ici, tout est dans Awake
+    }
+
+    /// <summary>
+    /// Reprend la session de mini-jeux à l'index donné (utilisé pour le fallback automatique)
+    /// </summary>
+    public void ResumeSessionAt(int index)
+    {
+        if (index < 0 || index >= miniGames.Count)
+        {
+            Debug.LogWarning($"[GameSessionManager] Index de mini-jeu invalide pour la reprise ({index}), la session recommence au début.");
+            StartGameSession();
+            return;
+        }
+        currentGameIndex = index;
+        Debug.Log($"[GameSessionManager] Reprise de la session au mini-jeu index {index} : {miniGames[index].sceneName}");
+        StartCoroutine(StartNextMiniGameCoroutine());
+    }
+
 
     /// <summary>
     /// Lance une session de mini-jeux (appelé depuis le menu principal)
@@ -41,6 +74,7 @@ public class GameSessionManager : MonoBehaviour
             }
             yield break;
         }
+
 
         var currentMiniGame = miniGames[currentGameIndex];
         string sceneName = currentMiniGame.sceneName;
@@ -127,5 +161,20 @@ public class GameSessionManager : MonoBehaviour
             var loadOp = SceneManager.LoadSceneAsync(mainMenuSceneName, LoadSceneMode.Single);
             yield return loadOp;
         }
+    }
+
+    
+    /// <summary>
+    /// Retourne la liste des noms de scènes de tous les mini-jeux de la session.
+    /// </summary>
+    public List<string> GetMiniGameSceneNames()
+    {
+        List<string> names = new List<string>();
+        foreach (var mg in miniGames)
+        {
+            if (mg != null && !string.IsNullOrEmpty(mg.sceneName))
+                names.Add(mg.sceneName);
+        }
+        return names;
     }
 }
