@@ -4891,14 +4891,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   miniGames:
-  - sceneName: MiniGame_FireFlyDance
-    loadingTipId: firefly_dance
-    displayName: FireFly Dance
-    description: Attrape les lucioles avec ta main
   - sceneName: MiniGame_MusicNote
     loadingTipId: music_note
     displayName: Music Note
     description: "S\xE9rie de pierres musicales magiques !"
+  - sceneName: MiniGame_FireFlyDance
+    loadingTipId: firefly_dance
+    displayName: FireFly Dance
+    description: Attrape les lucioles avec ta main
   - sceneName: MiniGame_LogParade
     loadingTipId: log_parade
     displayName: Log Parade
