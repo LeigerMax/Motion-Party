@@ -19,7 +19,7 @@ MonoBehaviour:
     width: 2560
     height: 989
   m_ShowMode: 4
-  m_Title: Hierarchy
+  m_Title: Project
   m_RootView: {fileID: 2}
   m_MinSize: {x: 875, y: 300}
   m_MaxSize: {x: 10000, y: 10000}
@@ -226,7 +226,7 @@ MonoBehaviour:
   - {fileID: 14}
   - {fileID: 15}
   m_Selected: 2
-  m_LastSelected: 1
+  m_LastSelected: 0
 --- !u!114 &10
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -273,8 +273,8 @@ MonoBehaviour:
     y: 0
     width: 433
     height: 933
-  m_MinSize: {x: 276, y: 76}
-  m_MaxSize: {x: 4001, y: 4026}
+  m_MinSize: {x: 275, y: 50}
+  m_MaxSize: {x: 4000, y: 4000}
   m_ActualView: {fileID: 18}
   m_Panes:
   - {fileID: 18}
@@ -695,7 +695,7 @@ MonoBehaviour:
       sizeOverridden: 0
     - dockPosition: 0
       containerId: overlay-toolbar__left
-      displayed: 1
+      displayed: 0
       id: Terrain Tools
       index: 0
       contents: '{"m_Layout":4,"m_Collapsed":false,"m_Floating":false,"m_FloatingSnapOffset":{"x":24.0,"y":0.0},"m_SnapOffsetDelta":{"x":0.0,"y":0.0},"m_FloatingSnapCorner":0,"m_Size":{"x":0.0,"y":0.0},"m_SizeOverridden":false}'
@@ -874,9 +874,9 @@ MonoBehaviour:
   m_AudioPlay: 0
   m_DebugDrawModesUseInteractiveLightBakingData: 0
   m_Position:
-    m_Target: {x: -2.2694097, y: -0.10368824, z: 1.0063543}
+    m_Target: {x: -0.33185008, y: 0.07528532, z: -1.3815379}
     speed: 2
-    m_Value: {x: -2.2694097, y: -0.10368824, z: 1.0063543}
+    m_Value: {x: -0.33185008, y: 0.07528532, z: -1.3815379}
   m_RenderMode: 0
   m_CameraMode:
     drawMode: 0
@@ -922,13 +922,13 @@ MonoBehaviour:
     m_GridAxis: 1
     m_gridOpacity: 0.5
   m_Rotation:
-    m_Target: {x: -0.21169621, y: -0.00088270183, z: 0.00019116818, w: -0.9773368}
+    m_Target: {x: -0.3280905, y: -0.1334341, z: 0.04687292, w: -0.93400073}
     speed: 2
-    m_Value: {x: -0.21169432, y: -0.0038146977, z: 0.0008262536, w: -0.9773281}
+    m_Value: {x: -0.32816005, y: -0.13203278, z: 0.046380676, w: -0.9341987}
   m_Size:
-    m_Target: 6.253401
+    m_Target: 3.1427214
     speed: 2
-    m_Value: 6.253401
+    m_Value: 3.2908077
   m_Ortho:
     m_Target: 0
     speed: 2
@@ -957,7 +957,10 @@ MonoBehaviour:
   m_ReplacementString: 
   m_SceneVisActive: 1
   m_LastLockedObject: {fileID: 0}
-  m_LastDebugDrawMode: 35
+  m_LastDebugDrawMode:
+    drawMode: 35
+    name: 
+    section: 
   m_ViewIsLockedToObject: 0
 --- !u!114 &13
 MonoBehaviour:
@@ -998,9 +1001,9 @@ MonoBehaviour:
   m_SceneHierarchy:
     m_TreeViewState:
       scrollPos: {x: 0, y: 0}
-      m_SelectedIDs: f0bf0000
+      m_SelectedIDs: cac10000
       m_LastClickedID: 0
-      m_ExpandedIDs: daaeffff1cbfffff18fbffff3cb900006ae6000030f70000
+      m_ExpandedIDs: fe6effffa86fffff4e70fffffe74ffffa675ffff4e76ffff2a7dfffffa81ffffec98fffff69effff10a1ffff1cfbffff50ba00008aba0000d6ef0000b0f20000c4f40000aafb0000b6fb0000
       m_RenameOverlay:
         m_UserAcceptedRename: 0
         m_Name: 
@@ -1227,10 +1230,10 @@ MonoBehaviour:
   m_LockTracker:
     m_IsLocked: 0
   m_FolderTreeState:
-    scrollPos: {x: 0, y: 300}
-    m_SelectedIDs: 46c00000
-    m_LastClickedID: 49222
-    m_ExpandedIDs: 0000000022c0000024c0000026c0000028c000002ac000002cc000002ec0000030c0000032c0000034c0000036c0000038c000003ac000003cc000003ec0000040c0000042c0000044c0000046c0000048c000004ac000004cc000004ec0000050c0000052c0000054c0000056c0000058c000005ac000005cc000005ec0000060c0000062c0000000ca9a3bffffff7f
+    scrollPos: {x: 0, y: 456}
+    m_SelectedIDs: 94c10000
+    m_LastClickedID: 49556
+    m_ExpandedIDs: 0000000070c1000072c1000074c1000076c1000078c100007ac100007cc100007ec1000080c1000082c1000084c1000086c1000088c100008ac100008cc100008ec1000090c1000092c1000094c1000096c1000098c100009ac100009cc100009ec10000a0c10000a2c10000a4c10000a6c10000a8c10000aac10000acc10000aec10000b0c10000d2c3000000ca9a3bffffff7f
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -1259,7 +1262,7 @@ MonoBehaviour:
     scrollPos: {x: 0, y: 0}
     m_SelectedIDs: 
     m_LastClickedID: 0
-    m_ExpandedIDs: 0000000022c0000024c0000026c0000028c000002ac000002cc000002ec0000030c0000032c0000034c0000036c0000038c000003ac000003cc000003ec0000040c0000042c0000044c0000046c0000048c000004ac000004cc000004ec0000050c0000052c0000054c0000056c0000058c000005ac000005cc000005ec0000060c0000062c00000
+    m_ExpandedIDs: 0000000070c1000072c1000074c1000076c1000078c100007ac100007cc100007ec1000080c1000082c1000084c1000086c1000088c100008ac100008cc100008ec1000090c1000092c1000094c1000096c1000098c100009ac100009cc100009ec10000a0c10000a2c10000a4c10000a6c10000a8c10000aac10000acc10000aec10000b0c10000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 

@@ -1343,7 +1343,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   config: {fileID: 11400000, guid: 4ed6d213bcb9e2545a66af06de7f1c87, type: 2}
-  fallbackDurationInSeconds: 12
+  fallbackDurationInSeconds: 60
   startDelay: 2
   gameManager: {fileID: 848758759}
   OnTimerStarted:
