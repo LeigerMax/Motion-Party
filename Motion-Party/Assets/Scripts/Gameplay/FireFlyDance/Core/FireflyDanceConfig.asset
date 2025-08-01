@@ -22,4 +22,4 @@ MonoBehaviour:
   fireflyLifetime: 50
   captureRadius: 0.5
   scorePerFirefly: 10
-  gameDuration: 60
+  gameDuration: 15

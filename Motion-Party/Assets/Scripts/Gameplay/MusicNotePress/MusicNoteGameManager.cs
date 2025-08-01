@@ -234,7 +234,7 @@ namespace Gameplay.MusicNotePress
                     Debug.Log("[MusicNoteGameManager] Tous les joueurs ont joué - Transition vers mini-jeu suivant ou retour menu principal");
 
                 ShowFinalRanking();
-                ShowNextMiniGameTransition(score); // Cette méthode déclenche FinishMiniGame() qui appelle le GameSessionManager
+                ShowNextMiniGameTransition(score);
             }
         }
 
@@ -292,8 +292,9 @@ namespace Gameplay.MusicNotePress
             // Déclencher la transition via GameSessionManager
             if (enableGameSessionTransition && gameSessionManager != null)
             {
-                // Le GameSessionManager va automatiquement charger le mini-jeu suivant
-                FinishMiniGame(); // Ceci va déclencher OnMiniGameFinished dans GameSessionManager
+                Debug.Log("[MusicNoteGameManager] GameSessionManager trouvé - Utilisation de la transition directe (Option A)");
+                // Utiliser la nouvelle méthode directe (Option A) au lieu de l'ancienne
+                gameSessionManager.LoadNextMiniGameWithLoadingScreen();
             }
             else
             {

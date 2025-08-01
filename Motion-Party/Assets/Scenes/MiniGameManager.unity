@@ -4871,6 +4871,7 @@ GameObject:
   m_Component:
   - component: {fileID: 810328515}
   - component: {fileID: 810328514}
+  - component: {fileID: 810328516}
   m_Layer: 0
   m_Name: GameSessionManager
   m_TagString: Untagged
@@ -4891,10 +4892,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   miniGames:
-  - sceneName: MiniGame_FireFlyDance
-    loadingTipId: firefly_dance
-    displayName: FireFly Dance
-    description: Attrape les lucioles avec ta main
   - sceneName: MiniGame_LogParade
     loadingTipId: log_parade
     displayName: Log Parade
@@ -4903,7 +4900,14 @@ MonoBehaviour:
     loadingTipId: music_note
     displayName: Music Note
     description: "S\xE9rie de pierres musicales magiques !"
+  - sceneName: MiniGame_FireFlyDance
+    loadingTipId: firefly_dance
+    displayName: FireFly Dance
+    description: Attrape les lucioles avec ta main
   mainMenuSceneName: MainMenu
+  defaultTransitionDelay: 15
+  enableDetailedLogs: 1
+  forceDebugMode: 1
 --- !u!4 &810328515
 Transform:
   m_ObjectHideFlags: 0
@@ -4919,6 +4923,20 @@ Transform:
   m_Children: []
   m_Father: {fileID: 593550181}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &810328516
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 810328513}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5b11648d189ac746a37bbb791d5cc8f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  autoValidateOnStart: 1
+  showDetailedLogs: 1
 --- !u!1001 &842266166
 PrefabInstance:
   m_ObjectHideFlags: 0

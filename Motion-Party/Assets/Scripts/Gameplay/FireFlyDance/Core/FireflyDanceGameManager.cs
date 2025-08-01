@@ -433,7 +433,8 @@ public class FireflyDanceGameManager : MiniGameBase
             }
             else
             {
-                FinishMiniGame();
+                // Plus de joueurs - Transition vers le mini-jeu suivant
+                ShowNextMiniGameTransition();
             }
         }
 
@@ -542,7 +543,7 @@ public class FireflyDanceGameManager : MiniGameBase
                 // Sécurité : aucun joueur trouvé, terminer
                 FireflyDanceLogger.Log("🏁 Aucun joueur suivant trouvé - Fin du mini-jeu");
                 ShowFinalRanking();
-                FinishMiniGame();
+                ShowNextMiniGameTransition();
                 return;
             }
 
@@ -765,7 +766,7 @@ public class FireflyDanceGameManager : MiniGameBase
             else
             {
                 // Mode solo, terminer le mini-jeu
-                FinishMiniGame();
+                ShowNextMiniGameTransition();
             }
         }
 
@@ -1330,15 +1331,16 @@ public class FireflyDanceGameManager : MiniGameBase
         }
 
         /// <summary>
-        /// Callback appelé pour démarrer la transition vers le mini-jeu suivant (fallback si GameSessionManager absent)
+        /// Callback appelé pour démarrer la transition vers le mini-jeu suivant (Option A - Direct)
         /// </summary>
         private void OnTransitionToNextMiniGame()
         {
-            // Ici, on suppose que la logique normale appelle FinishMiniGame() si GameSessionManager est présent
             var gsm = FindFirstObjectByType<GameSessionManager>();
             if (gsm != null)
             {
-                FinishMiniGame();
+                Debug.Log("[FireflyDanceGameManager] GameSessionManager trouvé - Utilisation de la transition directe (Option A)");
+                // Utiliser la nouvelle méthode directe (Option A) au lieu de l'ancienne
+                gsm.LoadNextMiniGameWithLoadingScreen();
                 return;
             }
             // Fallback : GameSessionManager absent, on redirige vers la scène principale et on relance la session au bon index

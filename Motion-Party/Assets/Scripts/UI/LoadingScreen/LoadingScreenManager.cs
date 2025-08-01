@@ -10,7 +10,7 @@ public class LoadingScreenManager : MonoBehaviour
     [SerializeField] private LoadingScreenUI loadingUI;
     
     [Header("Durée minimale d'affichage")]
-    [SerializeField] private float minDisplayTime = 5f;
+    [SerializeField] private float minDisplayTime = 15f; // 15 secondes comme demandé
     
     // Singleton
     private static LoadingScreenManager _instance;
