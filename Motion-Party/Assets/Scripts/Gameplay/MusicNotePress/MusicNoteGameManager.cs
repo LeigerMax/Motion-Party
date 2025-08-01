@@ -184,6 +184,16 @@ namespace Gameplay.MusicNotePress
 
             if (gameController != null)
             {
+                // Afficher les informations sur le système de vagues infinies
+                if (gameController.IsInfiniteWavesEnabled())
+                {
+                    Debug.Log($"[MusicNoteGameManager] Système de vagues infinies activé - Première vague: {gameController.GetCurrentWaveNotesCount()} notes");
+                }
+                else
+                {
+                    Debug.Log("[MusicNoteGameManager] Mode classique activé");
+                }
+                
                 // Démarrer le jeu
                 gameController.StartGame();
             }
