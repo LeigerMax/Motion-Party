@@ -1,6 +1,10 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using Core;
+using Core.Analytics;
+using Core.Analytics.Core;
+using Core.Audio;
 using UI.RoundEndScreen;
 
 namespace Gameplay.LogParade.Core
@@ -27,6 +31,9 @@ namespace Gameplay.LogParade.Core
 
         // Référence au GameSessionManager
         private GameSessionManager gameSessionManager;
+        
+        // Analytics session
+        private string currentAnalyticsSessionId;
 
         protected override void Launch()
         {
@@ -34,6 +41,8 @@ namespace Gameplay.LogParade.Core
                 Debug.Log("[LogParadeGameManager] Launch() appelé");
 
             ValidateComponents();
+            StartAnalyticsSession();
+            // La musique a déjà été démarrée dans Start()
             InitializeGame();
         }
 
@@ -41,6 +50,7 @@ namespace Gameplay.LogParade.Core
         {
             ValidateComponents();
             FindGameSessionManager();
+            
             Launch();
         }
 
@@ -115,6 +125,9 @@ namespace Gameplay.LogParade.Core
         private void HandleGameFinished()
         {
             Debug.Log("[LogParadeGameManager] *** EVENEMENT RECU *** HandleGameFinished appelé !");
+            
+            // Terminer la session d'analytics
+            EndAnalyticsSession();
             
             if (enableDebugLogs)
                 Debug.Log("[LogParadeGameManager] Jeu terminé, préparation de la transition");
@@ -200,6 +213,65 @@ namespace Gameplay.LogParade.Core
         private void ForceNextMiniGameTransition()
         {
             OnTransitionToNextMiniGame();
+        }
+
+        #endregion
+
+        #region Audio Management
+
+        /// <summary>
+        /// Démarre la musique spécifique au mini-jeu LogParade
+        #endregion
+
+        #region Analytics Integration
+
+        /// <summary>
+        /// Démarre une session d'analytics pour Log Parade
+        /// </summary>
+        private void StartAnalyticsSession()
+        {
+            try
+            {
+                // Ne pas créer de nouvelle session, utiliser celle existante du GameSessionManager
+                if (enableDebugLogs)
+                    Debug.Log($"[LogParadeGameManager] 📊 Utilisation de la session analytics existante du GameSessionManager");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[LogParadeGameManager] ❌ Erreur analytics: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Termine la session analytics et marque le mini-jeu comme complété
+        /// </summary>
+        private void EndAnalyticsSession()
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(currentAnalyticsSessionId))
+                {
+                    // Terminer la session
+                    var analyticsResult = AnalyticsHelper.EndGameSession(currentAnalyticsSessionId);
+                    
+                    if (analyticsResult != null && enableDebugLogs)
+                    {
+                        Debug.Log($"[LogParadeGameManager] 📈 Analytics terminées - Score: {analyticsResult.finalScore}, Actions: {analyticsResult.totalActions}");
+                    }
+                    
+                    currentAnalyticsSessionId = null;
+                }
+
+                // Marquer le mini-jeu comme complété dans la session globale
+                AnalyticsHelper.CompleteMiniGame("LogParade");
+                
+                if (enableDebugLogs)
+                    Debug.Log("[LogParadeGameManager] ✅ Log Parade marqué comme complété dans la session globale");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[LogParadeGameManager] ❌ Erreur fin analytics: {ex.Message}");
+            }
         }
 
         #endregion

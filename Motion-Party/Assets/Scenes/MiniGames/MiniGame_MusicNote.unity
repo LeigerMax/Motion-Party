@@ -359,6 +359,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fingersCountText: {fileID: 1287537373}
+  waveNumberText: {fileID: 0}
+  notesCountText: {fileID: 0}
+  scoreText: {fileID: 0}
+  waveProgressText: {fileID: 0}
 --- !u!4 &54954917
 Transform:
   m_ObjectHideFlags: 0
@@ -464,7 +468,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 0}
+  m_Resource: {fileID: 8300000, guid: e81c1da2ad19d4d478cd17d469746be5, type: 3}
   m_PlayOnAwake: 1
   m_Volume: 1
   m_Pitch: 1
@@ -874,9 +878,12 @@ MonoBehaviour:
   noteSequenceManager: {fileID: 1785851944}
   noteInputManager: {fileID: 1588285901}
   startDelay: 1
-  maxLevel: 1
   validationTime: 2
-  delayBetweenLevels: 3
+  delayBetweenWaves: 3
+  startingNotesCount: 2
+  maxNotesPerWave: 10
+  enableInfiniteWaves: 1
+  wavesConfig: {fileID: 0}
 --- !u!1 &188156779
 GameObject:
   m_ObjectHideFlags: 0

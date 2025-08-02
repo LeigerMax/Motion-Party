@@ -138,7 +138,13 @@ public class LoadingScreenManager : MonoBehaviour
     public void UpdateProgress(float progress)
     {
         if (loadingUI != null)
+        {
             loadingUI.UpdateProgress(progress);
+        }
+        else
+        {
+            Debug.LogWarning("[LoadingScreenManager] loadingUI est null - impossible de mettre à jour la progression");
+        }
     }
     
     /// <summary>
@@ -147,6 +153,19 @@ public class LoadingScreenManager : MonoBehaviour
     private IEnumerator LoadSceneWithLoadingScreen(string sceneName, string tipId, Action onSceneLoaded, string title = null, string description = null)
     {
         float startTime = Time.unscaledTime;
+        
+        Debug.Log($"[LoadingScreenManager] Début chargement de {sceneName}");
+        
+        // Vérifier que l'UI de chargement est disponible
+        if (loadingUI == null)
+        {
+            Debug.LogError("[LoadingScreenManager] loadingUI est null - impossible d'afficher l'écran de chargement");
+            
+            // Fallback: chargement direct
+            SceneManager.LoadScene(sceneName);
+            onSceneLoaded?.Invoke();
+            yield break;
+        }
         
         // Afficher l'écran de chargement avec titre et description
         Show(tipId, title, description);

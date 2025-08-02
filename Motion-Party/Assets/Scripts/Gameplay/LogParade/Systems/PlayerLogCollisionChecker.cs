@@ -1,5 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
+using Core.Analytics;
+using Core.Audio;
 
 /// <summary>
 /// Vérifie en temps réel si l'avatar du joueur est sur un rondin.
@@ -152,16 +154,37 @@ public class PlayerLogCollisionChecker : MonoBehaviour
         // 3. Il est en période de tolérance après changement de voie
         IsOnLog = physicallyOnLog || betweenCloseLogs || isInTolerancePeriod;
 
-        // Logger les changements d'état
-        if (enableDebugLogs && wasOnLog != IsOnLog)
+        // Logger les changements d'état et déclencher les événements d'analytics
+        if (wasOnLog != IsOnLog)
         {
-            string reason = "";
-            if (physicallyOnLog) reason = "contact physique";
-            else if (betweenCloseLogs) reason = "entre rondins proches";
-            else if (isInTolerancePeriod) reason = "période de tolérance";
-            else reason = "aucun rondin détecté";
+            if (enableDebugLogs)
+            {
+                string reason = "";
+                if (physicallyOnLog) reason = "contact physique";
+                else if (betweenCloseLogs) reason = "entre rondins proches";
+                else if (isInTolerancePeriod) reason = "période de tolérance";
+                else reason = "aucun rondin détecté";
 
-            LogParadeLogger.LogVerbose($"État changé: {(IsOnLog ? "SUR RONDIN" : "DANS L'EAU")} - Raison: {reason}");
+                LogParadeLogger.LogVerbose($"État changé: {(IsOnLog ? "SUR RONDIN" : "DANS L'EAU")} - Raison: {reason}");
+            }
+
+            // Déclencher l'événement analytics si le joueur tombe dans l'eau
+            if (wasOnLog && !IsOnLog)
+            {
+                // Le joueur vient de tomber dans l'eau
+                AnalyticsHelper.RecordLogParadeFall("");
+                
+                // NOUVEAU: Jouer le son d'éclaboussure
+                if (AudioManager.Instance != null)
+                {
+                    AudioManager.Instance.PlayWaterSplash();
+                }
+                
+                if (enableDebugLogs)
+                {
+                    LogParadeLogger.LogVerbose("💧 Son d'éclaboussure joué - Joueur tombé dans l'eau");
+                }
+            }
         }
     }
 

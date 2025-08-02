@@ -379,6 +379,10 @@ public class LogParadeGameController : MonoBehaviour
         LogParadeLogger.Log($"[LogParade] ProcessGameEnd appelé avec score: {score}");
         SaveCurrentPlayerScore(score);
         
+        // ANALYTICS: Enregistrer le score final LogParade
+        string sessionId = "logparade_session"; // Utiliser une session ID appropriée si disponible
+        Core.Analytics.AnalyticsHelper.RecordLogParadeScore(sessionId, score);
+        
         // TOUJOURS afficher l'écran de fin de round pour montrer le score
         // En mode multi-joueurs : écran de transition entre joueurs
         // En mode solo : écran de fin de partie avec score

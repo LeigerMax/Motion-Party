@@ -3,6 +3,8 @@ using Gameplay.FireFlyDance.Core;
 using Gameplay.FireFlyDance.Hand;
 using Gameplay.FireFlyDance.Fireflies;
 using Gameplay.FireFlyDance.Utils;
+using Core.Analytics;
+using Core.Audio;
 
 namespace Gameplay.FireFlyDance.Capture
 {
@@ -18,6 +20,7 @@ namespace Gameplay.FireFlyDance.Capture
         [SerializeField] private FireflyDanceConfig config;
         [SerializeField] private HandTracker handTracker;
         [SerializeField] private Gameplay.FireFlyDance.Scoring.FireflyScoreManager scoreManager; 
+        [SerializeField] private FireflyDanceGameManager gameManager;
 
         [Header("Capture Settings")]
         [SerializeField] private float captureRadius = 1.0f;
@@ -61,6 +64,9 @@ namespace Gameplay.FireFlyDance.Capture
 
             if (scoreManager == null)
                 scoreManager = FindFirstObjectByType<Gameplay.FireFlyDance.Scoring.FireflyScoreManager>();
+
+            if (gameManager == null)
+                gameManager = FindFirstObjectByType<FireflyDanceGameManager>();
 
             // Validation
             if (config == null)
@@ -136,6 +142,16 @@ namespace Gameplay.FireFlyDance.Capture
                 }
             }
 
+            // ANALYTICS: Enregistrer la fermeture de main avec succès/échec
+            bool wasSuccessful = capturedCount > 0;
+            AnalyticsHelper.RecordHandClosure("", wasSuccessful);
+            
+            // Si aucune luciole capturée, enregistrer comme manquée
+            if (!wasSuccessful)
+            {
+                AnalyticsHelper.RecordFireflyMissed("");
+            }
+
             if (capturedCount > 0)
             {
                 FireflyDanceLogger.LogCapture($" {capturedCount} luciole(s) capturée(s) à la position {handPos3D}");
@@ -159,6 +175,15 @@ namespace Gameplay.FireFlyDance.Capture
             else
             {
                 FireflyDanceLogger.LogWarning("Impossible d'ajouter le score - ScoreManager manquant", this);
+            }
+
+            // ANALYTICS: Enregistrer la luciole capturée avec points
+            AnalyticsHelper.RecordFireflyCollected("", scorePerCapture);
+
+            // NOUVEAU: Jouer le son de capture de luciole
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlayFireflyCapture();
             }
 
             // Émettre l'événement pour notification uniquement

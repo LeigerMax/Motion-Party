@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using Gameplay.FireFlyDance.Core;
 using Gameplay.FireFlyDance.Hand;
 using Gameplay.FireFlyDance.Fireflies;
@@ -7,8 +8,10 @@ using Gameplay.FireFlyDance.Scoring;
 using Gameplay.FireFlyDance.Capture;
 using Gameplay.FireFlyDance.Utils;
 using Gameplay.FireFlyDance.UI;
-using Gameplay.FireFlyDance.Analytics;
 using Core;
+using Core.Analytics;
+using Core.Analytics.Core;
+using Core.Audio;
 using Gameplay.Common.Badges;
 using Gameplay.Firefly.Badges;
 using UI.RoundEndScreen;
@@ -64,7 +67,10 @@ public class FireflyDanceGameManager : MiniGameBase
         public float delayBetweenPlayers = 3f; // Délai entre les joueurs en secondes
 
         [Header("Analytics System")]
-        public Gameplay.FireFlyDance.Analytics.GameStatsRecorder gameStatsRecorder;
+        // Système d'analytics unifié via AnalyticsHelper
+
+        // Nouveau système d'analytics modulaire
+        private string currentAnalyticsSessionId;
 
         // État interne
         #pragma warning disable CS0414
@@ -91,6 +97,11 @@ public class FireflyDanceGameManager : MiniGameBase
             FireflyDanceLogger.Log("🚀 Launch() appelé - Début du lancement du mini-jeu");
             isLaunchedViaMiniGameBase = true;
             
+            // Démarrer la session analytics
+            StartAnalyticsSession();
+            
+            // La musique a déjà été démarrée dans Start()
+            
             // Initialiser le système de joueurs
             InitializePlayerSystem();
             
@@ -100,7 +111,6 @@ public class FireflyDanceGameManager : MiniGameBase
 
         void Start()
         {
-            // Ne rien faire ici - le lancement se fait uniquement via Launch()
             // Vérifier s'il y a des GameManagers multiples
             var allGameManagers = FindObjectsByType<FireflyDanceGameManager>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             if (allGameManagers.Length > 1)
@@ -111,7 +121,7 @@ public class FireflyDanceGameManager : MiniGameBase
                     FireflyDanceLogger.LogWarning($"  GameManager {i+1}: {allGameManagers[i].gameObject.name}");
                 }
             }
-            
+
             // Auto-initialisation pour les tests directs dans la scène
             StartCoroutine(CheckForAutoInitialization());
         }
@@ -197,8 +207,8 @@ public class FireflyDanceGameManager : MiniGameBase
                 scoreIntegration = FindFirstObjectByType<FireflyScoreManagerPlayerIntegration>();
             if (playerDisplayUI == null)
                 playerDisplayUI = FindFirstObjectByType<Gameplay.FireFlyDance.UI.FireflyPlayerDisplayUI>();
-            if (gameStatsRecorder == null)
-                gameStatsRecorder = FindFirstObjectByType<Gameplay.FireFlyDance.Analytics.GameStatsRecorder>();
+            // Analytics unifié déjà intégré
+            FireflyDanceLogger.Log("✅ Analytics système unifié prêt");
             if (roundEndScreenManager == null)
                 roundEndScreenManager = FindFirstObjectByType<RoundEndScreenManager>();
         }
@@ -393,13 +403,9 @@ public class FireflyDanceGameManager : MiniGameBase
             {
                 FireflyDanceLogger.Log($"🎮 Démarrage du jeu - État: {gameController.CurrentState}");
 
-                // Démarrer l'enregistrement des statistiques si disponible
-                if (gameStatsRecorder != null)
-                {
-                    string playerName = currentPlayer?.Nickname ?? "Joueur Anonyme";
-                    gameStatsRecorder.StartRecording(playerName);
-                    FireflyDanceLogger.Log($"📊 Analyse démarrée pour {playerName}");
-                }
+                // Utiliser la session analytics existante du GameSessionManager
+                string playerName = currentPlayer?.Nickname ?? "Joueur Anonyme";
+                FireflyDanceLogger.Log($"📈 Utilisation de la session analytics existante pour {playerName}");
 
                 // Toujours remettre le GameController à Idle avant de démarrer
                 gameController.ResetGame();
@@ -739,15 +745,15 @@ public class FireflyDanceGameManager : MiniGameBase
 
             FireflyDanceLogger.Log($"🏁 Fin de tour pour {currentPlayer?.Nickname ?? "Joueur inconnu"} - Score: {currentPlayerScore}");
 
-            // Terminer l'enregistrement des statistiques et sauvegarder
-            if (gameStatsRecorder != null)
+            // ANALYTICS: Enregistrer le score final dans les analytics
+            if (currentPlayer != null)
             {
-                gameStatsRecorder.EndRecording();
-                
-                // Afficher un résumé rapide des statistiques
-                string summary = gameStatsRecorder.GetCurrentSessionSummary();
-                FireflyDanceLogger.Log($"📊 Résumé statistiques:\n{summary}");
+                AnalyticsHelper.RecordFireflyScore(currentPlayer.Id, currentPlayerScore);
+                FireflyDanceLogger.Log($"📊 Score final {currentPlayerScore} enregistré dans les analytics pour {currentPlayer.Nickname}");
             }
+
+            // Terminer le système d'analytics et enregistrer le score final
+            EndAnalyticsSession();
 
             // Finaliser le tracking des badges
             if (badgeAdapter != null && currentPlayer != null)
@@ -848,6 +854,9 @@ public class FireflyDanceGameManager : MiniGameBase
         {
             // Mettre à jour le score local du joueur actuel
             currentPlayerScore += points;
+            
+            // Enregistrer l'action réussie dans le système d'analytics
+            AnalyticsHelper.RecordFireflyCollected("", points);
             
             // Tracking pour les badges
             if (badgeAdapter != null && currentPlayer != null)
@@ -1521,7 +1530,49 @@ public class FireflyDanceGameManager : MiniGameBase
             }
         }
 
-       
+        #endregion
+
+        #region Analytics Integration
+
+        /// <summary>
+        /// Démarre une session d'analytics pour le jeu Firefly Dance
+        /// </summary>
+        private void StartAnalyticsSession()
+        {
+            try
+            {
+                string playerName = currentPlayer?.Nickname ?? "Player_Unknown";
+                // Ne pas créer de nouvelle session, utiliser celle existante du GameSessionManager
+                
+                FireflyDanceLogger.Log($"📊 Utilisation de la session analytics existante pour {playerName}");
+            }
+            catch (System.Exception ex)
+            {
+                FireflyDanceLogger.LogError($"❌ Erreur analytics: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Termine la session analytics et marque le mini-jeu comme complété
+        /// </summary>
+        private void EndAnalyticsSession()
+        {
+            try
+            {
+                // Utiliser notre nouveau système de métriques qui se base sur la session du GameSessionManager
+                FireflyDanceLogger.Log($"📈 Fin de jeu - Score final: {currentPlayerScore}");
+                
+                // Marquer le mini-jeu comme complété dans la session globale
+                AnalyticsHelper.CompleteMiniGame("FireflyDance");
+                
+                FireflyDanceLogger.Log("✅ Firefly Dance marqué comme complété dans la session globale");
+            }
+            catch (System.Exception ex)
+            {
+                FireflyDanceLogger.LogError($"❌ Erreur fin analytics: {ex.Message}");
+            }
+        }
+
         #endregion
     }
 }

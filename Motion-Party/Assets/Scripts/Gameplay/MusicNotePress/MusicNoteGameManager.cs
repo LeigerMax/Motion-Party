@@ -2,6 +2,8 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using Core;
+using Core.Analytics;
+using Core.Audio;
 using UI.RoundEndScreen;
 using Gameplay.Common.Badges;
 using Gameplay.Music.Badges;
@@ -44,6 +46,9 @@ namespace Gameplay.MusicNotePress
 
         // Référence au GameSessionManager
         private GameSessionManager gameSessionManager;
+        
+        // Analytics session
+        private string currentAnalyticsSessionId;
 
         protected override void Launch()
         {
@@ -52,6 +57,11 @@ namespace Gameplay.MusicNotePress
 
             // Valider les composants avant tout
             ValidateComponents();
+
+            // Démarrer la session analytics
+            StartAnalyticsSession();
+
+            // La musique a déjà été démarrée dans Start()
 
             // Initialiser le système de joueurs
             InitializePlayerSystem();
@@ -182,6 +192,10 @@ namespace Gameplay.MusicNotePress
             if (enableDebugLogs)
                 Debug.Log($"[MusicNoteGameManager] Initialisation du jeu pour {currentPlayer?.Nickname ?? "joueur inconnu"}");
 
+            // Utiliser la session analytics existante du GameSessionManager
+            if (enableDebugLogs)
+                Debug.Log($"[MusicNoteGameManager] Utilisation de la session analytics du GameSessionManager");
+
             if (gameController != null)
             {
                 // Afficher les informations sur le système de vagues infinies
@@ -193,6 +207,9 @@ namespace Gameplay.MusicNotePress
                 {
                     Debug.Log("[MusicNoteGameManager] Mode classique activé");
                 }
+                
+                // Définir le joueur actuel dans le contrôleur pour les analytics
+                gameController.SetCurrentPlayer(currentPlayer);
                 
                 // Démarrer le jeu
                 gameController.StartGame();
@@ -207,6 +224,9 @@ namespace Gameplay.MusicNotePress
         {
             if (enableDebugLogs)
                 Debug.Log($"[MusicNoteGameManager] Fin de partie pour {currentPlayer?.Nickname} - Score: {score}");
+
+            // Terminer la session analytics et enregistrer le score
+            EndAnalyticsSession(score);
 
             // Sauvegarder le score
             SaveCurrentPlayerScore(score);
@@ -499,6 +519,67 @@ namespace Gameplay.MusicNotePress
         {
             ShowNextMiniGameTransition(999); // Score de test
         }
+
+        #endregion
+
+        #region Analytics Integration
+
+        /// <summary>
+        /// Démarre une session d'analytics pour Music Note Press
+        /// </summary>
+        private void StartAnalyticsSession()
+        {
+            try
+            {
+                // Ne pas créer de nouvelle session, utiliser celle existante du GameSessionManager
+                string playerName = currentPlayer?.Nickname ?? "Player_Unknown";
+                if (enableDebugLogs)
+                    Debug.Log($"[MusicNoteGameManager] 📊 Utilisation de la session analytics existante pour {playerName}");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[MusicNoteGameManager] ❌ Erreur analytics: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Termine la session analytics et marque le mini-jeu comme complété
+        /// </summary>
+        private void EndAnalyticsSession(int finalScore)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(currentAnalyticsSessionId))
+                {
+                    // Enregistrer le score final
+                    Core.Analytics.AnalyticsHelper.RecordMusicNoteScore(currentAnalyticsSessionId, finalScore);
+                    
+                    // Terminer la session
+                    var analyticsResult = Core.Analytics.AnalyticsHelper.EndGameSession(currentAnalyticsSessionId);
+                    
+                    if (analyticsResult != null && enableDebugLogs)
+                    {
+                        Debug.Log($"[MusicNoteGameManager] 📈 Analytics terminées - Score: {analyticsResult.finalScore}, Actions: {analyticsResult.totalActions}");
+                    }
+                    
+                    currentAnalyticsSessionId = null;
+                }
+
+                // Marquer le mini-jeu comme complété dans la session globale
+                Core.Analytics.AnalyticsHelper.CompleteMiniGame("MusicNotePress");
+                
+                if (enableDebugLogs)
+                    Debug.Log("[MusicNoteGameManager] ✅ Music Note Press marqué comme complété dans la session globale");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[MusicNoteGameManager] ❌ Erreur fin analytics: {ex.Message}");
+            }
+        }
+
+        #endregion
+
+        #region Audio Management
 
         #endregion
     }

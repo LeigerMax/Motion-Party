@@ -114,7 +114,7 @@ namespace Gameplay.Common.Badges
             // Valider les conditions
             if (validateBadgeConditions && !ValidateBadgeConditions(badgeDefinition, currentValue))
             {
-                LogDebug($"Conditions non remplies pour {badgeDefinition.GetFullBadgeId()}: {currentValue}/{badgeDefinition.TargetValue}");
+                //LogDebug($"Conditions non remplies pour {badgeDefinition.GetFullBadgeId()}: {currentValue}/{badgeDefinition.TargetValue}");
                 OnConditionsValidated?.Invoke(playerName, badgeDefinition.GetFullBadgeId(), currentValue);
                 return false;
             }

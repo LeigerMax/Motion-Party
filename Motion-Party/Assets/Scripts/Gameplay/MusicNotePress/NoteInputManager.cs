@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using Core.Analytics;
 
 public class NoteInputManager : MonoBehaviour
 {
@@ -11,6 +12,7 @@ public class NoteInputManager : MonoBehaviour
     private List<int> userInputs = new List<int>();
 
     private int currentFingerCount = -1; // Dernier nombre de doigts détecté
+    private Systems.PlayerData currentPlayer; // Référence au joueur actuel
     private Coroutine validationCoroutine = null; // Coroutine pour valider l'entrée utilisateur
     private int currentNoteIndex = 0;
     public bool isPlayingSequence = false;
@@ -20,10 +22,25 @@ public class NoteInputManager : MonoBehaviour
         generatedListNotes = sequenceManager.GetGeneratedNotes();
     }
 
+    /// <summary>
+    /// Définit le joueur actuel pour les analytics
+    /// </summary>
+    public void SetCurrentPlayer(Systems.PlayerData player)
+    {
+        currentPlayer = player;
+    }
+
     public void UserInput(int openFingers)
     {
 
         if (isPlayingSequence) return; 
+        
+        // Enregistrer toutes les captures de main (même les 0)
+        string playerID = currentPlayer?.Id ?? AnalyticsHelper.GetCurrentPlayerFromSession();
+        if (!string.IsNullOrEmpty(playerID))
+        {
+            AnalyticsHelper.RecordMusicNoteHandClosure(playerID, openFingers);
+        }
 
         if (openFingers == 0)
         {

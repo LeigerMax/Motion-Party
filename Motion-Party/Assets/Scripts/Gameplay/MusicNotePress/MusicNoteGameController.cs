@@ -3,6 +3,7 @@ using Core;
 using Newtonsoft.Json.Linq;
 using System.Collections;
 using System;
+using Core.Analytics;
 
 namespace Gameplay.MusicNotePress
 {
@@ -37,6 +38,9 @@ namespace Gameplay.MusicNotePress
     private int noteCountThisWave = 2; // Remplace noteCountThisLevel
     private int currentScore = 0;
     private int openFingers = 0;
+    
+    // Joueur actuel pour les analytics
+    private Systems.PlayerData currentPlayer;
 
     private Coroutine playingSequence;
 
@@ -172,6 +176,21 @@ namespace Gameplay.MusicNotePress
             InitGame();
         }
 
+    /// <summary>
+    /// Définit le joueur actuel pour les analytics
+    /// </summary>
+    public void SetCurrentPlayer(Systems.PlayerData player)
+    {
+        currentPlayer = player;
+        Debug.Log($"[MusicNoteGameController] Joueur actuel défini: {player?.Nickname ?? "Unknown"}");
+        
+        // Transmettre le joueur au NoteInputManager
+        if (noteInputManager != null)
+        {
+            noteInputManager.SetCurrentPlayer(player);
+        }
+    }
+
     private void InitGame()
     {
         Debug.Log($"[MusicNoteGameController] InitGame() appelé sur {gameObject.name}, actif: {gameObject.activeInHierarchy}");
@@ -220,6 +239,11 @@ namespace Gameplay.MusicNotePress
         noteInputManager.isPlayingSequence = isPlayingSequence;
 
         Debug.Log("Lancement de la séquence !");
+        
+        // Enregistrer le début de la vague
+        string playerID = currentPlayer?.Id ?? AnalyticsHelper.GetCurrentPlayerFromSession();
+        AnalyticsHelper.RecordMusicNoteWave(playerID);
+        
         yield return noteSequenceManager.PlaySequenceCoroutine();
 
         isPlayingSequence = false;
@@ -235,6 +259,10 @@ namespace Gameplay.MusicNotePress
         {
             Debug.Log($"[MusicNoteGameController] Vague {currentWave} réussie !");
             currentScore += 100 * currentWave; // Score basé sur la vague
+            
+            // Enregistrer le succès de la vague
+            string playerID = currentPlayer?.Id ?? AnalyticsHelper.GetCurrentPlayerFromSession();
+            AnalyticsHelper.RecordMusicNoteSuccess(playerID);
             
             // Mettre à jour l'UI avec le nouveau score
             if (uiManager != null)
@@ -276,6 +304,10 @@ namespace Gameplay.MusicNotePress
             // En cas d'échec : FIN DU JEU (système de vagues infinies)
             Debug.Log($"[MusicNoteGameController] Échec à la vague {currentWave} - Fin du jeu");
             Debug.Log($"[MusicNoteGameController] Score final : {currentScore} points - Vagues complétées : {currentWave - 1}");
+            
+            // Enregistrer le score final
+            string playerID = currentPlayer?.Id ?? AnalyticsHelper.GetCurrentPlayerFromSession();
+            AnalyticsHelper.RecordMusicNoteScore(playerID, currentScore);
             
             // Mettre à jour l'UI avec les résultats finaux
             if (uiManager != null)
