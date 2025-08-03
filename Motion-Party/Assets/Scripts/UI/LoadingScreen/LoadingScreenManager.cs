@@ -12,6 +12,13 @@ public class LoadingScreenManager : MonoBehaviour
     [Header("Durée minimale d'affichage")]
     [SerializeField] private float minDisplayTime = 15f; // 15 secondes comme demandé
     
+    [Header("Contrôle utilisateur")]
+    [SerializeField] private bool enableUserControl = true; // Permettre à l'utilisateur de contrôler
+    [SerializeField] private float minimumReadTime = 30f; // Temps minimum avant que l'utilisateur puisse continuer (30 secondes)
+    
+    // État du contrôle utilisateur
+    private bool waitingForUser = false;
+    
     // Singleton
     private static LoadingScreenManager _instance;
     public static LoadingScreenManager Instance
@@ -194,12 +201,8 @@ public class LoadingScreenManager : MonoBehaviour
             yield return null;
         }
         
-        // S'assurer que l'écran de chargement est affiché pendant le temps minimum
-        float elapsedTime = Time.unscaledTime - startTime;
-        if (elapsedTime < minDisplayTime)
-        {
-            yield return new WaitForSecondsRealtime(minDisplayTime - elapsedTime);
-        }
+        // Gestion du contrôle utilisateur ou temps minimum
+        yield return StartCoroutine(HandleUserControlOrMinimumTime(startTime));
         
         // Masquer l'écran de chargement
         Hide();
@@ -247,6 +250,53 @@ public class LoadingScreenManager : MonoBehaviour
         else
         {
             Debug.LogWarning($"LoadingScreenManager: Impossible de charger les données depuis {resourcePath}");
+        }
+    }
+    
+    /// <summary>
+    /// Gère le contrôle utilisateur ou le temps minimum d'affichage
+    /// </summary>
+    private IEnumerator HandleUserControlOrMinimumTime(float startTime)
+    {
+        // Calculer le temps écoulé depuis le début du chargement
+        float elapsedTime = Time.unscaledTime - startTime;
+        
+        if (enableUserControl && loadingUI != null)
+        {
+            // Mode contrôle utilisateur - Système simplifié
+            bool userContinueRequested = false;
+            
+            Debug.Log("[LoadingScreenManager] Mode contrôle utilisateur activé");
+            
+            // Activer le contrôle utilisateur
+            loadingUI.EnableUserControl(() => {
+                userContinueRequested = true;
+                Debug.Log("[LoadingScreenManager] Utilisateur a cliqué sur Continuer!");
+            });
+            
+            // Attendre le minimum entre le temps max et que l'utilisateur clique
+            float maxWaitTime = Mathf.Max(minDisplayTime, minimumReadTime + 5f); // Au moins 5s après apparition du bouton
+            float waitStartTime = Time.unscaledTime;
+            
+            Debug.Log($"[LoadingScreenManager] Attente max de {maxWaitTime}s (ou clic utilisateur)");
+            
+            while (!userContinueRequested && (Time.unscaledTime - waitStartTime) < maxWaitTime)
+            {
+                yield return null;
+            }
+            
+            // Réinitialiser le contrôle utilisateur
+            loadingUI.ResetUserControl();
+            
+            Debug.Log($"[LoadingScreenManager] Contrôle utilisateur terminé. User clicked: {userContinueRequested}, Temps écoulé: {Time.unscaledTime - waitStartTime:F1}s");
+        }
+        else
+        {
+            // Mode traditionnel avec temps minimum fixe
+            if (elapsedTime < minDisplayTime)
+            {
+                yield return new WaitForSecondsRealtime(minDisplayTime - elapsedTime);
+            }
         }
     }
 }

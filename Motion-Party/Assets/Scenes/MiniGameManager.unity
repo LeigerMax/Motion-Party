@@ -10167,6 +10167,15 @@ MonoBehaviour:
     missedFireflies: 0
     totalHandClosures: 0
     emptyHandClosures: 0
+    staticFirefliesSpawned: 0
+    staticFirefliesCaptured: 0
+    slowMovingFirefliesSpawned: 0
+    slowMovingFirefliesCaptured: 0
+    fastMovingFirefliesSpawned: 0
+    fastMovingFirefliesCaptured: 0
+    totalScoreFromStatic: 0
+    totalScoreFromSlowMoving: 0
+    totalScoreFromFastMoving: 0
     averageReactionTime: 0
     minReactionTime: 0
     maxReactionTime: 0
@@ -11309,6 +11318,54 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 6591267202752751854, guid: ae6144c3c0f672f4f82e7c767258e392, type: 3}
   m_PrefabInstance: {fileID: 83444663}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1675613829
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1675613831}
+  - component: {fileID: 1675613830}
+  m_Layer: 0
+  m_Name: AnalyticsFileGenerator
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1675613830
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1675613829}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 91a39260f5f941043893b57f3a38d18d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  outputDirectory: AnalyticsReports
+  generateCSV: 0
+  generateJSON: 1
+  generateHTML: 0
+--- !u!4 &1675613831
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1675613829}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1682534274
 GameObject:
   m_ObjectHideFlags: 0
@@ -13931,3 +13988,4 @@ SceneRoots:
   - {fileID: 1826897422}
   - {fileID: 1906476842}
   - {fileID: 896637875}
+  - {fileID: 1675613831}
