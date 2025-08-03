@@ -240,6 +240,14 @@ namespace Core.Analytics.Core
             sessionMetrics[SUCCESS_RATE_METRIC] = 0f;
             sessionMetrics["total_successes"] = 0f;
             sessionMetrics["total_attempts"] = 0f;
+            
+            // Métriques de tremblements
+            sessionMetrics["tremor_intensity"] = 0f;
+            sessionMetrics["tremor_frequency"] = 0f;
+            sessionMetrics["tremor_episodes_count"] = 0f;
+            sessionMetrics["tremor_time_percentage"] = 0f;
+            sessionMetrics["average_tremor_duration"] = 0f;
+            sessionMetrics["is_tremoring"] = 0f;
         }
 
         private string FormatMetricValue(string metricName, float value)
@@ -250,12 +258,21 @@ namespace Core.Analytics.Core
                     return $"{value:F0} pts";
                 case ACCURACY_METRIC:
                 case SUCCESS_RATE_METRIC:
+                case "tremor_time_percentage":
                     return $"{value:F1}%";
                 case REACTION_TIME_METRIC:
                 case COMPLETION_TIME_METRIC:
+                case "average_tremor_duration":
                     return $"{value:F2}s";
                 case ACTIONS_COUNT_METRIC:
+                case "tremor_episodes_count":
                     return $"{value:F0}";
+                case "tremor_intensity":
+                    return $"{value:F2}";
+                case "tremor_frequency":
+                    return $"{value:F2} Hz";
+                case "is_tremoring":
+                    return value > 0 ? "Oui" : "Non";
                 default:
                     return $"{value:F2}";
             }
@@ -313,7 +330,14 @@ namespace Core.Analytics.Core
                    metricName == ACTIONS_COUNT_METRIC || 
                    metricName == SUCCESS_RATE_METRIC ||
                    metricName == "total_successes" ||
-                   metricName == "total_attempts";
+                   metricName == "total_attempts" ||
+                   // Métriques de tremblements
+                   metricName == "tremor_intensity" ||
+                   metricName == "tremor_frequency" ||
+                   metricName == "tremor_episodes_count" ||
+                   metricName == "tremor_time_percentage" ||
+                   metricName == "average_tremor_duration" ||
+                   metricName == "is_tremoring";
         }
 
         #endregion

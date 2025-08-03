@@ -855,8 +855,7 @@ public class FireflyDanceGameManager : MiniGameBase
             // Mettre à jour le score local du joueur actuel
             currentPlayerScore += points;
             
-            // Enregistrer l'action réussie dans le système d'analytics
-            AnalyticsHelper.RecordFireflyCollected("", points);
+            // Note: L'analytics est déjà géré dans FireflyCapture.cs pour éviter la duplication
             
             // Tracking pour les badges
             if (badgeAdapter != null && currentPlayer != null)

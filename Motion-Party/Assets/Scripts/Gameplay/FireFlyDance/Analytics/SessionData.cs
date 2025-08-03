@@ -32,6 +32,19 @@ namespace Gameplay.FireFlyDance.Analytics
         public int totalHandClosures;
         public int emptyHandClosures;
 
+        [Header("Stats par type de libellule")]
+        public int staticFirefliesSpawned;
+        public int staticFirefliesCaptured;
+        public int slowMovingFirefliesSpawned;
+        public int slowMovingFirefliesCaptured;
+        public int fastMovingFirefliesSpawned;
+        public int fastMovingFirefliesCaptured;
+        
+        [Header("Scores par type")]
+        public int totalScoreFromStatic;
+        public int totalScoreFromSlowMoving;
+        public int totalScoreFromFastMoving;
+
         [Header("Performance Metrics")]
         public float averageReactionTime;
         public float minReactionTime;
@@ -116,13 +129,22 @@ namespace Gameplay.FireFlyDance.Analytics
             Dictionary<int, float> fireflySpawnTimes = new Dictionary<int, float>();
             Dictionary<int, int> fireflyAttempts = new Dictionary<int, int>();
 
+            // Reset des compteurs par type
+            staticFirefliesSpawned = slowMovingFirefliesSpawned = fastMovingFirefliesSpawned = 0;
+            staticFirefliesCaptured = slowMovingFirefliesCaptured = fastMovingFirefliesCaptured = 0;
+            totalScoreFromStatic = totalScoreFromSlowMoving = totalScoreFromFastMoving = 0;
+
             foreach (var evt in events)
             {
                 switch (evt.eventType)
                 {
                     case GameEventType.FireflySpawned:
                         if (evt.fireflyId >= 0)
+                        {
                             fireflySpawnTimes[evt.fireflyId] = evt.timestamp;
+                            // Compter par type
+                            CountFireflyByType(evt.fireflyType, true);
+                        }
                         break;
 
                     case GameEventType.FireflyCaptured:
@@ -132,6 +154,10 @@ namespace Gameplay.FireFlyDance.Analytics
                             reactionTimes.Add(reactionTime);
                             fireflyReactionTimes[evt.fireflyId] = reactionTime;
                             captureTimes.Add(evt.fireflyLifetime);
+                            
+                            // Compter par type et score
+                            CountFireflyByType(evt.fireflyType, false);
+                            AddScoreByType(evt.fireflyType, evt.scoreValue);
                         }
                         break;
 
@@ -199,6 +225,65 @@ namespace Gameplay.FireFlyDance.Analytics
         }
 
         /// <summary>
+        /// Compte les libellules par type (spawn ou capture)
+        /// </summary>
+        private void CountFireflyByType(string fireflyType, bool isSpawn)
+        {
+            switch (fireflyType)
+            {
+                case "Static":
+                    if (isSpawn) staticFirefliesSpawned++; 
+                    else staticFirefliesCaptured++;
+                    break;
+                case "SlowMoving":
+                    if (isSpawn) slowMovingFirefliesSpawned++; 
+                    else slowMovingFirefliesCaptured++;
+                    break;
+                case "FastMoving":
+                    if (isSpawn) fastMovingFirefliesSpawned++; 
+                    else fastMovingFirefliesCaptured++;
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Ajoute le score par type de libellule
+        /// </summary>
+        private void AddScoreByType(string fireflyType, int score)
+        {
+            switch (fireflyType)
+            {
+                case "Static":
+                    totalScoreFromStatic += score;
+                    break;
+                case "SlowMoving":
+                    totalScoreFromSlowMoving += score;
+                    break;
+                case "FastMoving":
+                    totalScoreFromFastMoving += score;
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Obtient le taux de réussite pour un type spécifique
+        /// </summary>
+        public float GetSuccessRateForType(string fireflyType)
+        {
+            switch (fireflyType)
+            {
+                case "Static":
+                    return staticFirefliesSpawned > 0 ? (float)staticFirefliesCaptured / staticFirefliesSpawned : 0f;
+                case "SlowMoving":
+                    return slowMovingFirefliesSpawned > 0 ? (float)slowMovingFirefliesCaptured / slowMovingFirefliesSpawned : 0f;
+                case "FastMoving":
+                    return fastMovingFirefliesSpawned > 0 ? (float)fastMovingFirefliesCaptured / fastMovingFirefliesSpawned : 0f;
+                default:
+                    return 0f;
+            }
+        }
+
+        /// <summary>
         /// Exporte les données en format JSON lisible
         /// </summary>
         public string ToJson()
@@ -227,6 +312,12 @@ namespace Gameplay.FireFlyDance.Analytics
             summary += $"Clics vides: {emptyHandClosures}\n";
             summary += $"Distance main: {handMovementDistance:F1} unités\n";
             summary += $"Tentatives par luciole: {(attemptsPerFirefly.Count > 0 ? CalculateAverage(attemptsPerFirefly.ConvertAll(x => (float)x)):0):F1}\n";
+            
+            // Statistiques par type de libellule
+            summary += "\n=== STATISTIQUES PAR TYPE ===\n";
+            summary += $"Statiques: {staticFirefliesCaptured}/{staticFirefliesSpawned} ({GetSuccessRateForType("Static")*100:F1}%) - Score: {totalScoreFromStatic}\n";
+            summary += $"Lentes: {slowMovingFirefliesCaptured}/{slowMovingFirefliesSpawned} ({GetSuccessRateForType("SlowMoving")*100:F1}%) - Score: {totalScoreFromSlowMoving}\n";
+            summary += $"Rapides: {fastMovingFirefliesCaptured}/{fastMovingFirefliesSpawned} ({GetSuccessRateForType("FastMoving")*100:F1}%) - Score: {totalScoreFromFastMoving}\n";
             
             // Analyse spécifique à l'âge
             if (playerAge > 0)

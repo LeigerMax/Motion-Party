@@ -34,6 +34,8 @@ namespace Gameplay.FireFlyDance.Analytics
         public int fireflyId;
         public float fireflyLifetime;
         public bool wasSuccessful;
+        public string fireflyType; // Type de libellule (Static, SlowMoving, FastMoving)
+        public int scoreValue;     // Score attribué pour cette libellule
 
         [Header("Hand Specific")]
         public bool isHandClosed;
@@ -55,6 +57,8 @@ namespace Gameplay.FireFlyDance.Analytics
             fireflyId = -1;
             fireflyLifetime = 0f;
             wasSuccessful = false;
+            fireflyType = "";
+            scoreValue = 0;
             isHandClosed = false;
             openFingers = 0;
             handPosition = Vector2.zero;
@@ -67,12 +71,14 @@ namespace Gameplay.FireFlyDance.Analytics
         /// Crée un événement de luciole avec données spécifiques
         /// </summary>
         public static GameStatEvent CreateFireflyEvent(GameEventType type, float timestamp, Vector2 position, 
-            int fireflyId, float lifetime = 0f, bool successful = false)
+            int fireflyId, float lifetime = 0f, bool successful = false, string fireflyType = "", int scoreValue = 0)
         {
             var evt = new GameStatEvent(type, timestamp, position);
             evt.fireflyId = fireflyId;
             evt.fireflyLifetime = lifetime;
             evt.wasSuccessful = successful;
+            evt.fireflyType = fireflyType;
+            evt.scoreValue = scoreValue;
             return evt;
         }
 

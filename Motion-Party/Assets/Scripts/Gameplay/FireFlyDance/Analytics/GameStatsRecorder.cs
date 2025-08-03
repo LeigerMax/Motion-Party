@@ -146,19 +146,23 @@ namespace Gameplay.FireFlyDance.Analytics
             fireflySpawnTimes[fireflyId] = currentTime;
             fireflyAttemptCounts[fireflyId] = 0;
 
-            // Créer l'événement
+            // Créer l'événement avec le type de libellule
             var statEvent = GameStatEvent.CreateFireflyEvent(
                 GameEventType.FireflySpawned, 
                 currentTime, 
                 position, 
-                fireflyId
+                fireflyId,
+                0f,
+                false,
+                firefly.Type.ToString(), // Ajouter le type
+                firefly.ScoreValue       // Ajouter la valeur de score
             );
 
             RecordEvent(statEvent);
             currentSession.totalFireflies++;
 
             if (enableDetailedLogging)
-                FireflyDanceLogger.Log($"Luciole apparue: ID={fireflyId}, Pos={position}");
+                FireflyDanceLogger.Log($"Luciole {firefly.Type} apparue: ID={fireflyId}, Pos={position}");
         }
 
         private void OnFireflyCaptured(FireflyController firefly, int score)
@@ -176,14 +180,16 @@ namespace Gameplay.FireFlyDance.Analytics
                 reactionTime = currentTime - fireflySpawnTimes[fireflyId];
             }
 
-            // Créer l'événement
+            // Créer l'événement avec type et score
             var statEvent = GameStatEvent.CreateFireflyEvent(
                 GameEventType.FireflyCaptured,
                 currentTime,
                 position,
                 fireflyId,
                 reactionTime,
-                true
+                true,
+                firefly.Type.ToString(), // Ajouter le type
+                score                    // Score réel attribué
             );
 
             RecordEvent(statEvent);
@@ -193,7 +199,7 @@ namespace Gameplay.FireFlyDance.Analytics
             fireflySpawnTimes.Remove(fireflyId);
 
             if (enableDetailedLogging)
-                FireflyDanceLogger.Log($"Luciole capturée: ID={fireflyId}, Temps={reactionTime:F2}s, Score={score}");
+                FireflyDanceLogger.Log($"Luciole {firefly.Type} capturée: ID={fireflyId}, Temps={reactionTime:F2}s, Score={score}");
         }
 
         private void OnFireflyExpired(FireflyController firefly)
@@ -211,14 +217,16 @@ namespace Gameplay.FireFlyDance.Analytics
                 lifetime = currentTime - fireflySpawnTimes[fireflyId];
             }
 
-            // Créer l'événement
+            // Créer l'événement avec type
             var statEvent = GameStatEvent.CreateFireflyEvent(
                 GameEventType.FireflyExpired,
                 currentTime,
                 position,
                 fireflyId,
                 lifetime,
-                false
+                false,
+                firefly.Type.ToString(), // Ajouter le type
+                0                        // Pas de score pour les expirées
             );
 
             RecordEvent(statEvent);
@@ -228,7 +236,7 @@ namespace Gameplay.FireFlyDance.Analytics
             fireflySpawnTimes.Remove(fireflyId);
 
             if (enableDetailedLogging)
-                FireflyDanceLogger.Log($"Luciole expirée: ID={fireflyId}, Durée={lifetime:F2}s");
+                FireflyDanceLogger.Log($"Luciole {firefly.Type} expirée: ID={fireflyId}, Durée={lifetime:F2}s");
         }
 
         private void OnHandPositionChanged(Vector2 newPosition)

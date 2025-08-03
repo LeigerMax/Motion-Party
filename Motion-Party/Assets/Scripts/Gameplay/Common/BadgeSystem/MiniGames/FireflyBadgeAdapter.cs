@@ -1,6 +1,8 @@
 using UnityEngine;
 using System.Linq;
 using Gameplay.Common.Badges;
+using Gameplay.FireFlyDance.Core;
+using Gameplay.FireFlyDance.Fireflies;
 
 namespace Gameplay.Firefly.Badges
 {
@@ -98,6 +100,78 @@ namespace Gameplay.Firefly.Badges
             {
                 globalBadgeTracker.AddToMetric(playerName, GAME_ID, "collected", collected);
                 LogDebug($"Lucioles collectées: {playerName} +{collected}");
+            }
+        }
+
+        /// <summary>
+        /// Incrémente le nombre de lucioles statiques collectées
+        /// </summary>
+        /// <param name="playerName">Nom du joueur</param>
+        /// <param name="collected">Nombre collecté (défaut: 1)</param>
+        public void IncrementStaticFirefliesCollected(string playerName, int collected = 1)
+        {
+            if (globalBadgeTracker != null)
+            {
+                globalBadgeTracker.AddToMetric(playerName, GAME_ID, "static_collected", collected);
+                LogDebug($"Lucioles statiques collectées: {playerName} +{collected}");
+            }
+        }
+
+        /// <summary>
+        /// Incrémente le nombre de lucioles lentes collectées
+        /// </summary>
+        /// <param name="playerName">Nom du joueur</param>
+        /// <param name="collected">Nombre collecté (défaut: 1)</param>
+        public void IncrementSlowMovingFirefliesCollected(string playerName, int collected = 1)
+        {
+            if (globalBadgeTracker != null)
+            {
+                globalBadgeTracker.AddToMetric(playerName, GAME_ID, "slow_collected", collected);
+                LogDebug($"Lucioles lentes collectées: {playerName} +{collected}");
+            }
+        }
+
+        /// <summary>
+        /// Incrémente le nombre de lucioles rapides collectées
+        /// </summary>
+        /// <param name="playerName">Nom du joueur</param>
+        /// <param name="collected">Nombre collecté (défaut: 1)</param>
+        public void IncrementFastMovingFirefliesCollected(string playerName, int collected = 1)
+        {
+            if (globalBadgeTracker != null)
+            {
+                globalBadgeTracker.AddToMetric(playerName, GAME_ID, "fast_collected", collected);
+                LogDebug($"Lucioles rapides collectées: {playerName} +{collected}");
+            }
+        }
+
+        /// <summary>
+        /// Incrémente une libellule collectée selon son type
+        /// </summary>
+        /// <param name="playerName">Nom du joueur</param>
+        /// <param name="fireflyType">Type de libellule (Static, SlowMoving, FastMoving)</param>
+        public void IncrementFireflyByType(string playerName, string fireflyType)
+        {
+            if (globalBadgeTracker != null)
+            {
+                // Incrémenter le total général
+                globalBadgeTracker.AddToMetric(playerName, GAME_ID, "collected", 1);
+                
+                // Incrémenter selon le type
+                switch (fireflyType)
+                {
+                    case "Static":
+                        globalBadgeTracker.AddToMetric(playerName, GAME_ID, "static_collected", 1);
+                        break;
+                    case "SlowMoving":
+                        globalBadgeTracker.AddToMetric(playerName, GAME_ID, "slow_collected", 1);
+                        break;
+                    case "FastMoving":
+                        globalBadgeTracker.AddToMetric(playerName, GAME_ID, "fast_collected", 1);
+                        break;
+                }
+                
+                LogDebug($"Libellule {fireflyType} collectée: {playerName}");
             }
         }
 
@@ -261,7 +335,7 @@ namespace Gameplay.Firefly.Badges
         {
             if (globalBadgeTracker == null) return;
 
-            // Mettre à jour toutes les métriques
+            // Mettre à jour toutes les métriques générales
             globalBadgeTracker.UpdateScore(playerName, GAME_ID, gameResult.finalScore);
             globalBadgeTracker.UpdateTime(playerName, GAME_ID, gameResult.gameTime);
             globalBadgeTracker.UpdateMetric(playerName, GAME_ID, "collected", gameResult.firefliesCollected);
@@ -270,7 +344,17 @@ namespace Gameplay.Firefly.Badges
             globalBadgeTracker.UpdateMetric(playerName, GAME_ID, "perfect", gameResult.perfectFireflies);
             globalBadgeTracker.UpdateMetric(playerName, GAME_ID, "duration", gameResult.totalDuration);
 
-            LogDebug($"Résultat complet mis à jour pour {playerName}");
+            // Mettre à jour les métriques par type de libellule
+            globalBadgeTracker.UpdateMetric(playerName, GAME_ID, "static_collected", gameResult.staticFirefliesCollected);
+            globalBadgeTracker.UpdateMetric(playerName, GAME_ID, "slow_collected", gameResult.slowMovingFirefliesCollected);
+            globalBadgeTracker.UpdateMetric(playerName, GAME_ID, "fast_collected", gameResult.fastMovingFirefliesCollected);
+            
+            // Mettre à jour les scores par type
+            globalBadgeTracker.UpdateMetric(playerName, GAME_ID, "static_score", gameResult.totalScoreFromStatic);
+            globalBadgeTracker.UpdateMetric(playerName, GAME_ID, "slow_score", gameResult.totalScoreFromSlowMoving);
+            globalBadgeTracker.UpdateMetric(playerName, GAME_ID, "fast_score", gameResult.totalScoreFromFastMoving);
+
+            LogDebug($"Résultat complet mis à jour pour {playerName} (Static: {gameResult.staticFirefliesCollected}, Slow: {gameResult.slowMovingFirefliesCollected}, Fast: {gameResult.fastMovingFirefliesCollected})");
 
             // Validation automatique
             if (enableAutoTracking)
@@ -339,10 +423,10 @@ namespace Gameplay.Firefly.Badges
         /// </summary>
         private void SubscribeToFireflyEvents()
         {
-            // TODO: S'abonner aux événements spécifiques du jeu Firefly
-            // FireflyDanceEvents.OnScoreUpdated += OnScoreUpdated;
-            // FireflyDanceEvents.OnFireflyCollected += OnFireflyCollected;
-            // FireflyDanceEvents.OnGameCompleted += OnGameCompleted;
+            // S'abonner aux événements spécifiques du jeu Firefly
+            FireflyDanceEvents.OnFireflyCaptured += OnFireflyCaptured;
+            FireflyDanceEvents.OnGameEnded += OnGameEnded;
+            FireflyDanceEvents.OnScoreChanged += OnScoreChanged;
             
             LogDebug("Abonnement aux événements Firefly activé");
         }
@@ -352,28 +436,41 @@ namespace Gameplay.Firefly.Badges
         /// </summary>
         private void UnsubscribeFromFireflyEvents()
         {
-            // TODO: Se désabonner des événements spécifiques du jeu Firefly
-            // FireflyDanceEvents.OnScoreUpdated -= OnScoreUpdated;
-            // FireflyDanceEvents.OnFireflyCollected -= OnFireflyCollected;
-            // FireflyDanceEvents.OnGameCompleted -= OnGameCompleted;
+            // Se désabonner des événements spécifiques du jeu Firefly
+            FireflyDanceEvents.OnFireflyCaptured -= OnFireflyCaptured;
+            FireflyDanceEvents.OnGameEnded -= OnGameEnded;
+            FireflyDanceEvents.OnScoreChanged -= OnScoreChanged;
             
             LogDebug("Désabonnement des événements Firefly");
         }
 
-        // Handlers d'événements (à adapter selon les vrais événements de Firefly)
-        private void OnScoreUpdated(string playerName, float score)
+        // Handlers d'événements adaptés aux vrais événements de Firefly
+        private void OnFireflyCaptured(FireflyController firefly, int score)
         {
-            UpdatePlayerScore(playerName, score);
+            if (string.IsNullOrEmpty(currentPlayerName)) return;
+            
+            // Incrémenter selon le type de libellule
+            IncrementFireflyByType(currentPlayerName, firefly.Type.ToString());
+            
+            LogDebug($"Libellule {firefly.Type} capturée par {currentPlayerName} pour {score} points");
         }
 
-        private void OnFireflyCollected(string playerName)
+        private void OnScoreChanged(int newScore)
         {
-            IncrementFirefliesCollected(playerName);
+            if (string.IsNullOrEmpty(currentPlayerName)) return;
+            
+            UpdatePlayerScore(currentPlayerName, newScore);
         }
 
-        private void OnGameCompleted(string playerName, FireflyGameResult result)
+        private void OnGameEnded()
         {
-            UpdateGameResult(playerName, result);
+            if (string.IsNullOrEmpty(currentPlayerName)) return;
+            
+            // Validation automatique à la fin du jeu
+            if (enableAutoTracking)
+            {
+                ValidatePlayerBadges(currentPlayerName);
+            }
         }
 
         #endregion
@@ -440,6 +537,47 @@ namespace Gameplay.Firefly.Badges
         }
 
         /// <summary>
+        /// Raccourci statique pour incrémenter les collectes par type
+        /// </summary>
+        /// <param name="playerName">Nom du joueur</param>
+        /// <param name="fireflyType">Type de libellule</param>
+        public static void CollectFireflyByType(string playerName, string fireflyType)
+        {
+            var adapter = FindFirstObjectByType<FireflyBadgeAdapter>();
+            adapter?.IncrementFireflyByType(playerName, fireflyType);
+        }
+
+        /// <summary>
+        /// Raccourci statique pour incrémenter les libellules statiques
+        /// </summary>
+        /// <param name="playerName">Nom du joueur</param>
+        public static void CollectStaticFirefly(string playerName)
+        {
+            var adapter = FindFirstObjectByType<FireflyBadgeAdapter>();
+            adapter?.IncrementStaticFirefliesCollected(playerName);
+        }
+
+        /// <summary>
+        /// Raccourci statique pour incrémenter les libellules lentes
+        /// </summary>
+        /// <param name="playerName">Nom du joueur</param>
+        public static void CollectSlowMovingFirefly(string playerName)
+        {
+            var adapter = FindFirstObjectByType<FireflyBadgeAdapter>();
+            adapter?.IncrementSlowMovingFirefliesCollected(playerName);
+        }
+
+        /// <summary>
+        /// Raccourci statique pour incrémenter les libellules rapides
+        /// </summary>
+        /// <param name="playerName">Nom du joueur</param>
+        public static void CollectFastMovingFirefly(string playerName)
+        {
+            var adapter = FindFirstObjectByType<FireflyBadgeAdapter>();
+            adapter?.IncrementFastMovingFirefliesCollected(playerName);
+        }
+
+        /// <summary>
         /// Raccourci statique pour valider les badges
         /// </summary>
         /// <param name="playerName">Nom du joueur</param>
@@ -467,6 +605,14 @@ namespace Gameplay.Firefly.Badges
             public int maxCombo;
             public int perfectFireflies;
             public float totalDuration;
+            
+            [Header("Statistiques par type")]
+            public int staticFirefliesCollected;
+            public int slowMovingFirefliesCollected;
+            public int fastMovingFirefliesCollected;
+            public int totalScoreFromStatic;
+            public int totalScoreFromSlowMoving;
+            public int totalScoreFromFastMoving;
 
             public FireflyGameResult(float score, float time, int collected, float acc, int combo, int perfect, float duration)
             {
@@ -477,6 +623,30 @@ namespace Gameplay.Firefly.Badges
                 maxCombo = combo;
                 perfectFireflies = perfect;
                 totalDuration = duration;
+                
+                // Valeurs par défaut pour les nouveaux champs
+                staticFirefliesCollected = 0;
+                slowMovingFirefliesCollected = 0;
+                fastMovingFirefliesCollected = 0;
+                totalScoreFromStatic = 0;
+                totalScoreFromSlowMoving = 0;
+                totalScoreFromFastMoving = 0;
+            }
+
+            /// <summary>
+            /// Constructeur étendu avec statistiques par type
+            /// </summary>
+            public FireflyGameResult(float score, float time, int collected, float acc, int combo, int perfect, float duration,
+                int staticCollected, int slowCollected, int fastCollected, 
+                int staticScore, int slowScore, int fastScore)
+                : this(score, time, collected, acc, combo, perfect, duration)
+            {
+                staticFirefliesCollected = staticCollected;
+                slowMovingFirefliesCollected = slowCollected;
+                fastMovingFirefliesCollected = fastCollected;
+                totalScoreFromStatic = staticScore;
+                totalScoreFromSlowMoving = slowScore;
+                totalScoreFromFastMoving = fastScore;
             }
         }
 

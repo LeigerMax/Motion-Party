@@ -2999,8 +2999,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8996c4b7330288e44a865b0e2d559c88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameDurationInSeconds: 15
-  startDelay: 2
+  gameDurationInSeconds: 60
+  startDelay: 5
   scoreManager: {fileID: 257551260}
   logGenerator: {fileID: 1689009126}
   gameController: {fileID: 1390725573}
@@ -3013,7 +3013,7 @@ MonoBehaviour:
   OnTimerTick:
     m_PersistentCalls:
       m_Calls: []
-  enableDebugLogs: 1
+  enableDebugLogs: 0
 --- !u!114 &1390725576
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3026,7 +3026,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 062c15055e9789640b8f84f752aa2a99, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  showDetailedLogs: 1
+  showDetailedLogs: 0
 --- !u!1001 &1414405060
 PrefabInstance:
   m_ObjectHideFlags: 0

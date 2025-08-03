@@ -714,11 +714,11 @@ namespace Core.Analytics.Core
             html.AppendLine("<div class='game-section'>");
             html.AppendLine("<h3>🔥 FireflyDance - Capture de Lucioles</h3>");
             
-            var attrapees = GetMetricValue(metrics, "FireflyDance_nombre_lucioles_attrapees", 0f);
-            var ratees = GetMetricValue(metrics, "FireflyDance_nombre_lucioles_ratees", 0f);
+            var attrapees = GetMetricValue(metrics, "FireflyDance_lucioles_attrapees", 0f);
+            var ratees = GetMetricValue(metrics, "FireflyDance_lucioles_ratees", 0f);
             var fermetures = GetMetricValue(metrics, "FireflyDance_nombre_fermetures_main", 0f);
-            var reussites = GetMetricValue(metrics, "FireflyDance_nombre_reussites", 0f);
-            var echecs = GetMetricValue(metrics, "FireflyDance_nombre_echecs", 0f);
+            var reussites = GetMetricValue(metrics, "FireflyDance_fermetures_reussies", 0f);
+            var echecs = GetMetricValue(metrics, "FireflyDance_fermetures_echecs", 0f);
             var scoreFinal = GetMetricValue(metrics, "FireflyDance_score_final", 0f);
 
             html.AppendLine("<table>");

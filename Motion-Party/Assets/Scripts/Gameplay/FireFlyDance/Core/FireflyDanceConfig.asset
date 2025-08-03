@@ -15,11 +15,17 @@ MonoBehaviour:
   topLeft: {x: -2.413, y: 3.386}
   bottomRight: {x: 1.371, y: 1.832}
   depth: 0.5
-  maxFireflies: 10
+  maxFireflies: 12
   maxSpeed: 1
   minSpeed: 0.1
   spawnInterval: 5
   fireflyLifetime: 50
   captureRadius: 0.5
   scorePerFirefly: 10
-  gameDuration: 15
+  gameDuration: 60
+  staticFireflyProbability: 0.4
+  slowMovingProbability: 0.4
+  fastMovingProbability: 0.3
+  staticFireflyScore: 5
+  slowMovingScore: 10
+  fastMovingScore: 15

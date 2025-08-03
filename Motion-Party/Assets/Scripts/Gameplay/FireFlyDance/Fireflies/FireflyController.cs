@@ -24,6 +24,16 @@ namespace Gameplay.FireFlyDance.Fireflies
     }
 
     /// <summary>
+    /// Types de libellules avec scores différenciés
+    /// </summary>
+    public enum FireflyType
+    {
+        Static,      // Libellule statique (5 points)
+        SlowMoving,  // Libellule avec léger déplacement (10 points)
+        FastMoving   // Libellule avec déplacement rapide (15 points)
+    }
+
+    /// <summary>
     /// États possible d'une luciole
     /// </summary>
     public enum FireflyState
@@ -44,6 +54,7 @@ namespace Gameplay.FireFlyDance.Fireflies
     
     [Header("Comportement")]
     [SerializeField] private MovementBehavior movementType = MovementBehavior.Random;
+    [SerializeField] private FireflyType fireflyType = FireflyType.FastMoving;
     [SerializeField] private bool enableMovement = true;
     
     [Header("Paramètres de mouvement")]
@@ -100,6 +111,25 @@ namespace Gameplay.FireFlyDance.Fireflies
     /// </summary>
     public float LifetimeProgress => maxLifetime > 0 ? lifetime / maxLifetime : 0f;
 
+    /// <summary>
+    /// Type de libellule avec score associé
+    /// </summary>
+    public FireflyType Type => fireflyType;
+
+    /// <summary>
+    /// Score à attribuer lors de la capture selon le type
+    /// </summary>
+    public int ScoreValue => GetScoreForType(fireflyType);
+
+    /// <summary>
+    /// Validation de la configuration actuelle pour diagnostic
+    /// </summary>
+    public string GetConfigurationStatus()
+    {
+        return $"Type: {fireflyType}, EnableMovement: {enableMovement}, MovementType: {movementType}, " +
+               $"Config: {(config != null ? "OK" : "NULL")}, State: {currentState}";
+    }
+
     #endregion
 
     #region Unity Lifecycle
@@ -107,10 +137,8 @@ namespace Gameplay.FireFlyDance.Fireflies
     void Start()
     {
         ValidateComponents();
-        if (config != null)
-        {
-            Initialize();
-        }
+        // Ne pas s'initialiser automatiquement - attendre l'appel explicite du spawner
+        // L'initialisation sera faite par le spawner après instantiation
     }
 
     void Update()
@@ -140,11 +168,14 @@ namespace Gameplay.FireFlyDance.Fireflies
     /// <summary>
     /// Initialise la luciole avec la configuration fournie
     /// </summary>
-    public void Initialize(FireflyDanceConfig newConfig = null)
+    public void Initialize(FireflyDanceConfig newConfig = null, FireflyType type = FireflyType.FastMoving)
     {
         if (newConfig != null)
             config = newConfig;
             
+        // Définir le type de libellule
+        fireflyType = type;
+        
         if (!IsConfigValid())
         {
             FireflyDanceLogger.LogError("FireflyController - Configuration manquante", this);
@@ -156,7 +187,36 @@ namespace Gameplay.FireFlyDance.Fireflies
         
         // Démarrer la transition vers l'état actif
         StartCoroutine(ActivateAfterDelay(0.5f));
+    }
+
+    /// <summary>
+    /// Initialisation forcée par le spawner - Override complètement la configuration du prefab
+    /// </summary>
+    public void InitializeFromSpawner(FireflyDanceConfig spawnConfig, FireflyType spawnType)
+    {
+        // Forcer la nouvelle configuration
+        config = spawnConfig;
+        fireflyType = spawnType;
         
+        // Reset des états - utiliser Spawning comme état initial
+        currentState = FireflyState.Spawning;
+        lifetime = 0f;
+        isInteractable = false;
+        
+        if (!IsConfigValid())
+        {
+            FireflyDanceLogger.LogError("FireflyController - Configuration du spawner invalide", this);
+            return;
+        }
+
+        // Configuration complète selon le type
+        SetupFirefly();
+        SetState(FireflyState.Spawning);
+        
+        // Démarrer la transition vers l'état actif
+        StartCoroutine(ActivateAfterDelay(0.5f));
+        
+        FireflyDanceLogger.LogSpawn($"Firefly initialisée par spawner: {spawnType}");
     }
 
     /// <summary>
@@ -167,6 +227,9 @@ namespace Gameplay.FireFlyDance.Fireflies
         // Durée de vie aléatoire
         maxLifetime = Random.Range(config.MinFireflyLifetime, config.MaxFireflyLifetime);
         
+        // Configuration selon le type de libellule
+        ConfigureByType();
+        
         // Direction initiale
         SetRandomDirection();
         
@@ -174,6 +237,44 @@ namespace Gameplay.FireFlyDance.Fireflies
         oscillationCenter = transform.position;
         
         StartLifetimeTimer();
+    }
+
+    /// <summary>
+    /// Configure la libellule selon son type
+    /// </summary>
+    private void ConfigureByType()
+    {
+        // Forcer la configuration selon le type (override des valeurs du prefab)
+        switch (fireflyType)
+        {
+            case FireflyType.Static:
+                movementType = MovementBehavior.Static;
+                enableMovement = false;
+                FireflyDanceLogger.LogSpawn($"Configuration Static: mouvement désactivé");
+                break;
+                
+            case FireflyType.SlowMoving:
+                movementType = MovementBehavior.Random;
+                enableMovement = true;
+                FireflyDanceLogger.LogSpawn($"Configuration SlowMoving: mouvement lent activé");
+                break;
+                
+            case FireflyType.FastMoving:
+                movementType = MovementBehavior.Random;
+                enableMovement = true;
+                FireflyDanceLogger.LogSpawn($"Configuration FastMoving: mouvement rapide activé");
+                break;
+                
+            default:
+                FireflyDanceLogger.LogError($"Type de firefly non reconnu: {fireflyType}");
+                // Configuration par défaut
+                movementType = MovementBehavior.Random;
+                enableMovement = true;
+                break;
+        }
+        
+        // Log de vérification
+        FireflyDanceLogger.LogSpawn($"Firefly configurée - Type: {fireflyType}, Movement: {enableMovement}, Behavior: {movementType}");
     }
 
     /// <summary>
@@ -346,7 +447,8 @@ namespace Gameplay.FireFlyDance.Fireflies
     /// </summary>
     private void UpdateLinearMovement()
     {
-        velocity = targetDirection * config.FireflyMoveSpeed;
+        float speed = GetMovementSpeed();
+        velocity = targetDirection * speed;
     }
 
     /// <summary>
@@ -362,7 +464,8 @@ namespace Gameplay.FireFlyDance.Fireflies
             directionTimer = 0f;
         }
         
-        velocity = targetDirection * config.FireflyMoveSpeed;
+        float speed = GetMovementSpeed();
+        velocity = targetDirection * speed;
     }
 
     /// <summary>
@@ -379,7 +482,29 @@ namespace Gameplay.FireFlyDance.Fireflies
         );
         
         Vector3 targetPos = oscillationCenter + oscillation;
-        velocity = (targetPos - transform.position) * config.FireflyMoveSpeed;
+        float speed = GetMovementSpeed();
+        velocity = (targetPos - transform.position) * speed;
+    }
+
+    /// <summary>
+    /// Retourne la vitesse de mouvement selon le type de libellule
+    /// </summary>
+    private float GetMovementSpeed()
+    {
+        switch (fireflyType)
+        {
+            case FireflyType.Static:
+                return 0f;
+                
+            case FireflyType.SlowMoving:
+                return config.FireflyMoveSpeed * 0.3f; // 30% de la vitesse normale
+                
+            case FireflyType.FastMoving:
+                return config.FireflyMoveSpeed; // Vitesse normale
+                
+            default:
+                return config.FireflyMoveSpeed;
+        }
     }
 
     /// <summary>
@@ -576,6 +701,24 @@ namespace Gameplay.FireFlyDance.Fireflies
     private bool IsConfigValid()
     {
         return config != null;
+    }
+
+    /// <summary>
+    /// Retourne le score à attribuer selon le type de libellule
+    /// </summary>
+    private int GetScoreForType(FireflyType type)
+    {
+        switch (type)
+        {
+            case FireflyType.Static:
+                return 5;
+            case FireflyType.SlowMoving:
+                return 10;
+            case FireflyType.FastMoving:
+                return 15;
+            default:
+                return 10; // Valeur par défaut
+        }
     }
 
     #endregion

@@ -5,6 +5,8 @@ using Newtonsoft.Json.Linq;
 using Gameplay.FireFlyDance.Core;
 using Gameplay.FireFlyDance.Utils;
 using Core;
+using Core.Analytics.Core;
+using Core.Analytics;
 
 namespace Gameplay.FireFlyDance.Hand
 {
@@ -32,6 +34,10 @@ namespace Gameplay.FireFlyDance.Hand
         [SerializeField] private int closedHandThreshold = 2;
         [SerializeField] private bool enableDebugMode = false;
         
+        [Header("Analyse des Tremblements")]
+        [SerializeField] private bool enableTremorAnalysis = true;
+        [SerializeField] private float tremorUpdateInterval = 5f; // Intervalle de mise à jour des métriques (secondes)
+        
         // Landmarks utilisés pour calculer la position centrale
         private int[] handLandmarkIndices = {0, 5, 9, 13, 17};
         
@@ -42,6 +48,11 @@ namespace Gameplay.FireFlyDance.Hand
         private bool wasHandDetected = false;
         private bool wasHandClosed = false;
         private Renderer sphereRenderer;
+        
+        // Analyseur de tremblements
+        private TremorAnalyzer tremorAnalyzer;
+        private float lastTremorUpdateTime;
+        private string currentPlayerId;
 
         // Propriétés publiques
         public HandData CurrentHandData => currentHandData;
@@ -68,6 +79,7 @@ namespace Gameplay.FireFlyDance.Hand
             
             UpdateHandFromUDP();
             UpdateSphereDisplay();
+            UpdateTremorAnalysis();
         }
 
         #endregion
@@ -84,6 +96,20 @@ namespace Gameplay.FireFlyDance.Hand
             else if (config == null)
             {
                 config = FindFirstObjectByType<FireflyDanceConfig>();
+            }
+            
+            // Initialiser l'analyseur de tremblements
+            if (enableTremorAnalysis)
+            {
+                tremorAnalyzer = new TremorAnalyzer();
+                tremorAnalyzer.StartAnalysis();
+                lastTremorUpdateTime = Time.time;
+                
+                // Obtenir l'ID du joueur actuel pour les analytics
+                currentPlayerId = GetCurrentPlayerId();
+                
+                if (enableDebugMode)
+                    FireflyDanceLogger.Log("Analyseur de tremblements initialisé");
             }
             
             if (udpReceiver == null)
@@ -421,8 +447,129 @@ namespace Gameplay.FireFlyDance.Hand
             if (handSphere != null)
                 handSphere.SetActive(false);
 
+            // Arrêter l'analyse des tremblements
+            if (enableTremorAnalysis && tremorAnalyzer != null)
+            {
+                tremorAnalyzer.StopAnalysis();
+                
+                // Mettre à jour les métriques une dernière fois
+                UpdateTremorMetrics();
+                
+                if (enableDebugMode)
+                    FireflyDanceLogger.Log("Analyse des tremblements arrêtée");
+            }
+
             enabled = false;
             FireflyDanceLogger.Log("HandTracker - Suivi arrêté");
+        }
+
+        #endregion
+
+        #region Tremor Analysis
+
+        /// <summary>
+        /// Met à jour l'analyse des tremblements
+        /// </summary>
+        private void UpdateTremorAnalysis()
+        {
+            if (!enableTremorAnalysis || tremorAnalyzer == null) return;
+
+            // Ajouter la position actuelle pour l'analyse
+            tremorAnalyzer.AddHandPosition(currentHandData.position, currentHandData.isDetected);
+
+            // Mettre à jour les métriques périodiquement
+            if (Time.time - lastTremorUpdateTime >= tremorUpdateInterval)
+            {
+                UpdateTremorMetrics();
+                lastTremorUpdateTime = Time.time;
+            }
+        }
+
+        /// <summary>
+        /// Met à jour les métriques de tremblement dans le système d'analytics
+        /// </summary>
+        private void UpdateTremorMetrics()
+        {
+            if (tremorAnalyzer == null || string.IsNullOrEmpty(currentPlayerId)) return;
+
+            try
+            {
+                var playerMetrics = AnalyticsManager.Instance?.GetPlayerMetrics(currentPlayerId);
+                if (playerMetrics != null)
+                {
+                    tremorAnalyzer.UpdatePlayerMetrics(playerMetrics);
+                    
+                    if (enableDebugMode)
+                    {
+                        var metrics = tremorAnalyzer.GetTremorMetrics();
+                        FireflyDanceLogger.Log($"Métriques tremblements - Intensité: {metrics.tremorIntensity:F2}, " +
+                                             $"Fréquence: {metrics.tremorFrequency:F2} Hz, " +
+                                             $"Épisodes: {metrics.tremorEpisodesCount}");
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                FireflyDanceLogger.LogError($"Erreur lors de la mise à jour des métriques de tremblement: {e.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Obtient l'ID du joueur actuel pour les analytics
+        /// </summary>
+        private string GetCurrentPlayerId()
+        {
+            // Essayer d'obtenir l'ID depuis les différentes sources possibles
+            
+            // 1. Depuis l'AnalyticsHelper
+            try
+            {
+                var currentPlayer = AnalyticsHelper.GetCurrentPlayerFromSession();
+                if (!string.IsNullOrEmpty(currentPlayer))
+                {
+                    return currentPlayer;
+                }
+            }
+            catch { }
+            
+            // 2. Depuis un PlayerManager si disponible
+            var playerManager = FindFirstObjectByType<MonoBehaviour>();
+            if (playerManager != null && playerManager.name.Contains("Player"))
+            {
+                return playerManager.GetInstanceID().ToString();
+            }
+            
+            // 3. ID par défaut
+            return "player_firefly_" + GetInstanceID();
+        }
+
+        /// <summary>
+        /// Obtient les métriques actuelles de tremblements
+        /// </summary>
+        public TremorMetrics GetCurrentTremorMetrics()
+        {
+            if (tremorAnalyzer != null)
+            {
+                return tremorAnalyzer.GetTremorMetrics();
+            }
+            
+            return new TremorMetrics();
+        }
+
+        /// <summary>
+        /// Réinitialise l'analyse des tremblements
+        /// </summary>
+        public void ResetTremorAnalysis()
+        {
+            if (tremorAnalyzer != null)
+            {
+                tremorAnalyzer.Reset();
+                tremorAnalyzer.StartAnalysis();
+                lastTremorUpdateTime = Time.time;
+                
+                if (enableDebugMode)
+                    FireflyDanceLogger.Log("Analyse des tremblements réinitialisée");
+            }
         }
 
         #endregion

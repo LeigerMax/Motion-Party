@@ -321,4 +321,58 @@ namespace Core.Analytics.Data
         SessionTrend,
         Custom
     }
+
+    /// <summary>
+    /// Résumé des métriques de tremblements pour un joueur
+    /// </summary>
+    [Serializable]
+    public struct TremorSummary
+    {
+        public string playerId;
+        public float intensity;              // Intensité moyenne des tremblements (0-100)
+        public float frequency;              // Fréquence dominante (Hz)
+        public int episodesCount;            // Nombre d'épisodes détectés
+        public float timePercentage;         // Pourcentage du temps avec tremblements
+        public float averageDuration;        // Durée moyenne d'un épisode (secondes)
+        public bool isCurrentlyTremoring;    // Tremblement actuel
+        
+        /// <summary>
+        /// Évalue la sévérité des tremblements
+        /// </summary>
+        public TremorSeverity GetSeverity()
+        {
+            if (intensity <= 10f && timePercentage <= 5f)
+                return TremorSeverity.Minimal;
+            else if (intensity <= 25f && timePercentage <= 15f)
+                return TremorSeverity.Mild;
+            else if (intensity <= 50f && timePercentage <= 30f)
+                return TremorSeverity.Moderate;
+            else
+                return TremorSeverity.Severe;
+        }
+        
+        /// <summary>
+        /// Génère un rapport textuel des tremblements
+        /// </summary>
+        public string GenerateReport()
+        {
+            var severity = GetSeverity();
+            return $"Joueur {playerId}: {severity} - " +
+                   $"Intensité: {intensity:F1}, " +
+                   $"Fréquence: {frequency:F1} Hz, " +
+                   $"Temps affecté: {timePercentage:F1}%, " +
+                   $"Épisodes: {episodesCount}";
+        }
+    }
+
+    /// <summary>
+    /// Niveaux de sévérité des tremblements
+    /// </summary>
+    public enum TremorSeverity
+    {
+        Minimal,    // Tremblements très légers ou occasionnels
+        Mild,       // Tremblements légers mais perceptibles
+        Moderate,   // Tremblements modérés affectant la précision
+        Severe      // Tremblements sévères impactant significativement la performance
+    }
 }

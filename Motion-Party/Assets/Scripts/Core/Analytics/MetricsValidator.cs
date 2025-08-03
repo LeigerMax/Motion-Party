@@ -18,7 +18,6 @@ namespace Core.Analytics
         public static readonly Dictionary<string, string> FireflyDanceRequiredMetrics = new Dictionary<string, string>
         {
             { "lucioles_attrapees", "Nombre de lucioles attrapées" },
-            { "nombre_lucioles_attrapees", "Nombre de lucioles attrapées (alias)" },
             { "temps_reaction_moyen", "Temps de réaction moyen" },
             { "score_final", "Score final" }
         };
@@ -29,9 +28,7 @@ namespace Core.Analytics
         public static readonly Dictionary<string, string> LogParadeRequiredMetrics = new Dictionary<string, string>
         {
             { "rondins_navigues", "Nombre de rondins navigués" },
-            { "nombre_rondins_navigues", "Nombre de rondins navigués (alias)" },
             { "chutes_eau", "Nombre de chutes dans l'eau" },
-            { "nombre_chutes_eau", "Nombre de chutes dans l'eau (alias)" },
             { "score_final", "Score final" }
         };
 

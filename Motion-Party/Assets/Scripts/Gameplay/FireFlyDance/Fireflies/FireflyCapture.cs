@@ -166,19 +166,22 @@ namespace Gameplay.FireFlyDance.Capture
                 return;
             }
 
-            FireflyDanceLogger.LogCapture($"Capture luciole: {firefly.name} - Score: {scorePerCapture}");
+            // Récupérer le score selon le type de libellule
+            int scoreToAdd = firefly.ScoreValue;
+            
+            FireflyDanceLogger.LogCapture($"Capture libellule {firefly.Type}: {firefly.name} - Score: {scoreToAdd}");
 
             if (scoreManager != null)
             {
-                scoreManager.AddScore(scorePerCapture);
+                scoreManager.AddScore(scoreToAdd);
             }
             else
             {
                 FireflyDanceLogger.LogWarning("Impossible d'ajouter le score - ScoreManager manquant", this);
             }
 
-            // ANALYTICS: Enregistrer la luciole capturée avec points
-            AnalyticsHelper.RecordFireflyCollected("", scorePerCapture);
+            // ANALYTICS: Enregistrer la luciole capturée avec points et type spécifique
+            AnalyticsHelper.RecordFireflyCollectedByType("", firefly.Type.ToString(), scoreToAdd);
 
             // NOUVEAU: Jouer le son de capture de luciole
             if (AudioManager.Instance != null)
@@ -186,8 +189,8 @@ namespace Gameplay.FireFlyDance.Capture
                 AudioManager.Instance.PlayFireflyCapture();
             }
 
-            // Émettre l'événement pour notification uniquement
-            FireflyDanceEvents.OnFireflyCaptured?.Invoke(firefly, scorePerCapture);
+            // Émettre l'événement pour notification avec le score réel
+            FireflyDanceEvents.OnFireflyCaptured?.Invoke(firefly, scoreToAdd);
 
             // Détruire la luciole immédiatement
             firefly.OnCaptured();

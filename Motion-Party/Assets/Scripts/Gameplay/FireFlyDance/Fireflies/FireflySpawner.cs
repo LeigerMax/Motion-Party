@@ -21,6 +21,7 @@ namespace Gameplay.FireFlyDance.Fireflies
         [Header("Spawn Settings")]
         [SerializeField] private bool autoSpawn = true;
         [SerializeField] private Transform fireflyParent;
+        [SerializeField] private bool enableDetailedLogging = false;
         
         [Header("Runtime Info (Read Only)")]
         [SerializeField] private int activeFireflyCount = 0;
@@ -324,11 +325,19 @@ namespace Gameplay.FireFlyDance.Fireflies
 
             if (fireflyController != null)
             {
-                fireflyController.Initialize(config);
+                // Sélectionner aléatoirement le type de libellule
+                var fireflyType = config.GetRandomFireflyType();
+                
+                // Utiliser la nouvelle méthode d'initialisation qui force la configuration
+                fireflyController.InitializeFromSpawner(config, fireflyType);
+                
                 activeFireflies.Add(fireflyController);
                 activeFireflyCount = activeFireflies.Count;
                 
                 FireflyDanceEvents.OnFireflySpawned?.Invoke(fireflyController);
+                
+                if (enableDetailedLogging)
+                    FireflyDanceLogger.LogSpawn($"Libellule {fireflyType} spawnée à {worldPosition} avec configuration forcée");
             }
             else
             {

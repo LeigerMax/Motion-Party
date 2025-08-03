@@ -542,6 +542,7 @@ namespace Core.Analytics
 
         /// <summary>
         /// Enregistre une luciole capturée avec détails
+        /// [DEPRECATED] Utilisez RecordFireflyCollectedByType() pour inclure le type de libellule
         /// </summary>
         public static void RecordFireflyCollected(string sessionId, int points)
         {
@@ -550,9 +551,8 @@ namespace Core.Analytics
             // Enregistrer l'action de capture
             RecordSuccessfulAction(playerId, "FireflyDance", 100f, 0f);
             
-            // Enregistrer les métriques spécifiques FireflyDance
+            // Enregistrer les métriques spécifiques FireflyDance (version simplifiée)
             RecordPlayerMetric(playerId, "FireflyDance", "lucioles_attrapees", 1f);
-            RecordPlayerMetric(playerId, "FireflyDance", "nombre_lucioles_attrapees", 1f);
             RecordPlayerMetric(playerId, "FireflyDance", "points_lucioles", points);
         }
 
@@ -563,7 +563,6 @@ namespace Core.Analytics
         {
             string playerId = GetCurrentPlayerFromSession();
             RecordPlayerMetric(playerId, "FireflyDance", "lucioles_ratees", 1f);
-            RecordPlayerMetric(playerId, "FireflyDance", "nombre_lucioles_ratees", 1f);
         }
         
         /// <summary>
@@ -580,14 +579,12 @@ namespace Core.Analytics
             {
                 // Fermeture réussie (fermeture + luciole)
                 RecordPlayerMetric(playerId, "FireflyDance", "fermetures_reussies", 1f);
-                RecordPlayerMetric(playerId, "FireflyDance", "nombre_reussites", 1f);
                 UnityEngine.Debug.Log($"[AnalyticsHelper] Fermeture réussie enregistrée pour {playerId}");
             }
             else
             {
                 // Fermeture échouée (fermeture sans luciole)
                 RecordPlayerMetric(playerId, "FireflyDance", "fermetures_echecs", 1f);
-                RecordPlayerMetric(playerId, "FireflyDance", "nombre_echecs", 1f);
                 UnityEngine.Debug.Log($"[AnalyticsHelper] Fermeture échouée enregistrée pour {playerId}");
             }
         }
@@ -604,6 +601,43 @@ namespace Core.Analytics
             RecordScore(playerId, "FireflyDance", score);
             RecordPlayerMetric(playerId, "FireflyDance", "score_final", score);
             UnityEngine.Debug.Log($"[AnalyticsHelper] Score final FireflyDance enregistré: {score} pour {playerId}");
+        }
+
+        /// <summary>
+        /// Enregistre une luciole capturée avec son type spécifique
+        /// </summary>
+        public static void RecordFireflyCollectedByType(string sessionId, string fireflyType, int points)
+        {
+            string playerId = GetCurrentPlayerFromSession();
+            
+            // Enregistrer l'action de capture générale
+            RecordSuccessfulAction(playerId, "FireflyDance", 100f, 0f);
+            
+            // Métriques générales (une seule version, plus de doublons)
+            RecordPlayerMetric(playerId, "FireflyDance", "lucioles_attrapees", 1f);
+            RecordPlayerMetric(playerId, "FireflyDance", "points_lucioles", points);
+            
+            // Métriques par type de libellule (une seule version aussi)
+            RecordPlayerMetric(playerId, "FireflyDance", $"lucioles_{fireflyType.ToLower()}_attrapees", 1f);
+            RecordPlayerMetric(playerId, "FireflyDance", $"points_lucioles_{fireflyType.ToLower()}", points);
+            
+            UnityEngine.Debug.Log($"[AnalyticsHelper] Libellule {fireflyType} capturée: {points} points pour {playerId}");
+        }
+
+        /// <summary>
+        /// Enregistre une luciole manquée avec son type spécifique
+        /// </summary>
+        public static void RecordFireflyMissedByType(string sessionId, string fireflyType)
+        {
+            string playerId = GetCurrentPlayerFromSession();
+            
+            // Métriques générales (une seule version)
+            RecordPlayerMetric(playerId, "FireflyDance", "lucioles_ratees", 1f);
+            
+            // Métriques par type de libellule (une seule version)
+            RecordPlayerMetric(playerId, "FireflyDance", $"lucioles_{fireflyType.ToLower()}_ratees", 1f);
+            
+            UnityEngine.Debug.Log($"[AnalyticsHelper] Libellule {fireflyType} ratée pour {playerId}");
         }
 
         #region LogParade Analytics
@@ -722,6 +756,67 @@ namespace Core.Analytics
                 totalDuration = 120f, // 2 minutes
                 finalScore = 0,
                 totalActions = 1
+            };
+        }
+
+        #endregion
+
+        #region Tremor Analytics
+
+        /// <summary>
+        /// Obtient l'intensité des tremblements d'un joueur
+        /// </summary>
+        public static float GetPlayerTremorIntensity(string playerId)
+        {
+            return GetPlayerMetric(playerId, "tremor_intensity");
+        }
+
+        /// <summary>
+        /// Obtient la fréquence des tremblements d'un joueur
+        /// </summary>
+        public static float GetPlayerTremorFrequency(string playerId)
+        {
+            return GetPlayerMetric(playerId, "tremor_frequency");
+        }
+
+        /// <summary>
+        /// Obtient le nombre d'épisodes de tremblements d'un joueur
+        /// </summary>
+        public static int GetPlayerTremorEpisodes(string playerId)
+        {
+            return (int)GetPlayerMetric(playerId, "tremor_episodes_count");
+        }
+
+        /// <summary>
+        /// Obtient le pourcentage de temps avec tremblements d'un joueur
+        /// </summary>
+        public static float GetPlayerTremorTimePercentage(string playerId)
+        {
+            return GetPlayerMetric(playerId, "tremor_time_percentage");
+        }
+
+        /// <summary>
+        /// Vérifie si un joueur a actuellement des tremblements
+        /// </summary>
+        public static bool IsPlayerCurrentlyTremoring(string playerId)
+        {
+            return GetPlayerMetric(playerId, "is_tremoring") > 0;
+        }
+
+        /// <summary>
+        /// Obtient un résumé complet des tremblements d'un joueur
+        /// </summary>
+        public static TremorSummary GetPlayerTremorSummary(string playerId)
+        {
+            return new TremorSummary
+            {
+                playerId = playerId,
+                intensity = GetPlayerTremorIntensity(playerId),
+                frequency = GetPlayerTremorFrequency(playerId),
+                episodesCount = GetPlayerTremorEpisodes(playerId),
+                timePercentage = GetPlayerTremorTimePercentage(playerId),
+                averageDuration = GetPlayerMetric(playerId, "average_tremor_duration"),
+                isCurrentlyTremoring = IsPlayerCurrentlyTremoring(playerId)
             };
         }
 

@@ -400,6 +400,57 @@ Transform:
   - {fileID: 1720633715}
   m_Father: {fileID: 757599648}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &252005736
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 252005738}
+  - component: {fileID: 252005737}
+  m_Layer: 0
+  m_Name: AnalyticsManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &252005737
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 252005736}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fd826fbe16dc2f941a7c8398fe016179, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isEnabled: 1
+  enableRealTimeAnalysis: 1
+  analysisInterval: 1
+  autoStartSessions: 1
+  sessionTimeoutSeconds: 300
+  enableDebugLogs: 0
+  showInsights: 1
+--- !u!4 &252005738
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 252005736}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &260400022
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1019,7 +1070,7 @@ MonoBehaviour:
   config: {fileID: 11400000, guid: 4ed6d213bcb9e2545a66af06de7f1c87, type: 2}
   handTracker: {fileID: 1488304617}
   scoreManager: {fileID: 340732584}
-  gameManager: {fileID: 0}
+  gameManager: {fileID: 848758759}
   captureRadius: 0.5
   fireflyLayer:
     serializedVersion: 2
@@ -1345,7 +1396,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   config: {fileID: 11400000, guid: 4ed6d213bcb9e2545a66af06de7f1c87, type: 2}
   fallbackDurationInSeconds: 60
-  startDelay: 2
+  startDelay: 5
   gameManager: {fileID: 848758759}
   OnTimerStarted:
     m_PersistentCalls:
@@ -1359,7 +1410,7 @@ MonoBehaviour:
   OnTimerPaused:
     m_PersistentCalls:
       m_Calls: []
-  enableDebugLogs: 1
+  enableDebugLogs: 0
 --- !u!1 &865668813
 GameObject:
   m_ObjectHideFlags: 0
@@ -2041,6 +2092,8 @@ MonoBehaviour:
   smoothingFactor: 0.8
   closedHandThreshold: 2
   enableDebugMode: 0
+  enableTremorAnalysis: 1
+  tremorUpdateInterval: 5
 --- !u!4 &1488304618
 Transform:
   m_ObjectHideFlags: 0
@@ -2295,9 +2348,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   config: {fileID: 11400000, guid: 4ed6d213bcb9e2545a66af06de7f1c87, type: 2}
-  fireflyPrefab: {fileID: 1902388735}
+  fireflyPrefab: {fileID: 2011190886760989105, guid: 6b12ebd5935337543a89fd40a1b973a7, type: 3}
   autoSpawn: 1
   fireflyParent: {fileID: 1519161662}
+  enableDetailedLogging: 1
   activeFireflyCount: 0
   isSpawning: 0
 --- !u!4 &1713976252
@@ -2622,11 +2676,6 @@ Transform:
   - {fileID: 848758760}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1902388735 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 2011190886760989105, guid: 6b12ebd5935337543a89fd40a1b973a7, type: 3}
-  m_PrefabInstance: {fileID: 5398283770680919633}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &2007950760
 GameObject:
   m_ObjectHideFlags: 0
@@ -2721,6 +2770,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Firefly
       objectReference: {fileID: 0}
+    - target: {fileID: 2011190886760989105, guid: 6b12ebd5935337543a89fd40a1b973a7, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3630925218993567980, guid: 6b12ebd5935337543a89fd40a1b973a7, type: 3}
       propertyPath: m_LocalPosition.x
       value: -1041.0741
@@ -2761,6 +2814,22 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8782613288068728716, guid: 6b12ebd5935337543a89fd40a1b973a7, type: 3}
+      propertyPath: config
+      value: 
+      objectReference: {fileID: 11400000, guid: 4ed6d213bcb9e2545a66af06de7f1c87, type: 2}
+    - target: {fileID: 8782613288068728716, guid: 6b12ebd5935337543a89fd40a1b973a7, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8782613288068728716, guid: 6b12ebd5935337543a89fd40a1b973a7, type: 3}
+      propertyPath: fireflyType
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8782613288068728716, guid: 6b12ebd5935337543a89fd40a1b973a7, type: 3}
+      propertyPath: enableMovement
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2783,3 +2852,4 @@ SceneRoots:
   - {fileID: 1855977588}
   - {fileID: 260400022}
   - {fileID: 1309006209}
+  - {fileID: 252005738}
