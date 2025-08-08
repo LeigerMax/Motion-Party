@@ -125,14 +125,32 @@ public class FireflyDanceGameManager : MiniGameBase
             // Auto-initialisation pour les tests directs dans la scène
             StartCoroutine(CheckForAutoInitialization());
         }
-
+        
         /// <summary>
         /// Vérifie si on doit s'auto-initialiser (pour les tests directs dans la scène)
+        /// Respecte l'écran de chargement s'il est présent
         /// </summary>
         private System.Collections.IEnumerator CheckForAutoInitialization()
         {
-            yield return new WaitForSeconds(0.5f);
-            
+            // Si un LoadingScreenManager est présent et actif, attendre qu'il se termine
+            if (LoadingScreenManager.Instance != null && LoadingScreenManager.Instance.IsShowing)
+            {
+                FireflyDanceLogger.LogWarning("⚠️ LoadingScreenManager détecté et actif - Attente de la fin de l'écran de chargement...");
+
+                // Attendre que l'écran de chargement se termine
+                yield return new WaitUntil(() => LoadingScreenManager.Instance == null || !LoadingScreenManager.Instance.IsShowing);
+
+                // Attendre encore un peu pour être sûr que tout est initialisé
+                yield return new WaitForSeconds(1f);
+
+                FireflyDanceLogger.LogWarning("⚠️ Écran de chargement terminé - Vérification de l'auto-initialisation");
+            }
+            else
+            {
+                // Comportement original si pas d'écran de chargement
+                yield return new WaitForSeconds(0.5f);
+            }
+
             if (!isLaunchedViaMiniGameBase)
             {
                 FireflyDanceLogger.LogWarning("⚠️ Auto-initialisation détectée - Test direct dans la scène");

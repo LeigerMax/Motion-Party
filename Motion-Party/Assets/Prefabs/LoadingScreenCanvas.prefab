@@ -863,9 +863,9 @@ MonoBehaviour:
   loadingIconRotationSpeed: 360
   progressBar: {fileID: 1930556772703864876}
   progressText: {fileID: 6180534066410094782}
-  continueButton: {fileID: 2459797894902004826}
-  continueButtonText: {fileID: 2101521614969876448}
-  minimumReadTime: 3
+  skipButton: {fileID: 2459797894902004826}
+  skipButtonText: {fileID: 2101521614969876448}
+  skipButtonTextContent: Lancer le jeu
 --- !u!1 &7103546284107110574
 GameObject:
   m_ObjectHideFlags: 0
@@ -1109,5 +1109,3 @@ MonoBehaviour:
   loadingData: {fileID: 0}
   loadingUI: {fileID: 8772766674424830656}
   minDisplayTime: 1.5
-  enableUserControl: 1
-  minimumReadTime: 3

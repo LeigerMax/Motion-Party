@@ -11,13 +11,11 @@ public class LoadingScreenManager : MonoBehaviour
     
     [Header("Durée minimale d'affichage")]
     [SerializeField] private float minDisplayTime = 15f; // 15 secondes comme demandé
+    [SerializeField] private bool lockMinDisplayTimeAt15Seconds = true; // Verrouiller à 15s
     
-    [Header("Contrôle utilisateur")]
-    [SerializeField] private bool enableUserControl = true; // Permettre à l'utilisateur de contrôler
-    [SerializeField] private float minimumReadTime = 30f; // Temps minimum avant que l'utilisateur puisse continuer (30 secondes)
-    
-    // État du contrôle utilisateur
-    private bool waitingForUser = false;
+    // Variables de contrôle
+    private bool isCurrentlyLoading = false;
+    private float loadingStartTime = 0f;
     
     // Singleton
     private static LoadingScreenManager _instance;
@@ -28,6 +26,32 @@ public class LoadingScreenManager : MonoBehaviour
             if (_instance == null)
                 _instance = FindFirstObjectByType<LoadingScreenManager>();
             return _instance;
+        }
+    }
+    
+    /// <summary>
+    /// Indique si l'écran de chargement est actuellement affiché
+    /// </summary>
+    public bool IsShowing => (loadingUI != null && loadingUI.IsShowing) || isCurrentlyLoading;
+    
+    /// <summary>
+    /// Durée minimale d'affichage de l'écran de chargement (lecture seule)
+    /// </summary>
+    public float MinDisplayTime => minDisplayTime;
+    
+    /// <summary>
+    /// Force la durée minimale d'affichage (pour debugging/tests)
+    /// </summary>
+    public void SetMinDisplayTime(float newTime)
+    {
+        if (newTime > 0)
+        {
+            minDisplayTime = newTime;
+            Debug.Log($"[LoadingScreenManager] Durée minimale modifiée à {minDisplayTime}s");
+        }
+        else
+        {
+            Debug.LogWarning($"[LoadingScreenManager] Tentative de définir une durée invalide: {newTime}s");
         }
     }
     
@@ -53,6 +77,16 @@ public class LoadingScreenManager : MonoBehaviour
         
         // Validation des composants
         ValidateComponents();
+        
+        // Forcer la durée minimale à 15 secondes si elle a été modifiée accidentellement
+        if (lockMinDisplayTimeAt15Seconds || minDisplayTime < 15f)
+        {
+            if (minDisplayTime != 15f)
+            {
+                Debug.LogWarning($"[LoadingScreenManager] minDisplayTime était configuré à {minDisplayTime}s, forcé à 15s");
+                minDisplayTime = 15f;
+            }
+        }
         
         // Initialisation automatique des données si nécessaire
         InitializeDefaultData();
@@ -81,17 +115,48 @@ public class LoadingScreenManager : MonoBehaviour
     /// </summary>
     private void CreateRuntimeDefaultData()
     {
-        loadingData = ScriptableObject.CreateInstance<LoadingScreenData>();
-        loadingData.defaultTipText = "Préparez-vous pour le prochain défi !";
-        loadingData.tips = new LoadingScreenData.LoadingTip[]
+        // Essayer de trouver et utiliser MotionPartyLoadingTips
+        var motionPartyTips = Resources.Load<MotionPartyLoadingTips>("MotionPartyLoadingTips");
+        if (motionPartyTips != null)
         {
-            new LoadingScreenData.LoadingTip
+            Debug.Log("LoadingScreenManager: Utilisation de MotionPartyLoadingTips trouvé dans Resources");
+            loadingData = motionPartyTips.CreateLoadingScreenData();
+        }
+        else
+        {
+            Debug.LogWarning("LoadingScreenManager: MotionPartyLoadingTips non trouvé, création de données basiques");
+            
+            // Fallback : créer des données basiques avec les IDs corrects
+            loadingData = ScriptableObject.CreateInstance<LoadingScreenData>();
+            loadingData.defaultTipText = "Préparez-vous pour le prochain défi !";
+            loadingData.tips = new LoadingScreenData.LoadingTip[]
             {
-                tipId = "default",
-                tipText = "Chargement en cours...",
-                backgroundColor = Color.black
-            }
-        };
+                new LoadingScreenData.LoadingTip
+                {
+                    tipId = "firefly_dance",
+                    tipText = "Fermez doucement vos mains pour attraper les lucioles !",
+                    backgroundColor = new Color(0.1f, 0.1f, 0.3f)
+                },
+                new LoadingScreenData.LoadingTip
+                {
+                    tipId = "log_parade",
+                    tipText = "Bougez vos bras de gauche à droite pour guider les bûches !",
+                    backgroundColor = new Color(0.3f, 0.2f, 0.1f)
+                },
+                new LoadingScreenData.LoadingTip
+                {
+                    tipId = "music_note",
+                    tipText = "Retiens les notes pour réussir la séquence !",
+                    backgroundColor = new Color(0.2f, 0.2f, 0.2f)
+                },
+                new LoadingScreenData.LoadingTip
+                {
+                    tipId = "default",
+                    tipText = "Chargement en cours...",
+                    backgroundColor = Color.black
+                }
+            };
+        }
         
         Debug.Log("LoadingScreenManager: Données par défaut créées en runtime");
     }
@@ -125,16 +190,35 @@ public class LoadingScreenManager : MonoBehaviour
             Debug.LogError("LoadingScreenManager: Composants manquants !");
             return;
         }
-        
+
+        // Marquer le début du chargement
+        isCurrentlyLoading = true;
+        loadingStartTime = Time.unscaledTime;
+        Debug.Log($"[LoadingScreenManager] Show() - tipId reçu: '{tipId}', début du chargement marqué à {loadingStartTime}");
+
         var tipData = loadingData.GetTip(tipId);
+        Debug.Log($"[LoadingScreenManager] Tip sélectionné: '{tipData.tipText}' (ID: {tipData.tipId})");
         loadingUI.Show(tipData, title, description);
-    }
-    
-    /// <summary>
+    }    /// <summary>
     /// Cache l'écran de chargement
     /// </summary>
     public void Hide()
     {
+        // Vérifier si on peut fermer l'écran de chargement
+        if (isCurrentlyLoading)
+        {
+            float elapsedTime = Time.unscaledTime - loadingStartTime;
+            if (elapsedTime < minDisplayTime)
+            {
+                Debug.LogWarning($"[LoadingScreenManager] Tentative de fermeture prématurée de l'écran de chargement ignorée. Temps écoulé: {elapsedTime:F2}s, Minimum requis: {minDisplayTime}s");
+                return;
+            }
+        }
+        
+        Debug.Log($"[LoadingScreenManager] Hide() appelé et autorisé. Stack trace:\n{System.Environment.StackTrace}");
+        
+        isCurrentlyLoading = false;
+        
         if (loadingUI != null)
             loadingUI.Hide();
     }
@@ -161,7 +245,7 @@ public class LoadingScreenManager : MonoBehaviour
     {
         float startTime = Time.unscaledTime;
         
-        Debug.Log($"[LoadingScreenManager] Début chargement de {sceneName}");
+        Debug.Log($"[LoadingScreenManager] Début chargement de {sceneName}. minDisplayTime configuré: {minDisplayTime}s");
         
         // Vérifier que l'UI de chargement est disponible
         if (loadingUI == null)
@@ -201,10 +285,25 @@ public class LoadingScreenManager : MonoBehaviour
             yield return null;
         }
         
-        // Gestion du contrôle utilisateur ou temps minimum
-        yield return StartCoroutine(HandleUserControlOrMinimumTime(startTime));
+        // S'assurer que l'écran de chargement est affiché pendant le temps minimum
+        float elapsedTime = Time.unscaledTime - startTime;
+        Debug.Log($"[LoadingScreenManager] Temps écoulé: {elapsedTime:F2}s, Temps minimum requis: {minDisplayTime}s");
+        
+        if (elapsedTime < minDisplayTime)
+        {
+            float waitTime = minDisplayTime - elapsedTime;
+            Debug.Log($"[LoadingScreenManager] Attente supplémentaire de {waitTime:F2}s pour respecter le temps minimum");
+            yield return new WaitForSecondsRealtime(waitTime);
+            Debug.Log($"[LoadingScreenManager] Attente terminée. Temps total d'affichage: {Time.unscaledTime - startTime:F2}s");
+        }
+        else
+        {
+            Debug.Log($"[LoadingScreenManager] Temps minimum déjà écoulé, pas d'attente supplémentaire");
+        }
         
         // Masquer l'écran de chargement
+        Debug.Log("[LoadingScreenManager] Appel de Hide() depuis la coroutine principale");
+        isCurrentlyLoading = false; // Autoriser explicitement la fermeture
         Hide();
         
         // Attendre que l'animation de disparition se termine
@@ -241,62 +340,111 @@ public class LoadingScreenManager : MonoBehaviour
     /// </summary>
     public void LoadDataFromResources(string resourcePath = "LoadingScreenData")
     {
+        Debug.Log($"[LoadingScreenManager] Tentative de chargement des données: '{resourcePath}'");
+        
+        // Essayer de charger LoadingScreenData
         var data = Resources.Load<LoadingScreenData>(resourcePath);
         if (data != null)
         {
             loadingData = data;
-            Debug.Log("LoadingScreenManager: Données chargées depuis Resources");
+            Debug.Log($"[LoadingScreenManager] LoadingScreenData chargé depuis Resources avec {data.tips?.Length ?? 0} astuces");
+            return;
         }
-        else
+        
+        Debug.Log("[LoadingScreenManager] LoadingScreenData non trouvé, tentative de chargement de MotionPartyLoadingTips");
+        
+        // Sinon essayer de charger MotionPartyLoadingTips
+        var motionPartyTips = Resources.Load<MotionPartyLoadingTips>("MotionPartyLoadingTips");
+        if (motionPartyTips != null)
         {
-            Debug.LogWarning($"LoadingScreenManager: Impossible de charger les données depuis {resourcePath}");
+            Debug.Log($"[LoadingScreenManager] MotionPartyLoadingTips chargé depuis Resources avec {motionPartyTips.gameSpecificTips.Length} astuces:");
+            foreach (var tip in motionPartyTips.gameSpecificTips)
+            {
+                Debug.Log($"  - {tip.tipId}: {tip.tipText}");
+            }
+            loadingData = motionPartyTips.CreateLoadingScreenData();
+            Debug.Log("[LoadingScreenManager] LoadingScreenData créé à partir de MotionPartyLoadingTips");
+            return;
         }
+        
+        Debug.LogWarning($"[LoadingScreenManager] Impossible de charger les données depuis {resourcePath} ou MotionPartyLoadingTips");
     }
     
     /// <summary>
-    /// Gère le contrôle utilisateur ou le temps minimum d'affichage
+    /// Force l'affichage de l'écran de chargement pendant une durée spécifique (pour tests)
     /// </summary>
-    private IEnumerator HandleUserControlOrMinimumTime(float startTime)
+    [ContextMenu("Test Écran de Chargement 15s")]
+    public void TestLoadingScreen()
     {
-        // Calculer le temps écoulé depuis le début du chargement
-        float elapsedTime = Time.unscaledTime - startTime;
+        StartCoroutine(TestLoadingScreenCoroutine());
+    }
+    
+    /// <summary>
+    /// Vérifie et corrige la configuration de l'écran de chargement
+    /// </summary>
+    [ContextMenu("Vérifier/Corriger Configuration")]
+    public void ValidateAndFixConfiguration()
+    {
+        Debug.Log($"[LoadingScreenManager] Configuration actuelle:");
+        Debug.Log($"  - minDisplayTime: {minDisplayTime}s");
+        Debug.Log($"  - lockMinDisplayTimeAt15Seconds: {lockMinDisplayTimeAt15Seconds}");
+        Debug.Log($"  - loadingUI: {(loadingUI != null ? "Assigné" : "MANQUANT")}");
+        Debug.Log($"  - loadingData: {(loadingData != null ? "Assigné" : "MANQUANT")}");
         
-        if (enableUserControl && loadingUI != null)
+        if (loadingData != null)
         {
-            // Mode contrôle utilisateur - Système simplifié
-            bool userContinueRequested = false;
-            
-            Debug.Log("[LoadingScreenManager] Mode contrôle utilisateur activé");
-            
-            // Activer le contrôle utilisateur
-            loadingUI.EnableUserControl(() => {
-                userContinueRequested = true;
-                Debug.Log("[LoadingScreenManager] Utilisateur a cliqué sur Continuer!");
-            });
-            
-            // Attendre le minimum entre le temps max et que l'utilisateur clique
-            float maxWaitTime = Mathf.Max(minDisplayTime, minimumReadTime + 5f); // Au moins 5s après apparition du bouton
-            float waitStartTime = Time.unscaledTime;
-            
-            Debug.Log($"[LoadingScreenManager] Attente max de {maxWaitTime}s (ou clic utilisateur)");
-            
-            while (!userContinueRequested && (Time.unscaledTime - waitStartTime) < maxWaitTime)
+            Debug.Log($"  - Tips disponibles: {loadingData.tips?.Length ?? 0}");
+            if (loadingData.tips != null)
             {
-                yield return null;
+                foreach (var tip in loadingData.tips)
+                {
+                    Debug.Log($"    * {tip.tipId}: \"{tip.tipText}\"");
+                }
             }
-            
-            // Réinitialiser le contrôle utilisateur
-            loadingUI.ResetUserControl();
-            
-            Debug.Log($"[LoadingScreenManager] Contrôle utilisateur terminé. User clicked: {userContinueRequested}, Temps écoulé: {Time.unscaledTime - waitStartTime:F1}s");
+        }
+        
+        if (lockMinDisplayTimeAt15Seconds || minDisplayTime < 15f)
+        {
+            if (minDisplayTime != 15f)
+            {
+                Debug.LogWarning($"[LoadingScreenManager] CORRECTION: minDisplayTime était {minDisplayTime}s, forcé à 15s");
+                minDisplayTime = 15f;
+            }
+        }
+        
+        ValidateComponents();
+        
+        Debug.Log("[LoadingScreenManager] Vérification terminée.");
+    }
+    
+    /// <summary>
+    /// Force le rechargement des données depuis MotionPartyLoadingTips
+    /// </summary>
+    [ContextMenu("Recharger Tips depuis MotionPartyLoadingTips")]
+    public void ReloadFromMotionPartyTips()
+    {
+        var motionPartyTips = Resources.Load<MotionPartyLoadingTips>("MotionPartyLoadingTips");
+        if (motionPartyTips != null)
+        {
+            loadingData = motionPartyTips.CreateLoadingScreenData();
+            Debug.Log($"[LoadingScreenManager] Tips rechargés depuis MotionPartyLoadingTips. {loadingData.tips.Length} tips disponibles.");
+            ValidateAndFixConfiguration();
         }
         else
         {
-            // Mode traditionnel avec temps minimum fixe
-            if (elapsedTime < minDisplayTime)
-            {
-                yield return new WaitForSecondsRealtime(minDisplayTime - elapsedTime);
-            }
+            Debug.LogError("[LoadingScreenManager] MotionPartyLoadingTips non trouvé dans Resources !");
         }
+    }
+    
+    private IEnumerator TestLoadingScreenCoroutine()
+    {
+        Debug.Log("[LoadingScreenManager] TEST: Affichage de l'écran de chargement pour 15 secondes");
+        Show("default", "Test", "Écran de chargement de test - 15 secondes");
+        
+        yield return new WaitForSecondsRealtime(minDisplayTime);
+        
+        Debug.Log("[LoadingScreenManager] TEST: Fin du test, fermeture de l'écran");
+        isCurrentlyLoading = false;
+        Hide();
     }
 }

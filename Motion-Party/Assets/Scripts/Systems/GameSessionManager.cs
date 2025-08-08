@@ -352,19 +352,19 @@ public class GameSessionManager : MonoBehaviour
             musicGame.sceneName = "MiniGame_MusicNote";
             musicGame.displayName = "Music Note Press";
             musicGame.description = "Jeu de rythme musical";
-            musicGame.loadingTipId = "music_tips";
+            musicGame.loadingTipId = "music_note";
             
             var logGame = new MiniGameInfo();
             logGame.sceneName = "MiniGame_LogParade";
             logGame.displayName = "Log Parade";
             logGame.description = "Navigation sur rondins";
-            logGame.loadingTipId = "log_tips";
+            logGame.loadingTipId = "log_parade";
             
             var fireflyGame = new MiniGameInfo();
             fireflyGame.sceneName = "MiniGame_FireFlyDance";
             fireflyGame.displayName = "Firefly Dance";
             fireflyGame.description = "Capture des lucioles";
-            fireflyGame.loadingTipId = "firefly_tips";
+            fireflyGame.loadingTipId = "firefly_dance";
             
             miniGames.Add(musicGame);
             miniGames.Add(logGame);

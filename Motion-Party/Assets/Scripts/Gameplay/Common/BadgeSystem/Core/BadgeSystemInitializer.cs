@@ -128,18 +128,22 @@ namespace Gameplay.Common.Badges
             // Configurer GlobalBadgeSystem
             if (badgeSystem != null)
             {
+#if UNITY_EDITOR
                 var systemSO = new UnityEditor.SerializedObject(badgeSystem);
                 systemSO.FindProperty("badgeDatabase").objectReferenceValue = badgeDatabase;
                 systemSO.FindProperty("playerStorage").objectReferenceValue = playerStorage;
                 systemSO.ApplyModifiedProperties();
+#endif
             }
 
             // Configurer GlobalBadgeTracker
             if (badgeTracker != null)
             {
+#if UNITY_EDITOR
                 var trackerSO = new UnityEditor.SerializedObject(badgeTracker);
                 trackerSO.FindProperty("badgeSystem").objectReferenceValue = badgeSystem;
                 trackerSO.ApplyModifiedProperties();
+#endif
             }
         }
 
@@ -158,15 +162,19 @@ namespace Gameplay.Common.Badges
             // Vérifier les références
             if (badgeSystem != null)
             {
+#if UNITY_EDITOR
                 var systemSO = new UnityEditor.SerializedObject(badgeSystem);
                 Debug.Log($"  GlobalBadgeSystem.Database: {(systemSO.FindProperty("badgeDatabase").objectReferenceValue != null ? "✅ OK" : "❌ NULL")}");
                 Debug.Log($"  GlobalBadgeSystem.Storage: {(systemSO.FindProperty("playerStorage").objectReferenceValue != null ? "✅ OK" : "❌ NULL")}");
+#endif
             }
 
             if (badgeTracker != null)
             {
+#if UNITY_EDITOR
                 var trackerSO = new UnityEditor.SerializedObject(badgeTracker);
                 Debug.Log($"  GlobalBadgeTracker.System: {(trackerSO.FindProperty("badgeSystem").objectReferenceValue != null ? "✅ OK" : "❌ NULL")}");
+#endif
             }
 
             // Vérifier les badges disponibles

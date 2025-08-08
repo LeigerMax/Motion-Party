@@ -84,6 +84,36 @@ namespace Gameplay.MusicNotePress
                 gameController.OnGameFinished += HandleGameFinished;
             }
 
+            // Vérifier si on doit attendre l'écran de chargement avant de lancer
+            StartCoroutine(CheckForAutoInitialization());
+        }
+
+        /// <summary>
+        /// Vérifie si on doit s'auto-initialiser en respectant l'écran de chargement
+        /// </summary>
+        private System.Collections.IEnumerator CheckForAutoInitialization()
+        {
+            // Si un LoadingScreenManager est présent et actif, attendre qu'il se termine
+            if (LoadingScreenManager.Instance != null && LoadingScreenManager.Instance.IsShowing)
+            {
+                if (enableDebugLogs)
+                    Debug.Log("[MusicNoteGameManager] LoadingScreenManager détecté et actif - Attente de la fin de l'écran de chargement...");
+                
+                // Attendre que l'écran de chargement se termine
+                yield return new WaitUntil(() => LoadingScreenManager.Instance == null || !LoadingScreenManager.Instance.IsShowing);
+                
+                // Attendre encore un peu pour être sûr que tout est initialisé
+                yield return new WaitForSeconds(1f);
+                
+                if (enableDebugLogs)
+                    Debug.Log("[MusicNoteGameManager] Écran de chargement terminé - Lancement du jeu");
+            }
+            else
+            {
+                // Comportement original si pas d'écran de chargement
+                yield return new WaitForSeconds(0.5f);
+            }
+
             Launch();
         }
 

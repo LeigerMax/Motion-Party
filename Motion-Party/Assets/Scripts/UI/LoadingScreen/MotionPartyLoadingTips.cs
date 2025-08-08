@@ -12,13 +12,13 @@ public class MotionPartyLoadingTips : ScriptableObject
         new LoadingScreenData.LoadingTip
         {
             tipId = "firefly_dance",
-            tipText = "Fermez doucement vos mains pour attraper les lucioles !",
+            tipText = "Fermez doucement vos mains pour attraper les lucioles ! Il en existe 3 types.",
             backgroundColor = new Color(0.1f, 0.1f, 0.3f)
         },
         new LoadingScreenData.LoadingTip
         {
             tipId = "log_parade",
-            tipText = "Bougez vos bras de gauche à droite pour guider les bûches !",
+            tipText = "Bougez votre corps de gauche à droite pour rester sur les buches !",
             backgroundColor = new Color(0.3f, 0.2f, 0.1f)
         },
         new LoadingScreenData.LoadingTip
@@ -42,7 +42,7 @@ public class MotionPartyLoadingTips : ScriptableObject
         new LoadingScreenData.LoadingTip
         {
             tipId = "music_note",
-            tipText = "Retiens les notes pour réussir la séquence !",
+            tipText = "Retiens les notes pour réussir la séquence, ensuite affiche avec ta main chaque nombre !",
             backgroundColor = new Color(0.2f, 0.2f, 0.2f)
         }
     };

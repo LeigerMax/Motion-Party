@@ -851,6 +851,7 @@ Transform:
   - {fileID: 1390725574}
   - {fileID: 257551261}
   - {fileID: 1920978845}
+  - {fileID: 1354292934}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &392985772
@@ -1843,7 +1844,7 @@ MonoBehaviour:
   moveRightKey: 100
   centerKey: 115
   autoMoveKey: 32
-  targetUDPReceive: {fileID: 1390725572}
+  targetUDPReceive: {fileID: 0}
 --- !u!4 &903686034
 Transform:
   m_ObjectHideFlags: 0
@@ -2689,6 +2690,71 @@ Transform:
   - {fileID: 2033600290}
   m_Father: {fileID: 1529318296}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1354292933
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1354292934}
+  - component: {fileID: 1354292936}
+  - component: {fileID: 1354292935}
+  m_Layer: 0
+  m_Name: UDPSceneManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1354292934
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1354292933}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 359846799}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1354292935
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1354292933}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ddc45c96197b834d85dd20370eb87a0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isMainScene: 0
+  isMiniGameScene: 1
+--- !u!114 &1354292936
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1354292933}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf05dc4b5442f0d4880f3c39218bb1af, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  port: 5052
+  startRecieving: 1
+  printToConsole: 0
+  data: "{\r\n            \"hand_positions\": [\r\n                [490,00, 0,00,
+    0,00]\r\n            ],\r\n            \"simulated\": true,\r\n            \"simulator_x\":
+    0,00\r\n        }"
 --- !u!4 &1357878751 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3620098201178672556, guid: 58cd8dc8c2359174baa15aa31e302c8b, type: 3}
@@ -2912,7 +2978,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1390725574}
   - component: {fileID: 1390725573}
-  - component: {fileID: 1390725572}
   - component: {fileID: 1390725575}
   - component: {fileID: 1390725576}
   m_Layer: 0
@@ -2922,24 +2987,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1390725572
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1390725571}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bf05dc4b5442f0d4880f3c39218bb1af, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  port: 5052
-  startRecieving: 1
-  printToConsole: 0
-  data: "{\r\n            \"hand_positions\": [\r\n                [490,00, 0,00,
-    0,00]\r\n            ],\r\n            \"simulated\": true,\r\n            \"simulator_x\":
-    0,00\r\n        }"
 --- !u!114 &1390725573
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2952,7 +2999,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0022012b19c24cc4790c291977389ce6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  udpReceive: {fileID: 1390725572}
+  udpReceive: {fileID: 1354292936}
   uiManager: {fileID: 1908275072}
   lateralTracker: {fileID: 1591830348}
   playerAvatar: {fileID: 1543242584}
@@ -3496,7 +3543,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1ae9fedd2a679a348833c01b22d9c69f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  udpReceive: {fileID: 1390725572}
+  udpReceive: {fileID: 0}
   smoothingFactor: 0.8
   leftBoundary: -1.5
   rightBoundary: 1.5
@@ -3537,7 +3584,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1ae9fedd2a679a348833c01b22d9c69f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  udpReceive: {fileID: 1390725572}
+  udpReceive: {fileID: 0}
   smoothingFactor: 0.8
   leftBoundary: -1.5
   rightBoundary: 1.5

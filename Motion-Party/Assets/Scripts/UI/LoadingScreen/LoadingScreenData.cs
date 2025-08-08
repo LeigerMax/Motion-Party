@@ -31,16 +31,32 @@ public class LoadingScreenData : ScriptableObject
     /// </summary>
     public LoadingTip GetTip(string tipId)
     {
+        Debug.Log($"[LoadingScreenData] GetTip appelé avec tipId: '{tipId}'");
+        
         if (string.IsNullOrEmpty(tipId))
-            return CreateDefaultTip();
-            
-        foreach (var tip in tips)
         {
-            if (tip.tipId == tipId)
-                return tip;
+            Debug.Log("[LoadingScreenData] tipId vide, utilisation de l'astuce par défaut");
+            return CreateDefaultTip();
+        }
+            
+        if (tips == null)
+        {
+            Debug.LogWarning("[LoadingScreenData] Aucune astuce configurée, utilisation de l'astuce par défaut");
+            return CreateDefaultTip();
         }
         
-        Debug.LogWarning($"Astuce '{tipId}' introuvable, utilisation de l'astuce par défaut");
+        Debug.Log($"[LoadingScreenData] Recherche dans {tips.Length} astuces disponibles:");
+        foreach (var tip in tips)
+        {
+            Debug.Log($"  - {tip.tipId}");
+            if (tip.tipId == tipId)
+            {
+                Debug.Log($"[LoadingScreenData] Astuce trouvée: '{tip.tipText}'");
+                return tip;
+            }
+        }
+        
+        Debug.LogWarning($"[LoadingScreenData] Astuce '{tipId}' introuvable, utilisation de l'astuce par défaut");
         return CreateDefaultTip();
     }
     
