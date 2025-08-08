@@ -36,6 +36,9 @@ namespace UI.Menu
         [Header("Player Selection")]
         [SerializeField] private UI.PlayerSelection.PlayerSelectionUI playerSelectionUI;
 
+        [Header("Options Menu")]
+        [SerializeField] private OptionsMenuController optionsMenuController;
+
         [Header("Loading Screen")]
         [SerializeField] private LoadingScreenUI loadingScreenUI;
 
@@ -244,9 +247,18 @@ namespace UI.Menu
 
         private void OnOptionsButtonClicked()
         {
-            // TODO: Implémenter l'ouverture des options
-            // Garde la place pour des paramètres de jeu futurs (son, langue, accessibilité...)
-            Debug.Log("Options - À implémenter plus tard");
+            // Ouvrir le menu des options si disponible
+            if (optionsMenuController != null)
+            {
+                optionsMenuController.ShowOptionsMenu();
+                Debug.Log("Menu Options ouvert");
+            }
+            else
+            {
+                Debug.LogWarning("OptionsMenuController non assigné dans MainMenuController");
+                // Fallback : afficher un message simple
+                Debug.Log("Options - Contrôleur non configuré");
+            }
         }
 
         private void OnTeamButtonClicked()
