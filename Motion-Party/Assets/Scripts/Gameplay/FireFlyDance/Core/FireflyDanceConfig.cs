@@ -26,8 +26,18 @@ namespace Gameplay.FireFlyDance.Core
     
     [Header("Paramètres de gameplay")]
     [SerializeField] private float captureRadius = 1f;   // Rayon de capture d'une luciole
-    [SerializeField] private int scorePerFirefly = 10;   // Points gagnés par luciole capturée
+    [SerializeField] private int scorePerFirefly = 10;   // Points gagnés par luciole capturée (legacy)
     [SerializeField] private float gameDuration = 60f;   // Durée de la partie en secondes
+    
+    [Header("Types de libellules")]
+    [SerializeField] private float staticFireflyProbability = 0.3f;     // Probabilité d'apparition des libellules statiques (30%)
+    [SerializeField] private float slowMovingProbability = 0.4f;        // Probabilité des libellules lentes (40%)
+    [SerializeField] private float fastMovingProbability = 0.3f;        // Probabilité des libellules rapides (30%)
+    
+    [Header("Scores par type")]
+    [SerializeField] private int staticFireflyScore = 5;      // Score pour libellules statiques
+    [SerializeField] private int slowMovingScore = 10;        // Score pour libellules lentes  
+    [SerializeField] private int fastMovingScore = 15;        // Score pour libellules rapides
     
     // Propriétés publiques pour l'accès en lecture seule
     public Vector2 TopLeft => topLeft;
@@ -41,6 +51,14 @@ namespace Gameplay.FireFlyDance.Core
     public float CaptureRadius => captureRadius;
     public int ScorePerFirefly => scorePerFirefly;
     public float GameDuration => gameDuration;
+    
+    // Propriétés pour les types de libellules
+    public float StaticFireflyProbability => staticFireflyProbability;
+    public float SlowMovingProbability => slowMovingProbability;
+    public float FastMovingProbability => fastMovingProbability;
+    public int StaticFireflyScore => staticFireflyScore;
+    public int SlowMovingScore => slowMovingScore;
+    public int FastMovingScore => fastMovingScore;
     
     // Propriétés additionnelles pour FireflyController
     public float MinFireflyLifetime => fireflyLifetime * 0.8f;  // 80% de la durée de vie
@@ -89,6 +107,29 @@ namespace Gameplay.FireFlyDance.Core
     }
     
     /// <summary>
+    /// Sélectionne aléatoirement un type de libellule selon les probabilités configurées
+    /// </summary>
+    /// <returns>Type de libellule sélectionné</returns>
+    public Fireflies.FireflyController.FireflyType GetRandomFireflyType()
+    {
+        float totalProbability = staticFireflyProbability + slowMovingProbability + fastMovingProbability;
+        float randomValue = Random.Range(0f, totalProbability);
+        
+        if (randomValue < staticFireflyProbability)
+        {
+            return Fireflies.FireflyController.FireflyType.Static;
+        }
+        else if (randomValue < staticFireflyProbability + slowMovingProbability)
+        {
+            return Fireflies.FireflyController.FireflyType.SlowMoving;
+        }
+        else
+        {
+            return Fireflies.FireflyController.FireflyType.FastMoving;
+        }
+    }
+    
+    /// <summary>
     /// Validation automatique des paramètres dans l'éditeur Unity
     /// </summary>
     private void OnValidate()
@@ -112,6 +153,16 @@ namespace Gameplay.FireFlyDance.Core
         // S'assurer que la vitesse min n'est pas supérieure à la vitesse max
         if (minSpeed > maxSpeed)
             minSpeed = maxSpeed;
+            
+        // Valider les probabilités des types de libellules
+        staticFireflyProbability = Mathf.Clamp01(staticFireflyProbability);
+        slowMovingProbability = Mathf.Clamp01(slowMovingProbability);
+        fastMovingProbability = Mathf.Clamp01(fastMovingProbability);
+        
+        // Valider les scores
+        staticFireflyScore = Mathf.Max(1, staticFireflyScore);
+        slowMovingScore = Mathf.Max(1, slowMovingScore);
+        fastMovingScore = Mathf.Max(1, fastMovingScore);
     }
 
     /// <summary>

@@ -26,7 +26,9 @@ namespace Gameplay.FireFlyDance.UI
         
         [Header("Configuration")]
         [SerializeField] private FireflyDanceConfig config;
+        #pragma warning disable CS0414
         [SerializeField] private bool hideUIOnStart = false;
+        #pragma warning restore CS0414
         
         [Header("UI Panels Control")]
         [SerializeField] private bool showScorePanel = true;
@@ -65,7 +67,7 @@ namespace Gameplay.FireFlyDance.UI
             // Auto-détection de la config si pas assignée
             if (config == null)
             {
-                config = FindObjectOfType<FireflyDanceConfig>();
+                config = FindFirstObjectByType<FireflyDanceConfig>();
                 if (config == null)
                 {
                     FireflyDanceLogger.LogError("FireflyDanceConfig introuvable ! Certaines fonctionnalités UI pourraient ne pas fonctionner.");

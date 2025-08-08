@@ -2,10 +2,17 @@ using UnityEngine;
 using Core;
 using Newtonsoft.Json.Linq;
 using System.Collections;
+using System;
+using Core.Analytics;
 
-public class MusicNoteGameController : MiniGameBase
+namespace Gameplay.MusicNotePress
 {
-
+    /// <summary>
+    /// Contrôleur principal du mini-jeu MusicNote
+    /// Gère la logique du jeu et les états
+    /// </summary>
+    public class MusicNoteGameController : MonoBehaviour
+{
     [Header("Managers")]
     public UDPReceive udpReceive;
     public UIManager uiManager;
@@ -14,43 +21,98 @@ public class MusicNoteGameController : MiniGameBase
 
     [Header("Game Settings")]
     public float startDelay = 1f;
-    public int maxLevel = 3;
     public float validationTime = 3f;
-    private int openFingers = 0;
-    public float delayBetweenLevels = 3f;
+    public float delayBetweenWaves = 3f;
+    
+    [Header("Infinite Wave System")]
+    public int startingNotesCount = 2; // Nombre de notes pour la première vague
+    public int maxNotesPerWave = 10; // Limite maximale de notes par vague
+    public bool enableInfiniteWaves = true; // Active le système de vagues infinies
+    public InfiniteWavesConfig wavesConfig; // Configuration optionnelle
 
     [Header("Game State")]
     private bool gameStarted = false;
     private bool gameEnded = false;
     private bool isPlayingSequence = true;
-    private int currentLevel = 1;
-    private int noteCountThisLevel = 2;
+    private int currentWave = 1; // Remplace currentLevel
+    private int noteCountThisWave = 2; // Remplace noteCountThisLevel
+    private int currentScore = 0;
+    private int openFingers = 0;
+    
+    // Joueur actuel pour les analytics
+    private Systems.PlayerData currentPlayer;
 
     private Coroutine playingSequence;
 
-    protected override void Launch()
-    {
-        InitGame();
-    }
+        // Événements
+        public event Action<int> OnGameFinished;
+        public event Action OnGameStarted;
 
     void Start()
     {
+            ValidateComponents();
+            
+            // Appliquer la configuration si elle existe
+            if (wavesConfig != null)
+            {
+                wavesConfig.ApplyTo(this);
+            }
+            
         if (noteInputManager != null && noteInputManager.spinner != null)
         {
             noteInputManager.spinner.ValidationTime = validationTime;
         }
 
         noteInputManager.OnSequenceCompleted += HandleSequenceResult;
-        //InitGame();
     }
 
     private void OnDestroy()
+        {
+            if (noteInputManager != null)
     {
         noteInputManager.OnSequenceCompleted -= HandleSequenceResult;
     }
+        }
 
+        private void ValidateComponents()
+        {
+            if (noteInputManager == null)
+            {
+                noteInputManager = FindFirstObjectByType<NoteInputManager>();
+                if (noteInputManager == null)
+                {
+                    Debug.LogError("[MusicNoteGameController] NoteInputManager non trouvé !");
+                }
+            }
 
-    // Update is called once per frame
+            if (noteSequenceManager == null)
+            {
+                noteSequenceManager = FindFirstObjectByType<NoteSequenceManager>();
+                if (noteSequenceManager == null)
+                {
+                    Debug.LogError("[MusicNoteGameController] NoteSequenceManager non trouvé !");
+                }
+            }
+
+            if (uiManager == null)
+            {
+                uiManager = FindFirstObjectByType<UIManager>();
+                if (uiManager == null)
+                {
+                    Debug.LogError("[MusicNoteGameController] UIManager non trouvé !");
+                }
+            }
+
+            if (udpReceive == null)
+            {
+                udpReceive = FindFirstObjectByType<UDPReceive>();
+                if (udpReceive == null)
+                {
+                    Debug.LogError("[MusicNoteGameController] UDPReceive non trouvé !");
+                }
+            }
+        }
+
     void Update()
     {
         if (!gameStarted || gameEnded) return;
@@ -94,10 +156,44 @@ public class MusicNoteGameController : MiniGameBase
         }
     }
 
+        /// <summary>
+        /// Démarre une nouvelle partie avec le système de vagues infinies
+        /// </summary>
+        public void StartGame()
+        {
+            Debug.Log("[MusicNoteGameController] StartGame appelé - Système de vagues infinies activé");
+            
+            // Réinitialiser l'état pour les vagues infinies
+            gameStarted = false;
+            gameEnded = false;
+            currentWave = 1;
+            noteCountThisWave = startingNotesCount;
+            currentScore = 0;
 
+            Debug.Log($"[MusicNoteGameController] Début des vagues infinies - Vague 1 avec {noteCountThisWave} notes");
+
+            // Initialiser le jeu
+            InitGame();
+        }
+
+    /// <summary>
+    /// Définit le joueur actuel pour les analytics
+    /// </summary>
+    public void SetCurrentPlayer(Systems.PlayerData player)
+    {
+        currentPlayer = player;
+        Debug.Log($"[MusicNoteGameController] Joueur actuel défini: {player?.Nickname ?? "Unknown"}");
+        
+        // Transmettre le joueur au NoteInputManager
+        if (noteInputManager != null)
+        {
+            noteInputManager.SetCurrentPlayer(player);
+        }
+    }
 
     private void InitGame()
     {
+        Debug.Log($"[MusicNoteGameController] InitGame() appelé sur {gameObject.name}, actif: {gameObject.activeInHierarchy}");
         SpeechSystemSingleton.Vosk.StartVoskStt();
         
         Debug.Log("Initialisation du mini-jeu...");
@@ -108,28 +204,34 @@ public class MusicNoteGameController : MiniGameBase
             return;
         }
 
-        gameStarted = false;
-        gameEnded = false;
-        currentLevel = 1;
-        noteCountThisLevel = currentLevel + 1;
-
         noteInputManager.ResetInput();
-        LaunchLevel();
+        LaunchWave(); // Utiliser LaunchWave au lieu de LaunchLevel
+
+            // Notifier que le jeu a démarré
+            OnGameStarted?.Invoke();
     }
 
-    private void LaunchLevel()
+    private void LaunchWave()
     {
-        Debug.Log($"Niveau {currentLevel} lancé avec {noteCountThisLevel} notes.");
+        Debug.Log($"[MusicNoteGameController] Vague {currentWave} lancée avec {noteCountThisWave} notes");
         gameStarted = true;
-        noteSequenceManager.LoadSequence(noteCountThisLevel);
+        
+        // Mettre à jour l'UI avec les informations de la vague
+        if (uiManager != null)
+        {
+            uiManager.UpdateWaveDisplay(currentWave, noteCountThisWave, currentScore);
+            uiManager.ShowWaveProgress($"Préparez-vous pour la vague {currentWave} !");
+        }
+        
+        noteSequenceManager.LoadSequence(noteCountThisWave);
 
         if (playingSequence != null)
             StopCoroutine(playingSequence);
 
-        playingSequence = StartCoroutine(StartGameAfterDelay());
+        playingSequence = StartCoroutine(StartWaveAfterDelay());
     }
 
-    private IEnumerator StartGameAfterDelay()
+    private IEnumerator StartWaveAfterDelay()
     {
         yield return new WaitForSeconds(startDelay);
 
@@ -137,56 +239,152 @@ public class MusicNoteGameController : MiniGameBase
         noteInputManager.isPlayingSequence = isPlayingSequence;
 
         Debug.Log("Lancement de la séquence !");
+        
+        // Enregistrer le début de la vague
+        string playerID = currentPlayer?.Id ?? AnalyticsHelper.GetCurrentPlayerFromSession();
+        AnalyticsHelper.RecordMusicNoteWave(playerID);
+        
         yield return noteSequenceManager.PlaySequenceCoroutine();
 
         isPlayingSequence = false;
         noteInputManager.isPlayingSequence = isPlayingSequence;
 
-
         noteInputManager.PrepareExpectedSequence(noteSequenceManager.GetGeneratedNotes());
         Debug.Log("Tour du joueur, prêt à recevoir les inputs.");
     }
-
 
     private void HandleSequenceResult(bool success)
     {
         if (success)
         {
-            Debug.Log("Séquence réussie, passage au niveau suivant.");
-            currentLevel++;
-
-            if (currentLevel > maxLevel)
+            Debug.Log($"[MusicNoteGameController] Vague {currentWave} réussie !");
+            currentScore += 100 * currentWave; // Score basé sur la vague
+            
+            // Enregistrer le succès de la vague
+            string playerID = currentPlayer?.Id ?? AnalyticsHelper.GetCurrentPlayerFromSession();
+            AnalyticsHelper.RecordMusicNoteSuccess(playerID);
+            
+            // Mettre à jour l'UI avec le nouveau score
+            if (uiManager != null)
             {
-                Debug.Log("Jeu terminé ! Tous les niveaux ont été complétés.");
-                uiManager.DisplayEndGameScreen(true);
-                gameEnded = true;
-                FinishMiniGame();
-                return;
+                uiManager.UpdateWaveDisplay(currentWave, noteCountThisWave, currentScore);
+                uiManager.ShowWaveProgress($"Vague {currentWave} réussie ! +{100 * currentWave} points");
             }
-
-            noteCountThisLevel = currentLevel + 1;
-            StartCoroutine(DelayAndLaunchLevel());
-        }
-        else
-        {
-            if (currentLevel < maxLevel)
+            
+            if (enableInfiniteWaves)
             {
-                Debug.Log("Séquence incorrecte. Relance du niveau.");
-                StartCoroutine(DelayAndLaunchLevel());
+                // Système de vagues infinies : progression continue
+                currentWave++;
+                
+                // Utiliser la configuration si disponible, sinon la logique par défaut
+                if (wavesConfig != null)
+                {
+                    noteCountThisWave = wavesConfig.GetNotesCountForWave(currentWave);
+                    currentScore += wavesConfig.GetScoreForWave(currentWave - 1); // Score de la vague précédente
+                }
+                else
+                {
+                    noteCountThisWave = Mathf.Min(startingNotesCount + (currentWave - 1), maxNotesPerWave);
+                }
+                
+                Debug.Log($"[MusicNoteGameController] Progression vers la vague {currentWave} avec {noteCountThisWave} notes");
+                StartCoroutine(DelayAndLaunchNextWave());
             }
             else
             {
-                Debug.Log("Séquence incorrecte au dernier niveau. Fin du jeu.");
-                uiManager.DisplayEndGameScreen(false);
+                // Ancien système : fin après quelques niveaux
+                Debug.Log("Jeu terminé ! Mode classique complété.");
+                uiManager.DisplayEndGameScreen(true);
                 gameEnded = true;
+                OnGameFinished?.Invoke(currentScore);
             }
+        }
+        else
+        {
+            // En cas d'échec : FIN DU JEU (système de vagues infinies)
+            Debug.Log($"[MusicNoteGameController] Échec à la vague {currentWave} - Fin du jeu");
+            Debug.Log($"[MusicNoteGameController] Score final : {currentScore} points - Vagues complétées : {currentWave - 1}");
+            
+            // Enregistrer le score final
+            string playerID = currentPlayer?.Id ?? AnalyticsHelper.GetCurrentPlayerFromSession();
+            AnalyticsHelper.RecordMusicNoteScore(playerID, currentScore);
+            
+            // Mettre à jour l'UI avec les résultats finaux
+            if (uiManager != null)
+            {
+                uiManager.UpdateWaveDisplay(currentWave, noteCountThisWave, currentScore);
+                uiManager.ShowWaveProgress($"Échec ! Score final: {currentScore} points, {currentWave - 1} vagues complétées");
+            }
+            
+            uiManager.DisplayEndGameScreen(false);
+            gameEnded = true;
+            OnGameFinished?.Invoke(currentScore);
         }
     }
 
-    private IEnumerator DelayAndLaunchLevel()
+    private IEnumerator DelayAndLaunchNextWave()
     {
-        yield return new WaitForSeconds(delayBetweenLevels);
-        LaunchLevel();
+        Debug.Log($"[MusicNoteGameController] Préparation de la vague {currentWave} dans {delayBetweenWaves} secondes...");
+        
+        // Afficher un message de préparation
+        if (uiManager != null)
+        {
+            uiManager.ShowWaveProgress($"Vague {currentWave} dans {delayBetweenWaves} secondes...");
+        }
+        
+        yield return new WaitForSeconds(delayBetweenWaves);
+        LaunchWave();
     }
     
+        /// <summary>
+        /// Réinitialise le jeu à son état initial pour les vagues infinies
+        /// </summary>
+        public void ResetGame()
+        {
+            gameStarted = false;
+            gameEnded = false;
+            currentWave = 1;
+            noteCountThisWave = startingNotesCount;
+            currentScore = 0;
+            
+            Debug.Log("[MusicNoteGameController] Jeu réinitialisé pour les vagues infinies");
+            
+            if (noteInputManager != null)
+            {
+                noteInputManager.ResetInput();
+            }
+        }
+        
+        /// <summary>
+        /// Obtient le numéro de la vague actuelle
+        /// </summary>
+        public int GetCurrentWave()
+        {
+            return currentWave;
+        }
+        
+        /// <summary>
+        /// Obtient le nombre de notes dans la vague actuelle
+        /// </summary>
+        public int GetCurrentWaveNotesCount()
+        {
+            return noteCountThisWave;
+        }
+        
+        /// <summary>
+        /// Obtient le score actuel
+        /// </summary>
+        public int GetCurrentScore()
+        {
+            return currentScore;
+        }
+        
+        /// <summary>
+        /// Vérifie si le système de vagues infinies est activé
+        /// </summary>
+        public bool IsInfiniteWavesEnabled()
+        {
+            return enableInfiniteWaves;
+        }
+    }
 }

@@ -20,6 +20,7 @@ Motion-Party/Logs/
 Motion-Party/UserSettings/
 Motion-Party/MemoryCaptures/
 Motion-Party/Recordings/
+/Motion-Party/Assets/Models
 
 # Shader cache
 /[Ll]ibrary/ShaderCache/
@@ -113,3 +114,5 @@ python-tracker/reference_drawings/
 Thumbs.db
 desktop.ini
 
+
+/Motion-Party/Assets/Models/IgniteCoders

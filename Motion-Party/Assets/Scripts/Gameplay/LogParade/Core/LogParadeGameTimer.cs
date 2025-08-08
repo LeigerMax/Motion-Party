@@ -5,9 +5,8 @@ using System.Collections;
 /// <summary>
 /// Gère le cycle de vie d'une partie de LogParade (démarrage, minuterie, arrêt).
 /// Contrôle le score et le mouvement des rondins avec un timer configurable.
-/// Intégration avec MiniGameBase pour un démarrage propre.
 /// </summary>
-public class LogParadeGameTimer : MiniGameBase
+public class LogParadeGameTimer : MonoBehaviour
 {
 #region Champs
     [Header("Timer Settings")]
@@ -57,7 +56,10 @@ public class LogParadeGameTimer : MiniGameBase
 #endregion
 
 #region Unity Lifecycle
-    protected override void Launch()
+    /// <summary>
+    /// Initialise et lance le timer de jeu
+    /// </summary>
+    public void Launch()
     {
         InitializeTimer();
         LaunchLevel();
@@ -295,8 +297,8 @@ public class LogParadeGameTimer : MiniGameBase
             LogParadeEventCoordinator.TriggerFinalScoreCalculated(finalScore);
         }
         
-        // Appeler FinishMiniGame de MiniGameBase
-        FinishMiniGame();
+        // Appeler l'événement de fin de jeu au lieu de FinishMiniGame
+        LogParadeEventCoordinator.TriggerGameEnded();
     }
     
     /// <summary>

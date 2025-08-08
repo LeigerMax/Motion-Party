@@ -50,7 +50,25 @@ public class LogParadeGameLauncher : MonoBehaviour
     #region Lancement Calibration & Jeu
     private IEnumerator AutoStartCalibrationCoroutine()
     {
-        yield return new WaitForSeconds(2f);
+        // Si un LoadingScreenManager est présent et actif, attendre qu'il se termine
+        if (LoadingScreenManager.Instance != null && LoadingScreenManager.Instance.IsShowing)
+        {
+            LogStatus("LoadingScreenManager détecté et actif - Attente de la fin de l'écran de chargement...");
+            
+            // Attendre que l'écran de chargement se termine
+            yield return new WaitUntil(() => LoadingScreenManager.Instance == null || !LoadingScreenManager.Instance.IsShowing);
+            
+            // Attendre encore un peu pour être sûr que tout est initialisé
+            yield return new WaitForSeconds(1f);
+            
+            LogStatus("Écran de chargement terminé - Vérification de la calibration automatique");
+        }
+        else
+        {
+            // Comportement original si pas d'écran de chargement
+            yield return new WaitForSeconds(2f);
+        }
+        
         if (!LogParadeGameStateController.IsGameStarted && !LogParadeGameStateController.IsCalibrationInProgress)
         {
             LogStatus("Lancement automatique de la calibration via StartCalibrationProcess()");
