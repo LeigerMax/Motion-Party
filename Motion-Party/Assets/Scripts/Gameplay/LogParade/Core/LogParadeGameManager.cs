@@ -21,6 +21,9 @@ namespace Gameplay.LogParade.Core
 
         [Header("UI References")]
         public RoundEndScreenManager roundEndScreenManager;
+        
+        [Header("Encouragement System")]
+        public EncouragementManager encouragementManager;
 
         [Header("Session Management")]
         public bool enableGameSessionTransition = true;
@@ -119,6 +122,13 @@ namespace Gameplay.LogParade.Core
                 if (roundEndScreenManager == null)
                     Debug.LogWarning("[LogParadeGameManager] RoundEndScreenManager non trouvé !");
             }
+            
+            if (encouragementManager == null)
+            {
+                encouragementManager = FindFirstObjectByType<EncouragementManager>();
+                if (encouragementManager == null)
+                    Debug.LogWarning("[LogParadeGameManager] EncouragementManager non trouvé !");
+            }
         }
 
         private void InitializeGame()
@@ -130,11 +140,12 @@ namespace Gameplay.LogParade.Core
             if (gameController != null)
             {
                 gameController.OnGameCompleted += HandleGameFinished;
-                Debug.Log("[LogParadeGameManager] Abonné à OnGameCompleted du GameController");
+                gameController.OnGameStarted += HandleGameStarted;
+                Debug.Log("[LogParadeGameManager] Abonné aux événements du GameController");
             }
             else
             {
-                Debug.LogError("[LogParadeGameManager] GameController null - Impossible de s'abonner à OnGameCompleted !");
+                Debug.LogError("[LogParadeGameManager] GameController null - Impossible de s'abonner aux événements !");
             }
 
             if (gameLauncher != null)
@@ -237,6 +248,21 @@ namespace Gameplay.LogParade.Core
             HandleGameFinished();
         }
 
+        /// <summary>
+        /// Callback appelé quand le jeu démarre
+        /// </summary>
+        private void HandleGameStarted()
+        {
+            if (enableDebugLogs)
+                Debug.Log("[LogParadeGameManager] Jeu démarré - Activation du système d'encouragement");
+
+            // Démarrer le système d'encouragement
+            if (encouragementManager != null)
+            {
+                encouragementManager.StartEncouragement();
+            }
+        }
+
         #region Debug Methods
 
         [ContextMenu("Force Next MiniGame Transition")]
@@ -308,10 +334,17 @@ namespace Gameplay.LogParade.Core
         
         void OnDestroy()
         {
+            // Arrêter le système d'encouragement
+            if (encouragementManager != null)
+            {
+                encouragementManager.StopEncouragement();
+            }
+            
             // Nettoyer les événements
             if (gameController != null)
             {
                 gameController.OnGameCompleted -= HandleGameFinished;
+                gameController.OnGameStarted -= HandleGameStarted;
             }
         }
     }

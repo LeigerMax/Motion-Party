@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e7b0d6ba7e0823b40abc2e375cbf2f26, type: 3}
+  m_Name: EncouragementConfig_musicnote
+  m_EditorClassIdentifier: 
+  configurationName: "Configuration par d\xE9faut"
+  description: Description de cette configuration de messages
+  messages:
+  - text: 'Parfait, tu es dans le tempo ! '
+    audioClip: {fileID: 8300000, guid: aebacb7f1b873ff429af740a2d23a895, type: 3}
+    displayDuration: 4
+    messageId: ef3c13eb-0b46-4cb5-ad75-dc1c8ca1d6bd
+  - text: 'Bravo, quelle oreille ! '
+    audioClip: {fileID: 8300000, guid: a9ceb420b0650a044b3a3b8c50bd9f00, type: 3}
+    displayDuration: 4
+    messageId: ef3c13eb-0b46-4cb5-ad75-dc1c8ca1d6ba
+  - text: Parfaitement en rythme
+    audioClip: {fileID: 8300000, guid: 89d09acea985faa44b343e3058c2dd02, type: 3}
+    displayDuration: 4
+    messageId: ef3c13eb-0b46-4cb5-ad75-dc1c8ca1d6bg
+  - text: "J'esp\xE8re que tu ne triche pas"
+    audioClip: {fileID: 8300000, guid: b295734b70596e643854d588d7f83be0, type: 3}
+    displayDuration: 4
+    messageId: ef3c13eb-0b46-4cb5-ad75-dc1c8ca1d4bg
+  - text: "Chaque note est un succ\xE8s ! "
+    audioClip: {fileID: 8300000, guid: 1d2c0b7ffe084c042b23228a04aeaa39, type: 3}
+    displayDuration: 4
+    messageId: ef3c13eb-0b46-4cb5-ad75-dc1c8ca4d4bg
+  - text: "Tu tiens le rythme du d\xE9but \xE0 la fin !"
+    audioClip: {fileID: 8300000, guid: 29082a666e3ed594891dc0e48162531b, type: 3}
+    displayDuration: 4
+    messageId: ef3c13eb-0b46-4cb5-ad75-dc1c2ca4d4bg
+  minInterval: 15
+  maxInterval: 20
+  defaultDisplayDuration: 3
+  audioVolume: 3
+  playAudioWithMessage: 1

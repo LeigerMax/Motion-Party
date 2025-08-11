@@ -222,12 +222,26 @@ public class LogParadeUIManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Met à jour le texte de calibration.
+    /// Met à jour le texte de calibration avec des instructions plus claires.
     /// </summary>
     public void UpdateCalibrationText(string text)
     {
         if (!IsInitialized) return;
-        calibrationUIController?.UpdateCalibrationText(text);
+        
+        // Remplacer les références aux lanes par des directions plus claires
+        string modifiedText = text
+            .Replace("lane 1", "gauche")
+            .Replace("Lane 1", "gauche")
+            .Replace("LANE 1", "GAUCHE")
+            .Replace("voie 1", "gauche")
+            .Replace("Voie 1", "gauche")
+            .Replace("lane 4", "droite")
+            .Replace("Lane 4", "droite")
+            .Replace("LANE 4", "DROITE")
+            .Replace("voie 4", "droite")
+            .Replace("Voie 4", "droite");
+            
+        calibrationUIController?.UpdateCalibrationText(modifiedText);
     }
 
     /// <summary>
@@ -237,6 +251,24 @@ public class LogParadeUIManager : MonoBehaviour
     {
         if (!IsInitialized) return;
         calibrationUIController?.UpdateCalibrationProgress(progress);
+    }
+
+    /// <summary>
+    /// Masque complètement le texte de calibration une fois terminée.
+    /// </summary>
+    public void HideCalibrationText()
+    {
+        if (!IsInitialized) return;
+        
+        // Vider le texte directement si disponible
+        if (calibrationText != null)
+        {
+            calibrationText.text = "";
+            calibrationText.gameObject.SetActive(false);
+        }
+        
+        // Masquer via le contrôleur UI de calibration
+        calibrationUIController?.HideCalibrationUI();
     }
 
 

@@ -573,9 +573,23 @@ namespace UI.Team
                     Destroy(currentPopupInstance.gameObject);
                 }
 
-                // Trouver le Canvas principal pour assurer le bon rendu
-                Canvas mainCanvas = FindFirstObjectByType<Canvas>();
-                Transform parentTransform = mainCanvas != null ? mainCanvas.transform : transform;
+                // Trouver le Canvas principal avec le tag canvasMaster
+                Canvas mainCanvas = null;
+                GameObject canvasMasterObject = GameObject.FindWithTag("canvasMaster");
+                if (canvasMasterObject != null)
+                {
+                    mainCanvas = canvasMasterObject.GetComponent<Canvas>();
+                    if (debugMode)
+                        Debug.Log($"TeamManagementUI: Canvas principal trouvé avec tag 'canvasMaster': {canvasMasterObject.name}");
+                }
+                else
+                {
+                    if (debugMode)
+                        Debug.LogWarning("TeamManagementUI: Aucun GameObject trouvé avec le tag 'canvasMaster'");
+                }
+                
+                // Fallback : si pas de canvas avec tag, utiliser le canvas parent de ce script
+                Transform parentTransform = mainCanvas != null ? mainCanvas.transform : GetComponentInParent<Canvas>()?.transform ?? transform;
 
                 // Créer une nouvelle instance dans le bon parent
                 GameObject popupObject = Instantiate(playerDetailsPopupPrefab, parentTransform);

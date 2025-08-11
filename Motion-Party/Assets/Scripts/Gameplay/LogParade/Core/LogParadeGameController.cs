@@ -34,6 +34,9 @@ public class LogParadeGameController : MonoBehaviour
     // Event pour notifier le GameManager de la fin du jeu
     public System.Action OnGameCompleted;
     
+    // Event pour notifier le GameManager du début du jeu
+    public System.Action OnGameStarted;
+    
     private bool gameStarted = false;
     private bool gameEnded = false;
     private Vector3 currentPlayerPosition;
@@ -134,6 +137,11 @@ public class LogParadeGameController : MonoBehaviour
     {
         yield return new WaitForSeconds(startDelay);
         gameStarted = true;
+        
+        // Déclencher l'événement de début de jeu
+        LogParadeLogger.Log("[LogParade] Jeu démarré - Déclenchement de OnGameStarted");
+        OnGameStarted?.Invoke();
+        
         if (uiManager != null)
         {
             uiManager.ShowGameStartMessage();

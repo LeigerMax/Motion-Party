@@ -47,6 +47,9 @@ public class FireflyDanceGameManager : MiniGameBase
 
         [Header("UI & Feedback")]
         public FireflyDanceUIManager uiManager;
+        
+        [Header("Encouragement System")]
+        public EncouragementManager encouragementManager;
 
         [Header("Player Integration")]
         public FireflyScoreManagerPlayerIntegration scoreIntegration;
@@ -739,6 +742,13 @@ public class FireflyDanceGameManager : MiniGameBase
             }
 
             FireflyDanceLogger.Log($"🎮 Jeu démarré pour {currentPlayer?.Nickname ?? "Joueur inconnu"}");
+            
+            // Démarrer le système d'encouragement
+            if (encouragementManager != null)
+            {
+                encouragementManager.StartEncouragement();
+                FireflyDanceLogger.Log("🎉 Système d'encouragement activé");
+            }
         }
 
         /// <summary>
@@ -781,6 +791,13 @@ public class FireflyDanceGameManager : MiniGameBase
 
             // Arrêter tous les systèmes
             StopAllSystems();
+            
+            // Arrêter le système d'encouragement
+            if (encouragementManager != null)
+            {
+                encouragementManager.StopEncouragement();
+                FireflyDanceLogger.Log("🎉 Système d'encouragement arrêté");
+            }
 
             // Vérifier s'il y a un autre joueur ou terminer
             if (enablePlayerSystem)
@@ -974,6 +991,20 @@ public class FireflyDanceGameManager : MiniGameBase
             FireflyDanceLogger.Log($"🔍 Validation des composants essentiels:");
             FireflyDanceLogger.Log($"  GameController: {(gameController != null ? "✅" : "❌")}");
             FireflyDanceLogger.Log($"  Config: {(config != null ? "✅" : "❌")}");
+            
+            // Validation du système d'encouragement (optionnel)
+            if (encouragementManager == null)
+            {
+                encouragementManager = FindFirstObjectByType<EncouragementManager>();
+                if (encouragementManager == null)
+                    FireflyDanceLogger.LogWarning("EncouragementManager non trouvé - Messages d'encouragement désactivés");
+                else
+                    FireflyDanceLogger.Log("  EncouragementManager: ✅ (trouvé automatiquement)");
+            }
+            else
+            {
+                FireflyDanceLogger.Log("  EncouragementManager: ✅");
+            }
             
             if (!hasEssentials)
             {

@@ -140,7 +140,7 @@ public class LoadingScreenManager : MonoBehaviour
                 new LoadingScreenData.LoadingTip
                 {
                     tipId = "log_parade",
-                    tipText = "Bougez vos bras de gauche à droite pour guider les bûches !",
+                    tipText = "Bougez votre corps de gauche à droite pour vous guider !",
                     backgroundColor = new Color(0.3f, 0.2f, 0.1f)
                 },
                 new LoadingScreenData.LoadingTip

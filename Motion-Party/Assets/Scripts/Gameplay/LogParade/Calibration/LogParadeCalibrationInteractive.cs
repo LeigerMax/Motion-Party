@@ -6,7 +6,7 @@ using System;
 /// <summary>
 /// Système de calibration interactive "Déplacez-vous" pour LogParade - Version Simplifiée.
 /// Utilise CalibrationTextUI pour l'interface et coordonne les modules de calibration.
-/// Le joueur doit se déplacer successivement vers la lane 1 puis la lane 4.
+/// Le joueur doit se déplacer successivement vers la gauche puis vers la droite.
 /// </summary>
 public class LogParadeCalibrationInteractive : MonoBehaviour
 {
@@ -208,10 +208,10 @@ public class LogParadeCalibrationInteractive : MonoBehaviour
         }
         else
         {
-            // Vérifier que les lanes critiques sont assignées (1 et 4)
+            // Vérifier que les lanes critiques sont assignées (gauche et droite)
             if (laneTransforms[0] == null || laneTransforms[3] == null)
             {
-                LogParadeLogger.LogError("Les lanes 1 et 4 (indices 0 et 3) sont requises pour la calibration interactive!");
+                LogParadeLogger.LogError("Les lanes gauche et droite (indices 0 et 3) sont requises pour la calibration interactive!");
                 hasErrors = true;
             }
         }
@@ -266,7 +266,7 @@ public class LogParadeCalibrationInteractive : MonoBehaviour
         if (calibrationTextUI != null)
         {
             calibrationTextUI.OnCalibrationStarted();
-            calibrationTextUI.ShowInstruction("Placez-vous sur la LANE 1 et restez-y 3 secondes", true);
+            calibrationTextUI.ShowInstruction("Placez-vous à GAUCHE et restez-y 3 secondes", true);
         }
         
         
@@ -318,6 +318,8 @@ public class LogParadeCalibrationInteractive : MonoBehaviour
         if (calibrationTextUI != null)
         {
             calibrationTextUI.OnCalibrationCompleted();
+            // Masquer complètement le texte après un délai court
+            StartCoroutine(HideCalibrationTextAfterDelay(3f));
         }
         OnCalibrationCompleted?.Invoke();
     }
@@ -354,7 +356,7 @@ public class LogParadeCalibrationInteractive : MonoBehaviour
     {
         if (calibrationTextUI != null)
         {
-            calibrationTextUI.ShowSuccessMessage("Très bien ! Maintenant, allez sur la lane 4");
+            calibrationTextUI.ShowSuccessMessage("Très bien ! Maintenant, allez à DROITE");
         }
     }
 
@@ -371,7 +373,7 @@ public class LogParadeCalibrationInteractive : MonoBehaviour
         
         if (calibrationTextUI != null)
         {
-            calibrationTextUI.ShowInstruction("Allez sur la lane 4...", true);
+            calibrationTextUI.ShowInstruction("Allez à DROITE...", true);
         }
         
     }
@@ -388,11 +390,22 @@ public class LogParadeCalibrationInteractive : MonoBehaviour
         
         if (calibrationTextUI != null)
         {
-            calibrationTextUI.ShowInstruction("Placez-vous sur la lane 1...", true);
+            calibrationTextUI.ShowInstruction("Placez-vous à GAUCHE...", true);
         }
     }
 
-
+    /// <summary>
+    /// Coroutine pour masquer le texte de calibration après un délai.
+    /// </summary>
+    private IEnumerator HideCalibrationTextAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        
+        if (calibrationTextUI != null)
+        {
+            calibrationTextUI.HideCalibrationText();
+        }
+    }
     #endregion
 
 
@@ -407,25 +420,25 @@ public class LogParadeCalibrationInteractive : MonoBehaviour
         switch (stateManager.CurrentState)
         {
             case LogParadeCalibrationStateManager.CalibrationState.WaitingForLane1:
-                calibrationTextUI.ShowInstruction("Placez-vous sur la LANE 1 et restez-y 3 secondes", true);
+                calibrationTextUI.ShowInstruction("Placez-vous à GAUCHE et restez-y 3 secondes", true);
                 break;
                 
             case LogParadeCalibrationStateManager.CalibrationState.HoldingOnLane1:
                 float remainingTime1 = stateManager.RemainingHoldTime;
-                calibrationTextUI.ShowInstruction($"Restez sur la LANE 1 encore {Mathf.Ceil(remainingTime1)} secondes", true);
+                calibrationTextUI.ShowInstruction($"Restez à GAUCHE encore {Mathf.Ceil(remainingTime1)} secondes", true);
                 break;
                 
             case LogParadeCalibrationStateManager.CalibrationState.WaitingForLane4:
-                calibrationTextUI.ShowInstruction("Maintenant, placez-vous sur la LANE 4 et restez-y 3 secondes", true);
+                calibrationTextUI.ShowInstruction("Maintenant, placez-vous à DROITE et restez-y 3 secondes", true);
                 break;
                 
             case LogParadeCalibrationStateManager.CalibrationState.HoldingOnLane4:
                 float remainingTime4 = stateManager.RemainingHoldTime;
-                calibrationTextUI.ShowInstruction($"Restez sur la LANE 4 encore {Mathf.Ceil(remainingTime4)} secondes", true);
+                calibrationTextUI.ShowInstruction($"Restez à DROITE encore {Mathf.Ceil(remainingTime4)} secondes", true);
                 break;
                 
             case LogParadeCalibrationStateManager.CalibrationState.Lane1Completed:
-                calibrationTextUI.ShowSuccessMessage("Lane 1 terminée ! Dirigez-vous vers la lane 4");
+                calibrationTextUI.ShowSuccessMessage("Gauche terminé ! Dirigez-vous à droite");
                 break;
                 
             case LogParadeCalibrationStateManager.CalibrationState.Completed:

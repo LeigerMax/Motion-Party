@@ -215,7 +215,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &116226582
 RectTransform:
   m_ObjectHideFlags: 0
@@ -399,6 +399,60 @@ Transform:
   m_Children:
   - {fileID: 1720633715}
   m_Father: {fileID: 757599648}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &233809248
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 233809250}
+  - component: {fileID: 233809249}
+  m_Layer: 0
+  m_Name: EncouragementManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &233809249
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 233809248}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c9df72ea7d69beb43bd5c6b25cb4e549, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  configuration: {fileID: 11400000, guid: 9fc12abb74614904aaff0103193f1bda, type: 2}
+  encouragementMessages: []
+  minInterval: 10
+  maxInterval: 15
+  defaultDisplayDuration: 4
+  audioSource: {fileID: 0}
+  playAudioWithMessage: 1
+  audioVolume: 1
+  enableDebugLogs: 1
+  testInEditor: 1
+--- !u!4 &233809250
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 233809248}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1181.3014, y: 480.91254, z: -2.7800426}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &252005736
 GameObject:
@@ -1359,6 +1413,7 @@ MonoBehaviour:
   handTracker: {fileID: 1488304617}
   fireflyCapture: {fileID: 683691416}
   uiManager: {fileID: 805148122}
+  encouragementManager: {fileID: 233809249}
   scoreIntegration: {fileID: 1035241305}
   playerDisplayUI: {fileID: 1581984774}
   roundEndScreenManager: {fileID: 1681679708}
@@ -1667,7 +1722,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1006703484
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1954,7 +2009,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: 3b668a0060018db449406b45922bb6b7, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 1
+  m_Volume: 0.878
   m_Pitch: 1
   Loop: 1
   Mute: 0
@@ -2868,3 +2923,4 @@ SceneRoots:
   - {fileID: 260400022}
   - {fileID: 1309006209}
   - {fileID: 252005738}
+  - {fileID: 233809250}

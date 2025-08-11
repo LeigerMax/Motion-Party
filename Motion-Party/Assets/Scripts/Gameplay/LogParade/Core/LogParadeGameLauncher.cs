@@ -17,6 +17,7 @@ public class LogParadeGameLauncher : MonoBehaviour
     [SerializeField] private LogParadeLogGenerator logGenerator;
     [SerializeField] private LogParadeScoreManager scoreManager;
     [SerializeField] private LogParadeUIManager uiManager;
+    [SerializeField] private EncouragementManager encouragementManager;
     [Header("Paramètres")]
     [SerializeField] private float delayAfterCalibration = 1.5f;
     [SerializeField] private bool autoFindComponents = true;
@@ -178,7 +179,13 @@ public class LogParadeGameLauncher : MonoBehaviour
             TryStartScoring();
             yield return new WaitForSeconds(0.2f);
         }
-
+        
+        // Démarrer le système d'encouragement
+        if (encouragementManager != null)
+        {
+            TryStartEncouragementSystem();
+            yield return new WaitForSeconds(0.1f);
+        }
     }
     private IEnumerator FinalizeGameStart()
     {
@@ -291,6 +298,37 @@ public class LogParadeGameLauncher : MonoBehaviour
             LogError($" Erreur ScoreManager: {ex.Message}");
         }
     }
+
+    private void TryStartEncouragementSystem()
+    {
+        try
+        {
+            LogStatus(" Démarrage du système d'encouragement");
+            encouragementManager.StartEncouragement();
+            LogStatus(" ✅ Système d'encouragement démarré");
+        }
+        catch (System.Exception ex)
+        {
+            LogError($" Erreur EncouragementManager: {ex.Message}");
+        }
+    }
+
+    private void TryStopEncouragementSystem()
+    {
+        try
+        {
+            if (encouragementManager != null)
+            {
+                LogStatus(" Arrêt du système d'encouragement");
+                encouragementManager.StopEncouragement();
+                LogStatus(" ✅ Système d'encouragement arrêté");
+            }
+        }
+        catch (System.Exception ex)
+        {
+            LogError($" Erreur lors de l'arrêt EncouragementManager: {ex.Message}");
+        }
+    }
     #endregion
 
     #region Validation & AutoFind
@@ -338,6 +376,8 @@ public class LogParadeGameLauncher : MonoBehaviour
                 scoreManager = validator.GetValidatedComponent<LogParadeScoreManager>();
             if (uiManager == null)
                 uiManager = validator.GetValidatedComponent<LogParadeUIManager>();
+            if (encouragementManager == null)
+                encouragementManager = validator.GetValidatedComponent<EncouragementManager>();
         }
         else
         {
@@ -352,6 +392,8 @@ public class LogParadeGameLauncher : MonoBehaviour
                 scoreManager = FindFirstObjectByType<LogParadeScoreManager>();
             if (uiManager == null)
                 uiManager = FindFirstObjectByType<LogParadeUIManager>();
+            if (encouragementManager == null)
+                encouragementManager = FindFirstObjectByType<EncouragementManager>();
         }
 
     }
@@ -361,6 +403,10 @@ public class LogParadeGameLauncher : MonoBehaviour
     public void RestartGame()
     {
         LogStatus("Redémarrage du jeu...");
+        
+        // Arrêter le système d'encouragement avant le redémarrage
+        TryStopEncouragementSystem();
+        
         LogParadeGameStateController.RestartGame();
         StartCoroutine(RestartGameCoroutine());
     }

@@ -115,6 +115,23 @@ public class CalibrationTextUI : MonoBehaviour
     }
 
     /// <summary>
+    /// Masque complètement le texte de calibration (sans animation)
+    /// </summary>
+    public void HideCalibrationText()
+    {
+        StopTextPulse();
+        
+        if (mainInstructionText != null)
+        {
+            mainInstructionText.text = "";
+            mainInstructionText.alpha = 0f;
+        }
+        
+        calibrationCanvasGroup.alpha = 0f;
+        gameObject.SetActive(false);
+    }
+
+    /// <summary>
     /// Réinitialise l'UI à son état initial
     /// </summary>
     public void ResetUI()
@@ -146,7 +163,7 @@ public class CalibrationTextUI : MonoBehaviour
     public void OnCalibrationCompleted()
     {
         ShowSuccessMessage("Calibration terminée !");
-        StartCoroutine(DelayedHide(3f));
+        StartCoroutine(DelayedHide(2f)); // Réduit le délai et masque complètement
     }
 
     /// <summary>

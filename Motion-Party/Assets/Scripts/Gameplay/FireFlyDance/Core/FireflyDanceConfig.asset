@@ -18,7 +18,7 @@ MonoBehaviour:
   maxFireflies: 12
   maxSpeed: 1
   minSpeed: 0.1
-  spawnInterval: 5
+  spawnInterval: 2
   fireflyLifetime: 50
   captureRadius: 0.5
   scorePerFirefly: 10

@@ -290,7 +290,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &242738175
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1416,8 +1416,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 777, y: 0}
-  m_SizeDelta: {x: 200, y: 50}
+  m_AnchoredPosition: {x: 34, y: 150}
+  m_SizeDelta: {x: 500, y: 300}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &705855966
 MonoBehaviour:
@@ -1467,14 +1467,14 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36
-  m_fontSizeBase: 36
+  m_fontSize: 42
+  m_fontSizeBase: 42
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
-  m_HorizontalAlignment: 1
+  m_fontStyle: 1
+  m_HorizontalAlignment: 2
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -2132,7 +2132,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -63.706604, y: 10}
+  m_AnchoredPosition: {x: -183, y: 10}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1077075923
@@ -2189,7 +2189,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 256
   m_textAlignment: 65535
@@ -3584,7 +3584,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1ae9fedd2a679a348833c01b22d9c69f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  udpReceive: {fileID: 0}
+  udpReceive: {fileID: 1354292936}
   smoothingFactor: 0.8
   leftBoundary: -1.5
   rightBoundary: 1.5
@@ -3611,6 +3611,60 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 7622724856221292152, guid: fb070a2d31206d9499ecc8a77be0ebf0, type: 3}
   m_PrefabInstance: {fileID: 1735960770}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1608439256
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1608439258}
+  - component: {fileID: 1608439257}
+  m_Layer: 0
+  m_Name: EncouragementManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1608439257
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1608439256}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c9df72ea7d69beb43bd5c6b25cb4e549, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  configuration: {fileID: 11400000, guid: 591f0f91584b08e47aca6e6565f63b96, type: 2}
+  encouragementMessages: []
+  minInterval: 15
+  maxInterval: 20
+  defaultDisplayDuration: 4
+  audioSource: {fileID: 0}
+  playAudioWithMessage: 1
+  audioVolume: 1
+  enableDebugLogs: 0
+  testInEditor: 0
+--- !u!4 &1608439258
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1608439256}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1181.3014, y: 480.91254, z: -2.7800426}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1626765325
 GameObject:
   m_ObjectHideFlags: 0
@@ -4407,7 +4461,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1897720323
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4738,9 +4792,10 @@ MonoBehaviour:
   logGenerator: {fileID: 1689009126}
   scoreManager: {fileID: 257551260}
   uiManager: {fileID: 1908275072}
+  encouragementManager: {fileID: 1608439257}
   delayAfterCalibration: 1.5
   autoFindComponents: 1
-  enableDetailedLogs: 1
+  enableDetailedLogs: 0
   autoStartCalibrationOnStart: 1
 --- !u!4 &2032317003
 Transform:
@@ -5022,3 +5077,4 @@ SceneRoots:
   - {fileID: 359846799}
   - {fileID: 1803186968}
   - {fileID: 462779191}
+  - {fileID: 1608439258}

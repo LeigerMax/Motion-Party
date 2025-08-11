@@ -23,6 +23,9 @@ namespace Gameplay.MusicNotePress
         [Header("UI References")]
         public RoundEndScreenManager roundEndScreenManager;
         public MusicNotePlayerDisplayUI playerDisplayUI;
+        
+        [Header("Encouragement System")]
+        public EncouragementManager encouragementManager;
 
         [Header("Badge System")]
         public MusicBadgeAdapter badgeAdapter;
@@ -169,6 +172,13 @@ namespace Gameplay.MusicNotePress
                     Debug.Log("[MusicNoteGameManager] MusicBadgeAdapter ajouté automatiquement");
                 }
             }
+            
+            if (encouragementManager == null)
+            {
+                encouragementManager = FindFirstObjectByType<EncouragementManager>();
+                if (encouragementManager == null)
+                    Debug.LogWarning("[MusicNoteGameManager] EncouragementManager non trouvé - Messages d'encouragement désactivés");
+            }
         }
 
         private void InitializePlayerSystem()
@@ -243,6 +253,13 @@ namespace Gameplay.MusicNotePress
                 
                 // Démarrer le jeu
                 gameController.StartGame();
+                
+                // Démarrer le système d'encouragement
+                if (encouragementManager != null)
+                {
+                    encouragementManager.StartEncouragement();
+                    Debug.Log("[MusicNoteGameManager] Système d'encouragement démarré");
+                }
             }
             else
             {
@@ -254,6 +271,13 @@ namespace Gameplay.MusicNotePress
         {
             if (enableDebugLogs)
                 Debug.Log($"[MusicNoteGameManager] Fin de partie pour {currentPlayer?.Nickname} - Score: {score}");
+
+            // Arrêter le système d'encouragement
+            if (encouragementManager != null)
+            {
+                encouragementManager.StopEncouragement();
+                Debug.Log("[MusicNoteGameManager] Système d'encouragement arrêté");
+            }
 
             // Terminer la session analytics et enregistrer le score
             EndAnalyticsSession(score);
